@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="地铁 南京地铁 车站实时 地铁时刻表 下一班车" name="keywords">
+    <meta content="35000ft" name="author">
+
+    <title>下一班车 | Next Train | 下一班車 | 南京地铁</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="./js/moment.js"></script>
+
+    <link crossorigin="anonymous"
+          href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-12-M/twitter-bootstrap/3.4.1/css/bootstrap.min.css"
+          integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" rel="stylesheet">
+    <link crossorigin="anonymous"
+          href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-12-M/font-awesome/5.10.2/css/all.min.css"
+          integrity="sha256-zmfNZmXoNWBMemUOo1XUGFfc0ihGGLYdgtJS3KCr/l0=" rel="stylesheet">
+    <link crossorigin="anonymous"
+          href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-12-M/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.css"
+          integrity="sha256-gEYuPiCt4z3aRsQm0F4X5YBtK8t/Ny7v+Q9GwjLuJS0=" rel="stylesheet">
+    <link href="css/base.css" rel="stylesheet" type="text/css">
+    <link href="css/main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<div id="app">
+    <header>
+        <div class="container jumbotron">
+            <div class="row">
+                <div class="col-xs-12 col-sm-10 col-sm-offset-1">
+                    <h2>下一班车 | Next Train</h2>
+                    <div class="search-wrapper" role="search">
+                        <div class="form-group">
+                            <input @input="handleInput" @keyup.enter="handleSearch"
+                                   autocomplete="off"
+                                   class="form-control search clearable"
+                                   placeholder="车站名 / 车站代码"
+                                   v-model="inputString">
+                            <i @click="handleSearch" class="fa fa-search"></i>
+                        </div>
+                    </div>
+
+                    <div class="info-wrapper">
+                        <a href="./js/station-names.js"
+                           target="_blank">车站数据
+                        </a>
+                    </div>
+                    <div class="info-wrapper">
+                        <a href="./js/line-data.js"
+                           target="_blank">线路数据
+                        </a>
+                    </div>
+                    <div class="info-wrapper">
+                        列车信息最后更新于:{{updateTime}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="row">
+            <div class="station-info-wrapper">
+                <div class="station-wrapper">
+                    <h2>{{station.name}}</h2>
+                    <h4>{{station.foreignName}}</h4>
+                </div>
+                <div class="line-list-wrapper">
+                <span :key="line.id" :style="{backgroundColor: line.id===selectedLine.id ? line.color : '#dcdcdc',
+                                                color: line.id === selectedLine.id ? '#ffffff' : '#858585'}"
+                      @click="changeLine(line)"
+                      class="line-wrapper"
+                      v-for="line in station.lines">
+                    {{line.name}}
+                </span>
+                </div>
+            </div>
+            <div class="col-xs-12 col-md-8 col-md-offset-2 table-responsive">
+                <table class="table table-hover component train-info-table">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>目的地</th>
+                        <th>状态</th>
+                        <th>发车时间</th>
+                        <th>车种</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-if="this.trainInfoList.length===0">
+                        <td></td>
+                        <td>暂无列车</td>
+                        <td>No Trains</td>
+                        <td>--</td>
+                        <td>{{info}}</td>
+                    </tr>
+                    <tr v-for="trainInfo in trainInfoList">
+                        <td></td>
+                        <td>{{trainInfo.terminal}}</td>
+                        <td>{{trainInfo.status}}</td>
+                        <td>{{trainInfo.terminal === station.name ? '--' : trainInfo.depShowTime}}</td>
+                        <td>{{trainInfo.trainType}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+
+    </footer>
+</div>
+</body>
+<script src="./js/axios-0.18.0.js"></script>
+<script charset="utf-8" src="./js/line-data.js" type="text/javascript"></script>
+<script charset="utf-8" src="./js/station-names.js" type="text/javascript"></script>
+<script src="./js/main.js" type="module"></script>
+
+
+</html>
