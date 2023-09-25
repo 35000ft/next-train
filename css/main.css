@@ -10,7 +10,6 @@
     margin-top: 0;
     margin-bottom: 10px;
     font-weight: bolder;
-
 }
 
 .station-info-wrapper h4 {
@@ -46,4 +45,65 @@
 .info-wrapper {
     margin-top: 5px;
     margin-bottom: 5px;
+}
+
+.search-hint-wrapper {
+    margin-top: 5px;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
+    position: absolute;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.search-hint-wrapper ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.search-hint-wrapper li {
+    text-align: left;
+    color: #132860;
+    padding: 0 10px;
+    font-size: 16px;
+    height: 40px;
+    background-color: #fff;
+    border-bottom: 1px solid #dcdcdc;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.search-hint-wrapper li:hover, li:focus {
+    background-color: #dcdcdc;
+}
+
+.search-hint-left {
+    display: inline-block;
+    width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-hint-right {
+    text-align: right;
+    position: absolute;
+    right: 10px;
+    width: 35%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-hint-right .line-wrapper {
+    height: 80%;
+    display: inline-block;
+    font-size: 14px;
+    margin-left: 0;
+    margin-right: 4px;
+    font-weight: normal;
+    border-radius: 3px;
 }

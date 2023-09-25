@@ -5,6 +5,6 @@ export async function fetchStationTrainInfo(stationId, lineId) {
         return res.data.data
     }, () => {
         console.log(`get stationId: ${stationId} lineId: ${lineId} trainInfo error!`)
-        return []
+        return null
     })
 }

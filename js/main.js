@@ -1,4 +1,5 @@
 import {fetchStationTrainInfo} from './api.js'
+import {EXTRACT_LINE_REGEX, SEARCH_STATION_BY_LINE_REGEX, SEARCH_STATION_REGEX} from './regex-patterns.js'
 
 const app = new Vue({
     el: '#app',
@@ -13,7 +14,8 @@ const app = new Vue({
         trainInfoList: [],
         trainInfoMap: new Map,
         info: "",
-        updateTime: "----"
+        updateTime: "----",
+        searchHint: []
     },
     methods: {
         calcTrainInfoAttr() {
@@ -44,20 +46,20 @@ const app = new Vue({
         changeLine(line) {
             this.selectedLine = line
         },
-        handleInput() {
-            console.log(this.inputString)
-        },
-        handleSearch() {
-            if (this.inputString === "") return
-            let station = this.parseStation(this.inputString)
-            if (station == null) {
-                this.info = "无数据"
-                return
-            }
+        changeStation(station) {
+            this.searchHint = []
+            if (station == null) return
             this.selectedLine = null
             this.station = station
             this.selectedLine = this.station.lines[0]
-            console.log(this.selectedLine)
+        },
+        handleSearch() {
+            let station = this.searchHint[0]
+            if (station === undefined) {
+                this.info = "无数据"
+                return
+            }
+            this.changeStation(station)
         },
         init() {
             const url = decodeURI(location.href)
@@ -77,18 +79,29 @@ const app = new Vue({
         async fetchStationTrainInfo(stationId, lineId) {
             this.info = "少女祈祷中..."
             return fetchStationTrainInfo(stationId, lineId).then(e => {
-                this.updateTime = moment().format("YYYY年MM月DD日 HH:mm")
                 this.info = ""
+                if (e == null) {
+                    this.updateTime = "更新失败"
+                    return []
+                }
+                this.updateTime = moment().format("YYYY年MM月DD日 HH:mm")
                 return e
             })
         },
+
         getLineData(lineCode) {
             return lineData[lineCode]
         },
-        getStationRawString(keyWord) {
-            let pattern = new RegExp(`(?<=.*?@)[^@]+${keyWord}.*?(?=&)`, "gi")
-            let match = stationNames.match(pattern)
-            return match == null ? null : match[0]
+        getMatchedStation(keyWord) {
+            if (keyWord == null || keyWord === "") return null
+            const line = EXTRACT_LINE_REGEX(keyWord)
+            let pattern
+            if (line != null) {
+                pattern = SEARCH_STATION_BY_LINE_REGEX(line)
+            } else {
+                pattern = SEARCH_STATION_REGEX(keyWord)
+            }
+            return stationNames.match(pattern)
         },
         async getStationTrainInfo(stationId, lineId) {
             if (this.trainInfoMap.has(lineId)) {
@@ -102,15 +115,26 @@ const app = new Vue({
             return []
         },
         parseStation(stationName) {
-            if (stationName === undefined) return
-            const stationRawString = this.getStationRawString(stationName)
+            if (stationName === undefined) return null
+            const stationRawString = this.getMatchedStation(stationName)[0]
             if (stationRawString == null) {
                 this.info = "暂无数据"
                 this.inputString = ""
-                alert("暂无数据")
+                return null
+            }
+            return this.toStation(stationRawString)
+        },
+        showSearchHint(keyWord) {
+            if (keyWord === "") {
+                this.searchHint = []
                 return
             }
-            let split = stationRawString.split(',')
+            let matchedStationList = this.getMatchedStation(this.inputString);
+            if (matchedStationList == null) return
+            this.searchHint = matchedStationList.map(e => this.toStation(e))
+        },
+        toStation(row) {
+            let split = row.split(',')
             return {
                 id: split[0],
                 name: split[1],
@@ -132,6 +156,9 @@ const app = new Vue({
         setInterval(this.updateTrainInfo, 60000)
     },
     watch: {
+        inputString(val) {
+            this.showSearchHint(val)
+        },
         station: function (val) {
             this.initTrainInfo()
             let strings = location.href.split('#');

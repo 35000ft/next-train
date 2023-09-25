@@ -8,7 +8,7 @@
     <meta content="35000ft" name="author">
 
     <title>下一班车 | Next Train | 下一班車 | 南京地铁</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="./js/vue.js"></script>
     <script src="./js/moment.js"></script>
 
     <link crossorigin="anonymous"
@@ -33,23 +33,39 @@
                     <h2>下一班车 | Next Train</h2>
                     <div class="search-wrapper" role="search">
                         <div class="form-group">
-                            <input @input="handleInput" @keyup.enter="handleSearch"
+                            <input @focus="showSearchHint(inputString)"
+                                   @keyup.enter="handleSearch"
                                    autocomplete="off"
                                    class="form-control search clearable"
-                                   placeholder="车站名 / 车站代码"
+                                   placeholder="车站名 / XJK / 1号线"
                                    v-model="inputString">
                             <i @click="handleSearch" class="fa fa-search"></i>
+                            <div class="search-hint-wrapper" v-show="searchHint.length>0">
+                                <ul>
+                                    <li :key="hint.id" @click="changeStation(hint)" v-for="hint in searchHint">
+                                        <span class="search-hint-left">{{hint.name}} {{hint.foreignName}}</span>
+                                        <span class="search-hint-right">
+                                             <span :key="line.id" :style="{backgroundColor:  line.color ,
+                                                color: '#ffffff'}"
+                                                   class="line-wrapper"
+                                                   v-for="line in hint.lines">
+                                                    {{line.name}}
+                                            </span>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
 
                     <div class="info-wrapper">
                         <a href="./js/station-names.js"
-                           target="_blank">车站数据
+                           target="_blank">车站数据: 2022-12-28
                         </a>
                     </div>
                     <div class="info-wrapper">
                         <a href="./js/line-data.js"
-                           target="_blank">线路数据
+                           target="_blank">线路数据: 2022-12-28
                         </a>
                     </div>
                     <div class="info-wrapper">
@@ -89,7 +105,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-if="this.trainInfoList.length===0">
+                    <tr v-show="this.trainInfoList.length===0">
                         <td></td>
                         <td>暂无列车</td>
                         <td>No Trains</td>
