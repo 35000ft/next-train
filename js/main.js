@@ -130,7 +130,10 @@ const app = new Vue({
                 return
             }
             let matchedStationList = this.getMatchedStation(this.inputString);
-            if (matchedStationList == null) return
+            if (matchedStationList == null) {
+                this.searchHint = []
+                return
+            }
             this.searchHint = matchedStationList.map(e => this.toStation(e))
         },
         toStation(row) {

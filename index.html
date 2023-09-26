@@ -11,6 +11,8 @@
     <script src="./js/vue.js"></script>
     <script src="./js/moment.js"></script>
 
+    <link href="https://api.35000ft.top" rel="preconnect">
+    <link href="https://api.35000ft.top" rel="dns-prefetch">
     <link crossorigin="anonymous"
           href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-12-M/twitter-bootstrap/3.4.1/css/bootstrap.min.css"
           integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" rel="stylesheet">
@@ -40,7 +42,7 @@
                                    placeholder="车站名 / XJK / 1号线"
                                    v-model="inputString">
                             <i @click="handleSearch" class="fa fa-search"></i>
-                            <div class="search-hint-wrapper" v-show="searchHint.length>0">
+                            <div class="search-hint-wrapper" v-cloak v-show="searchHint.length>0">
                                 <ul>
                                     <li :key="hint.id" @click="changeStation(hint)" v-for="hint in searchHint">
                                         <span class="search-hint-left">{{hint.name}} {{hint.foreignName}}</span>
@@ -69,7 +71,7 @@
                         </a>
                     </div>
                     <div class="info-wrapper">
-                        列车信息最后更新于:{{updateTime}}
+                        列车信息最后更新于: <span v-cloak>{{updateTime}}</span>
                     </div>
                 </div>
             </div>
@@ -80,8 +82,8 @@
         <div class="row">
             <div class="station-info-wrapper">
                 <div class="station-wrapper">
-                    <h2>{{station.name}}</h2>
-                    <h4>{{station.foreignName}}</h4>
+                    <h2 v-cloak>{{station.name}}</h2>
+                    <h4 v-cloak>{{station.foreignName}}</h4>
                 </div>
                 <div class="line-list-wrapper">
                 <span :key="line.id" :style="{backgroundColor: line.id===selectedLine.id ? line.color : '#dcdcdc',
