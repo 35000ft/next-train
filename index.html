@@ -112,7 +112,7 @@
                         <td>--</td>
                         <td>{{info}}</td>
                     </tr>
-                    <tr v-for="trainInfo in trainInfoList">
+                    <tr v-for="trainInfo in trainInfoList.slice(0,6)">
                         <td></td>
                         <td>{{trainInfo.terminal}}</td>
                         <td>{{trainInfo.status}}</td>
