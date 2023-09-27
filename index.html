@@ -42,7 +42,7 @@
                                    placeholder="车站名 / XJK / 1号线"
                                    v-model="inputString">
                             <i @click="handleSearch" class="fa fa-search"></i>
-                            <div class="search-hint-wrapper" v-cloak v-show="searchHint.length>0">
+                            <div class="search-hint-wrapper" v-cloak v-show="searchHint!=null && searchHint.length>0">
                                 <ul>
                                     <li :key="hint.id" @click="changeStation(hint)" v-for="hint in searchHint">
                                         <span class="search-hint-left">{{hint.name}} {{hint.foreignName}}</span>
@@ -71,7 +71,7 @@
                         </a>
                     </div>
                     <div class="info-wrapper">
-                        列车信息最后更新于: <span v-cloak>{{updateTime}}</span>
+                        列车数据获取于: <span v-cloak>{{updateTimeString}}</span>
                     </div>
                 </div>
             </div>
@@ -107,14 +107,14 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-show="this.trainInfoList.length===0">
+                    <tr v-show="trainInfoList!=null && trainInfoList.length===0">
                         <td></td>
                         <td>暂无列车</td>
                         <td>No Trains</td>
                         <td>--</td>
                         <td>{{info}}</td>
                     </tr>
-                    <tr v-for="trainInfo in trainInfoList">
+                    <tr v-for="trainInfo in trainInfoList.slice(0,6)">
                         <td></td>
                         <td>{{trainInfo.terminal}}</td>
                         <td>{{trainInfo.status}}</td>

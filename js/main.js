@@ -1,4 +1,6 @@
+import {constants} from "./constants.js";
 import {fetchStationTrainInfo} from './api.js'
+import {formatFromNow} from './time-formatter.js'
 import {EXTRACT_LINE_REGEX, SEARCH_STATION_BY_LINE_REGEX, SEARCH_STATION_REGEX} from './regex-patterns.js'
 
 const app = new Vue({
@@ -6,59 +8,65 @@ const app = new Vue({
     data: {
         inputString: "",
         station: {
-            id: 13,
-            name: "新街口",
+            id: null,
+            name: constants.DEFAULT_STATION,
             lines: []
         },
         selectedLine: {},
         trainInfoList: [],
         trainInfoMap: new Map,
         info: "",
-        updateTime: "----",
+        updateTime: null,
+        updateTimeString: "----",
         searchHint: []
     },
     methods: {
-        calcTrainInfoAttr() {
-            if (this.trainInfoList.length === 0) return
-            this.trainInfoList.forEach(e => {
+        calcTrainInfoAttr(trainInfoList) {
+            if (trainInfoList.length === 0) return []
+            trainInfoList.forEach(e => {
                 const arrTime = moment(`${e.date} ${e.arrTime.time}`).add(e.arrTime.dayOffset, 'd')
                 const depTime = moment(`${e.date} ${e.depTime.time}`).add(e.depTime.dayOffset, 'd')
                 const now = moment()
+                e['onService'] = true
+
+                //格式化"状态"
                 let secArr = arrTime.diff(now, 's')
                 let secDep = depTime.diff(now, 's')
                 if (secArr > 15) {
-                    e.status = `${Math.ceil(secArr / 60.0)}分钟`
+                    e['status'] = formatFromNow(arrTime, 60, 'minutes', 'HH:ss')
                 } else if (secArr > 0) {
-                    e.status = "即将到达"
+                    e['status'] = constants.TRAIN_STATUS_ARRIVE_SOON
                 } else if (secDep >= 0) {
-                    e.status = "车已到达"
+                    e['status'] = constants.TRAIN_STATUS_ARRIVED
                 } else {
-                    e.status = "正在离开"
+                    e['status'] = constants.TRAIN_STATUS_LEAVING
+                    e['onService'] = false
                 }
 
-                if (depTime.second() > 30) {
-                    e.depShowTime = depTime.add(1, 's').format('HH:mm')
-                } else {
-                    e.depShowTime = depTime.format('HH:mm')
-                }
+                //格式化"发车时间"
+                e['depShowTime'] = depTime.format('HH:mm')
             })
+            return trainInfoList
+        },
+        calcUpdateTimeString() {
+            if (this.updateTime == null) {
+                return constants.UPDATE_ERROR_HINT
+            }
+            this.updateTimeString = formatFromNow(this.updateTime, 60, 'minutes', 'HH:mm')
         },
         changeLine(line) {
             this.selectedLine = line
         },
         changeStation(station) {
             this.searchHint = []
-            if (station == null) return
+            if (station == null || station === this.station) return
             this.selectedLine = null
             this.station = station
             this.selectedLine = this.station.lines[0]
         },
         handleSearch() {
             let station = this.searchHint[0]
-            if (station === undefined) {
-                this.info = "无数据"
-                return
-            }
+            if (station === undefined) return
             this.changeStation(station)
         },
         init() {
@@ -77,18 +85,17 @@ const app = new Vue({
             this.trainInfoList = []
         },
         async fetchStationTrainInfo(stationId, lineId) {
-            this.info = "少女祈祷中..."
+            this.info = constants.UPDATING_TRAIN_INFO_HINT
             return fetchStationTrainInfo(stationId, lineId).then(e => {
                 this.info = ""
                 if (e == null) {
-                    this.updateTime = "更新失败"
+                    this.updateTime = null
                     return []
                 }
-                this.updateTime = moment().format("YYYY年MM月DD日 HH:mm")
+                this.updateTime = moment()
                 return e
             })
         },
-
         getLineData(lineCode) {
             return lineData[lineCode]
         },
@@ -105,14 +112,15 @@ const app = new Vue({
         },
         async getStationTrainInfo(stationId, lineId) {
             if (this.trainInfoMap.has(lineId)) {
-                return this.trainInfoMap.get(lineId)
+                let result = this.calcTrainInfoAttr(this.trainInfoMap.get(lineId))
+                if (result == null) return []
+                result = result.filter(e => e.onService === true)
+                if (result.length > constants.MIN_TRAIN_INFO) return result
             }
+            console.log(`${moment()}: fetching train info`)
             let data = await this.fetchStationTrainInfo(stationId, lineId)
-            if (data != null) {
-                this.trainInfoMap.set(lineId, data)
-                return data
-            }
-            return []
+            this.trainInfoMap.set(lineId, data)
+            return data
         },
         parseStation(stationName) {
             if (stationName === undefined) return null
@@ -147,16 +155,16 @@ const app = new Vue({
             }
         },
         updateTrainInfo() {
-            console.log("更新数据中")
+            console.log(`${moment()}: update train info`)
+            this.calcUpdateTimeString()
             if (this.station === null || this.selectedLine == null) return
-            this.fetchStationTrainInfo(this.station.id, this.selectedLine.id).then(r =>
-                this.trainInfoMap.set(this.selectedLine, r))
+            this.getStationTrainInfo(this.station.id, this.selectedLine.id).then(e => this.trainInfoList = e)
         }
     },
     created() {
         this.init()
-        setInterval(this.calcTrainInfoAttr, 5000)
-        setInterval(this.updateTrainInfo, 60000)
+        setInterval(() => this.trainInfoList = this.calcTrainInfoAttr(this.trainInfoList), 5000)
+        setInterval(this.updateTrainInfo, 30000)
     },
     watch: {
         inputString(val) {
@@ -170,10 +178,13 @@ const app = new Vue({
         },
         selectedLine(val) {
             if (val == null) return
+            this.trainInfoList = []
             this.getStationTrainInfo(this.station.id, val.id).then(e => {
-                this.trainInfoList = e
-                this.calcTrainInfoAttr()
+                this.trainInfoList = this.calcTrainInfoAttr(e)
             })
+        },
+        updateTime(val) {
+            this.calcUpdateTimeString()
         }
     }
 })
