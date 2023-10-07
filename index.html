@@ -7,7 +7,7 @@
     <meta content="地铁 南京地铁 车站实时 地铁时刻表 下一班车" name="keywords">
     <meta content="35000ft" name="author">
 
-    <title>下一班车 | Next Train | 下一班車 | 南京地铁</title>
+    <title>南京地铁 - 下一班车 | Next Train | 下一班車</title>
     <script src="./js/vue.js"></script>
     <script src="./js/moment.js"></script>
 
@@ -93,7 +93,7 @@
                 </span>
                 </div>
             </div>
-            <div class="col-xs-12 col-md-8 col-md-offset-2 table-responsive">
+            <div class="col-xs-12 col-md-8 col-md-offset-2 table-responsive" v-cloak>
                 <table class="table table-hover component train-info-table">
                     <thead>
                     <tr>
@@ -118,6 +118,12 @@
                         <td>{{trainInfo.status}}</td>
                         <td>{{trainInfo.terminal === station.name ? '--' : trainInfo.depShowTime}}</td>
                         <td>{{trainInfo.trainType}}</td>
+                    </tr>
+                    <tr v-show="this.trainInfoList.length>0">
+                        <td colspan="5">
+                            <a :href=`station-schedule.html#${station.id}/${selectedLine.id}` class="more-train"
+                               target="_blank">更多列车？请查看时刻表</a>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
