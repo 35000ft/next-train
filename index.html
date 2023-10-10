@@ -10,13 +10,12 @@
     <title>南京地铁 - 下一班车 | Next Train | 下一班車</title>
     <script src="./js/vue.js"></script>
     <script src="./js/moment.js"></script>
-
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet">
     <link crossorigin="anonymous"
           href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-12-M/twitter-bootstrap/3.4.1/css/bootstrap.min.css"
           integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" rel="stylesheet">
-    <link crossorigin="anonymous"
-          href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-12-M/font-awesome/5.10.2/css/all.min.css"
-          integrity="sha256-zmfNZmXoNWBMemUOo1XUGFfc0ihGGLYdgtJS3KCr/l0=" rel="stylesheet">
     <link crossorigin="anonymous"
           href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-12-M/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.css"
           integrity="sha256-gEYuPiCt4z3aRsQm0F4X5YBtK8t/Ny7v+Q9GwjLuJS0=" rel="stylesheet">
@@ -39,6 +38,7 @@
                                    class="form-control search clearable"
                                    placeholder="车站名 / XJK / 1号线"
                                    v-model="inputString">
+                            <span class="tool-bar-wrapper"></span>
                             <i @click="handleSearch" class="fa fa-search"></i>
                             <div class="search-hint-wrapper" v-cloak v-show="searchHint.length>0">
                                 <ul>
@@ -69,7 +69,7 @@
                         </a>
                     </div>
                     <div class="info-wrapper" v-cloak>
-                        列车信息最后更新于:{{updateTimeString}}
+                        列车信息最后同步于:{{updateTimeString}}
                     </div>
                 </div>
             </div>
@@ -77,7 +77,51 @@
     </header>
 
     <main class="container">
+        <!-- 模态框（Modal） -->
+        <div aria-hidden="true" aria-labelledby="myModalLabel" class="modal fade"
+             id="addFavorStationModal"
+             role="dialog"
+             tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button aria-hidden="true" class="close" data-dismiss="modal" ref="closeFavourStationBtn"
+                                type="button">&times;
+                        </button>
+                        <h4 class="modal-title" id="myModalLabel">收藏车站 - 设为指定时间段的默认车站</h4>
+                    </div>
+                    <div class="modal-body">
+                        <span>开始时间：</span>
+                        <input ref="addFavourStartTime" type="time">
+                        <span>结束时间：</span>
+                        <input ref="addFavourEndTime" type="time">
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-default" data-dismiss="modal" type="button">关闭</button>
+                        <button @click="addStarStation(station.id,$refs['addFavourStartTime'].value, $refs['addFavourEndTime'].value)"
+                                class="btn btn-primary"
+                                type="button">保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
+            <div class="tool-bar-wrapper">
+                <span class="tool-item-wrapper">
+                    <i class="fa fa-cog"></i>
+                </span>
+                <span class="tool-item-wrapper" data-target="#addFavorStationModal" data-toggle="modal"
+                      v-show="!isStarStation">
+                    <i class="fa fa-star-o"></i>
+                </span>
+                <span @click="delStarStation(station.id)" class="tool-item-wrapper"
+                      v-show="isStarStation">
+                    <i class="fa fa-star"></i>
+                </span>
+            </div>
+
             <div class="station-info-wrapper">
                 <div class="station-wrapper" v-cloak>
                     <h2>{{station.name}}</h2>
@@ -86,7 +130,7 @@
                 <div class="line-list-wrapper">
                 <span :key="line.id" :style="{backgroundColor: line.id===selectedLine.id ? line.color : '#dcdcdc',
                                                 color: line.id === selectedLine.id ? '#ffffff' : '#858585'}"
-                      @click="changeLine(line)"
+                      @click="selectedLine = line"
                       class="line-wrapper"
                       v-for="line in station.lines">
                     {{line.name}}
@@ -121,7 +165,7 @@
                     </tr>
                     <tr v-show="this.trainInfoList.length>0">
                         <td colspan="5">
-                            <a :href=`station-schedule.html#${station.id}/${selectedLine.id}` class="more-train"
+                            <a :href=`station-schedule.html#${station.id}/${selectedLine.code}` class="more-train"
                                target="_blank">更多列车？请查看时刻表</a>
                         </td>
                     </tr>

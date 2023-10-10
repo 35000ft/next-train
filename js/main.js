@@ -1,6 +1,7 @@
 import {constants} from "./constants.js";
 import {fetchStationTrainInfo} from './api.js'
 import {formatFromNow} from './time-formatter.js'
+import {toMinutesOfDay} from './mytime.js'
 import {EXTRACT_LINE_REGEX, SEARCH_STATION_BY_LINE_REGEX, SEARCH_STATION_REGEX} from './regex-patterns.js'
 
 const app = new Vue({
@@ -14,13 +15,83 @@ const app = new Vue({
         },
         selectedLine: {},
         trainInfoList: [],
-        trainInfoMap: new Map,
+        trainInfoMap: new Map(),
+        isStarStation: false,
         info: "",
         updateTime: null,
         updateTimeString: "----",
         searchHint: []
     },
     methods: {
+        addStarStation(stationId, start, end) {
+            if (end === start) {
+                alert('开始时间不能等于结束时间')
+                return
+            }
+            start = toMinutesOfDay(start)
+            end = toMinutesOfDay(end)
+            const obj = JSON.parse(localStorage.getItem("DefaultStationList"))
+            let starStationMap = obj == null ? new Map() : new Map(Object.entries(obj))
+
+            const isCrossDay = end < start
+            const current = Array.from(starStationMap).filter(e => {
+                if (e.end < e.start) {
+                    if (isCrossDay) return true
+                    else return end >= e.start || start <= e.end
+                } else {
+                    if (isCrossDay) return end >= e.start || start <= e.end
+                    else return start <= e.start && end >= e.end //包含
+                        || end >= e.start
+                        || start <= e.end
+                }
+            })
+            if (current.length > 0) {
+                alert(`该时间段已存在收藏车站，不能收藏本车站`)
+                return
+            }
+            starStationMap.set(stationId.toString(), {
+                stationId: stationId,
+                start: start,
+                end: end
+            })
+            localStorage.setItem("DefaultStationList", JSON.stringify(Object.fromEntries(starStationMap.entries())))
+            this.$refs['closeFavourStationBtn'].click()
+            this.isStarStation = this.calcIsStarStation(this.station.id)
+        },
+        calcCurrentDefaultStation(urlStationName) {
+            if (urlStationName !== '') {
+                const urlStation = this.parseStation(urlStationName)
+                if (urlStation != null) {
+                    return urlStation
+                }
+            }
+            const obj = JSON.parse(localStorage.getItem("DefaultStationList"));
+            if (obj == null) {
+                return this.parseStation(this.station.name)
+            }
+            let array = Array.from(Object.values(obj))
+            const now = moment()
+            let minutes = now.hour() * 60 + now.minute()
+            const defaultStation = array.filter(e => {
+                if (e.end < e.start) {
+                    return minutes >= e.start || minutes <= e.end
+                } else {
+                    return minutes >= e.start && minutes <= e.end
+                }
+            })[0]
+
+            if (defaultStation === undefined) {
+                return this.parseStation(this.station.name)
+            }
+            return this.parseStation(defaultStation.stationId)
+        },
+        calcIsStarStation(stationId) {
+            const obj = JSON.parse(localStorage.getItem("DefaultStationList"))
+            if (obj == null) {
+                return false
+            }
+            return !(obj[stationId] === undefined)
+        },
         calcTrainInfoAttr(trainInfoList) {
             if (trainInfoList.length === 0) return []
             trainInfoList.forEach(e => {
@@ -42,7 +113,6 @@ const app = new Vue({
                     e['status'] = constants.TRAIN_STATUS_LEAVING
                     e['onService'] = false
                 }
-
                 //格式化"发车时间"
                 e['depShowTime'] = depTime.format('HH:mm')
             })
@@ -54,9 +124,6 @@ const app = new Vue({
             }
             this.updateTimeString = formatFromNow(this.updateTime, 60, 'minutes', 'HH:mm')
         },
-        changeLine(line) {
-            this.selectedLine = line
-        },
         changeStation(station) {
             this.searchHint = []
             if (station == null || station === this.station) return
@@ -64,21 +131,30 @@ const app = new Vue({
             this.station = station
             this.selectedLine = this.station.lines[0]
         },
+        delStarStation(stationId) {
+            const obj = JSON.parse(localStorage.getItem("DefaultStationList"))
+            if (obj == null) {
+                return
+            }
+            let starStationMap = new Map(Object.entries(obj))
+            starStationMap.delete(stationId)
+            localStorage.setItem("DefaultStationList", JSON.stringify(Object.fromEntries(starStationMap.entries())))
+            this.isStarStation = this.calcIsStarStation(this.station.id)
+        },
         handleSearch() {
             let station = this.searchHint[0]
             if (station === undefined) return
             this.changeStation(station)
         },
         init() {
+            this.initDefaultStation()
+            this.isStarStation = this.calcIsStarStation(this.station.id)
+            this.selectedLine = this.station.lines[0]
+        },
+        initDefaultStation() {
             const url = decodeURI(location.href)
             const stationName = url.split("#")[1]
-            const station = this.parseStation(stationName)
-            if (station != null) {
-                this.station = station
-            } else {
-                this.station = this.parseStation(this.station.name)
-            }
-            this.selectedLine = this.station.lines[0]
+            this.station = this.calcCurrentDefaultStation(stationName)
         },
         initTrainInfo() {
             this.trainInfoMap.clear()
@@ -96,11 +172,13 @@ const app = new Vue({
                 return e
             })
         },
+
         getLineData(lineCode) {
             return lineData[lineCode]
         },
         getMatchedStation(keyWord) {
             if (keyWord == null || keyWord === "") return null
+            keyWord = keyWord.toString()
             const line = EXTRACT_LINE_REGEX(keyWord)
             let pattern
             if (line != null) {
@@ -175,6 +253,7 @@ const app = new Vue({
             let strings = location.href.split('#');
             strings[1] = val.name
             location.href = encodeURI(`${strings[0]}#${strings[1]}`)
+            this.isStarStation = this.calcIsStarStation(this.station.id)
         },
         selectedLine(val) {
             if (val == null) return

@@ -111,3 +111,29 @@
     font-weight: normal;
     border-radius: 3px;
 }
+
+.tool-item-wrapper {
+    display: flex;
+    font-size: 20px;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.tool-bar-wrapper {
+    display: flex;
+    flex-direction: row-reverse;
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+.modal-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-body span {
+    display: inline-block;
+    margin-left: 10px;
+}
