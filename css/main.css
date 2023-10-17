@@ -115,8 +115,8 @@
 .tool-item-wrapper {
     display: flex;
     font-size: 20px;
-    margin-left: 2px;
-    margin-right: 2px;
+    margin-left: 3px;
+    margin-right: 3px;
 }
 
 .tool-bar-wrapper {

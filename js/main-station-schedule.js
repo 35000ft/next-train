@@ -77,7 +77,7 @@ const app = new Vue({
         },
         saveAsImg() {
             console.log("saving schedule as image")
-            domtoimage.toJpeg(this.$refs['station-schedule-wrapper'])
+            domtoimage.toPng(this.$refs['station-schedule-wrapper'])
                 .then(dataUrl => {
                     let a = document.createElement('a')
                     a.href = dataUrl

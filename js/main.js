@@ -58,16 +58,22 @@ const app = new Vue({
             this.$refs['closeFavourStationBtn'].click()
             this.isStarStation = this.calcIsStarStation(this.station.id)
         },
-        calcCurrentDefaultStation(urlStationName) {
-            if (urlStationName !== '') {
-                const urlStation = this.parseStation(urlStationName)
-                if (urlStation != null) {
-                    return urlStation
-                }
+        addHistoryStation(station) {
+            let historyStationList = JSON.parse(localStorage.getItem("HistoryStationList"))
+            if (historyStationList == null) historyStationList = new Set()
+            if (historyStationList.length >= 10) {
+                historyStationList = historyStationList.slice(1, 10)
             }
+            historyStationList = new Set(historyStationList)
+            historyStationList.add(station)
+            localStorage.setItem("HistoryStationList", JSON.stringify(Array.from(historyStationList)))
+        },
+        calcCurrentDefaultStation(urlStationName) {
+            if (urlStationName === undefined) urlStationName = constants.DEFAULT_STATION
+
             const obj = JSON.parse(localStorage.getItem("DefaultStationList"));
             if (obj == null) {
-                return this.parseStation(this.station.name)
+                return this.parseStation(urlStationName)
             }
             let array = Array.from(Object.values(obj))
             const now = moment()
@@ -148,8 +154,6 @@ const app = new Vue({
         },
         init() {
             this.initDefaultStation()
-            this.isStarStation = this.calcIsStarStation(this.station.id)
-            this.selectedLine = this.station.lines[0]
         },
         initDefaultStation() {
             const url = decodeURI(location.href)
@@ -172,7 +176,11 @@ const app = new Vue({
                 return e
             })
         },
-
+        getHistoryStation() {
+            let historyStationList = JSON.parse(localStorage.getItem("HistoryStationList"))
+            if (historyStationList == null) return []
+            return historyStationList.reverse().map(e => this.parseStation(e))
+        },
         getLineData(lineCode) {
             return lineData[lineCode]
         },
@@ -212,7 +220,7 @@ const app = new Vue({
         },
         showSearchHint(keyWord) {
             if (keyWord === "") {
-                this.searchHint = []
+                this.searchHint = this.getHistoryStation()
                 return
             }
             let matchedStationList = this.getMatchedStation(this.inputString);
@@ -248,12 +256,14 @@ const app = new Vue({
         inputString(val) {
             this.showSearchHint(val)
         },
-        station: function (val) {
+        station(val) {
             this.initTrainInfo()
+            this.addHistoryStation(val.name)
             let strings = location.href.split('#');
             strings[1] = val.name
             location.href = encodeURI(`${strings[0]}#${strings[1]}`)
             this.isStarStation = this.calcIsStarStation(this.station.id)
+            this.selectedLine = this.station.lines[0]
         },
         selectedLine(val) {
             if (val == null) return
