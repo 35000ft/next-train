@@ -86,17 +86,27 @@
 
 .search-hint-left {
     display: inline-block;
-    width: 60%;
+    width: 50%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.search-hint-left .upper {
+    display: block;
+    font-size: 16px;
+}
+
+.search-hint-left .nether {
+    display: block;
+    font-size: 10px;
 }
 
 .search-hint-right {
     text-align: right;
     position: absolute;
     right: 10px;
-    width: 35%;
+    width: 50%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

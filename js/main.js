@@ -24,6 +24,10 @@ const app = new Vue({
     },
     methods: {
         addStarStation(stationId, start, end) {
+            if (start === '' || end === '') {
+                alert('时间不能为空')
+                return
+            }
             if (end === start) {
                 alert('开始时间不能等于结束时间')
                 return
@@ -65,6 +69,9 @@ const app = new Vue({
                 historyStationList = historyStationList.slice(1, 10)
             }
             historyStationList = new Set(historyStationList)
+            if (historyStationList.has(station)) {
+                historyStationList.delete(station)
+            }
             historyStationList.add(station)
             localStorage.setItem("HistoryStationList", JSON.stringify(Array.from(historyStationList)))
         },
@@ -87,7 +94,7 @@ const app = new Vue({
             })[0]
 
             if (defaultStation === undefined) {
-                return this.parseStation(this.station.name)
+                return this.parseStation(urlStationName)
             }
             return this.parseStation(defaultStation.stationId)
         },
@@ -229,6 +236,7 @@ const app = new Vue({
                 return
             }
             this.searchHint = matchedStationList.map(e => this.toStation(e))
+                .sort((a, b) => a.name.localeCompare(b.name))
         },
         toStation(row) {
             let split = row.split(',')

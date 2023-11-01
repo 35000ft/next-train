@@ -40,10 +40,14 @@
                                    v-model="inputString">
                             <span class="tool-bar-wrapper"></span>
                             <i @click="handleSearch" class="fa fa-search"></i>
+                            <!--  search hint  -->
                             <div class="search-hint-wrapper" v-cloak v-show="searchHint.length>0">
                                 <ul>
                                     <li :key="hint.id" @click="changeStation(hint)" v-for="hint in searchHint">
-                                        <span class="search-hint-left">{{hint.name}} {{hint.foreignName}}</span>
+                                        <span class="search-hint-left">
+                                            <span class="upper">{{hint.name}}</span>
+                                            <span class="nether">{{hint.foreignName}}</span>
+                                        </span>
                                         <span class="search-hint-right">
                                              <span :key="line.id" :style="{backgroundColor:  line.color ,
                                                 color: '#ffffff'}"
