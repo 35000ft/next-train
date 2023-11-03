@@ -137,12 +137,17 @@ const app = new Vue({
             }
             this.updateTimeString = formatFromNow(this.updateTime, 60, 'minutes', 'HH:mm')
         },
-        changeStation(station) {
+        changeStation(station, line) {
             this.searchHint = []
             if (station == null || station === this.station) return
             this.selectedLine = null
             this.station = station
-            this.selectedLine = this.station.lines[0]
+
+            if (line === undefined) {
+                this.selectedLine = this.station.lines[0]
+            } else {
+                this.selectedLine = line
+            }
         },
         delStarStation(stationId) {
             const obj = JSON.parse(localStorage.getItem("DefaultStationList"))
@@ -161,6 +166,7 @@ const app = new Vue({
         },
         init() {
             this.initDefaultStation()
+            this.selectedLine = this.station.lines[0]
         },
         initDefaultStation() {
             const url = decodeURI(location.href)
@@ -271,7 +277,6 @@ const app = new Vue({
             strings[1] = val.name
             location.href = encodeURI(`${strings[0]}#${strings[1]}`)
             this.isStarStation = this.calcIsStarStation(this.station.id)
-            this.selectedLine = this.station.lines[0]
         },
         selectedLine(val) {
             if (val == null) return

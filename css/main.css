@@ -106,10 +106,9 @@
     text-align: right;
     position: absolute;
     right: 10px;
-    width: 50%;
+    width: 45%;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-x: auto;
 }
 
 .search-hint-right .line-wrapper {
