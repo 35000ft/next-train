@@ -106,7 +106,7 @@
     text-align: right;
     position: absolute;
     right: 10px;
-    width: 45%;
+    max-width: 50%;
     white-space: nowrap;
     overflow-x: auto;
 }

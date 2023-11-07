@@ -242,7 +242,7 @@ const app = new Vue({
                 return
             }
             this.searchHint = matchedStationList.map(e => this.toStation(e))
-                .sort((a, b) => a.name.localeCompare(b.name))
+                .sort((a, b) => a.name.localeCompare(b.name, "zh"))
         },
         toStation(row) {
             let split = row.split(',')
