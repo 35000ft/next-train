@@ -1,5 +1,5 @@
-import {fetchStationSchedule} from './api.js'
-import {SEARCH_STATION_REGEX} from './regex-patterns.js'
+import {fetchStationSchedule} from '../../js/api.js'
+import {SEARCH_STATION_REGEX} from '../../js/regex-patterns.js'
 
 const app = new Vue({
     el: '#app',
