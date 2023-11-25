@@ -108,8 +108,8 @@ const app = new Vue({
         calcTrainInfoAttr(trainInfoList) {
             if (trainInfoList.length === 0) return []
             trainInfoList.forEach(e => {
-                const arrTime = moment(`${e.date} ${e.arrTime.time}`).add(e.arrTime.dayOffset, 'd')
-                const depTime = moment(`${e.date} ${e.depTime.time}`).add(e.depTime.dayOffset, 'd')
+                const arrTime = moment(e.arrTime)
+                const depTime = moment(e.depTime)
                 const now = moment()
                 e['onService'] = true
 
@@ -236,7 +236,7 @@ const app = new Vue({
                 this.searchHint = this.getHistoryStation()
                 return
             }
-            let matchedStationList = this.getMatchedStation(this.inputString);
+            let matchedStationList = this.getMatchedStation(keyWord);
             if (matchedStationList == null) {
                 this.searchHint = []
                 return
