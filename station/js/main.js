@@ -77,11 +77,20 @@ const app = new Vue({
         },
         saveAsImg() {
             console.log("saving schedule as image")
-            domtoimage.toPng(this.$refs['station-schedule-wrapper'])
+            const scale = 3
+            const domNode = this.$refs['station-schedule-wrapper']
+            domtoimage.toPng(domNode, {
+                width: domNode.clientWidth * scale,
+                height: domNode.clientHeight * scale,
+                style: {
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'top left'
+                }
+            })
                 .then(dataUrl => {
                     let a = document.createElement('a')
                     a.href = dataUrl
-                    a.download = `${this.station.name} - ${this.line.name} 时刻表`
+                    a.download = `${this.station.name}-${this.line.name}时刻表`
                     a.click()
                 })
                 .catch(error => {
