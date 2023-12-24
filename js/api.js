@@ -1,5 +1,4 @@
 const host = "https://api.nmtr.site"
-const localhost = "http://localhost"
 
 export async function fetchStationTrainInfo(stationId, lineId) {
     const url = `${host}/nj-metro-realtime/station/train-info/${stationId}/${lineId}`
@@ -12,7 +11,7 @@ export async function fetchStationTrainInfo(stationId, lineId) {
 }
 
 export async function fetchStationSchedule(stationId, lineId) {
-    const url = `${localhost}/nj-metro-realtime/station/schedule/${stationId}/${lineId}`
+    const url = `${host}/nj-metro-realtime/station/schedule/${stationId}/${lineId}`
     return await axios.post(url).then(res => {
         return res.data.data
     }, () => {
