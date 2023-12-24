@@ -7,6 +7,7 @@
 
     <script src="../js/vue.js"></script>
     <script src="../js/dom-to-image.js"></script>
+    <script src="../js/moment.js"></script>
 
     <link crossorigin="anonymous"
           href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-12-M/twitter-bootstrap/3.4.1/css/bootstrap.min.css"
@@ -43,24 +44,55 @@
         </div>
     </header>
     <div class="tool-bar-wrapper">
+        <span class="switch-schedule-format-wrapper">
+            <span :class="{'showing':showVertical}" @click="showVertical=true" class="vertical-icon">
+            <i class="fa fa-bars"></i>
+            </span>
+            <span :class="{'showing':!showVertical}" @click="showVertical=false" class="horizontal-icon">
+                <i class="fa fa-bars"></i>
+            </span>
+        </span>
         <span @click="saveAsImg" class="download-icon-wrapper">
             <i aria-hidden="true" class="fa fa-download"></i>
         </span>
     </div>
 
-    <main class="container" ref="station-schedule-wrapper">
-        <div class="row">
+    <main class="container">
+        <div class="row" ref="station-schedule-wrapper">
             <div class="schedule-info-wrapper">
                 <h2 class="station-box" v-cloak>{{station.name}}</h2>
-                <h4><b v-cloak>{{line.name}}</b> 今日时刻表</h4>
-                <h6 class="update-time-box" v-cloak>更新于: {{updateTime}}</h6>
+                <h4><b :style="{backgroundColor:line.color}" class="line-name-box" v-cloak>{{line.name}}</b> 列车时刻表
+                </h4>
+                <h6 class="update-time-box" v-cloak>日期: {{date.format('YYYY年M月D日 ddd')}}</h6>
+                <h6 class="update-time-box" v-cloak>版本: {{version}}</h6>
             </div>
-            <div class="hour-wrapper" v-cloak v-for="hourData in hourDataList">
-                <div class="hour-box"><b>{{hourData.hour}}时</b></div>
-                <span class="minutes-wrapper" v-for="minuteData in hourData.minuteDataList">
-                    <span class="minutes-box">{{minuteData[0]}}</span>
-                    <span class="terminal-box">{{minuteData[2]}}</span>
-                </span>
+
+
+            <!-- display vertical -->
+            <div class="vertical-wrapper" v-show="showVertical">
+                <div class="vertical-item-wrapper" v-cloak v-for="hourData in verticalSchedule">
+                    <div class="hour-box"><b>{{hourData.hour}}</b></div>
+                    <span class="minutes-wrapper" v-for="minuteData in hourData.dataList">
+                                                        <span class="minutes-box">{{minuteData.minute}}</span>
+                                                        <span class="terminal-box">{{minuteData.terminal}}</span>
+                                                    </span>
+                </div>
+            </div>
+
+            <!-- display horizontal -->
+            <div class="horizontal-wrapper" v-show="!showVertical">
+                <div style="height: 20px;background-color: #efefef;"></div>
+                <div class="horizontal-item-wrapper" v-for="terminalData in horizontalSchedule">
+                    <div class="terminal-box">
+                        开往: <b><i> {{terminalData.terminal}}</i></b>
+                    </div>
+                    <div class="hour-data-wrapper" v-for="hourData in terminalData.schedule">
+                        <span class="hour-box">{{hourData.hour}}</span>
+                        <div class="minutes-wrapper">
+                            <span v-for="trainInfo in hourData.dataList">{{trainInfo.minute}}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
