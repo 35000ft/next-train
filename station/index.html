@@ -71,7 +71,7 @@
             <!-- display vertical -->
             <div class="vertical-wrapper" v-show="showVertical">
                 <div class="vertical-item-wrapper" v-cloak v-for="hourData in verticalSchedule">
-                    <div class="hour-box"><b>{{hourData.hour}}</b></div>
+                    <div class="hour-box"><b>{{hourData.hourStr}}</b></div>
                     <span class="minutes-wrapper" v-for="minuteData in hourData.dataList">
                                                         <span class="minutes-box">{{minuteData.minute}}</span>
                                                         <span class="terminal-box">{{minuteData.terminal}}</span>
@@ -87,7 +87,7 @@
                         开往: <b><i> {{terminalData.terminal}}</i></b>
                     </div>
                     <div class="hour-data-wrapper" v-for="hourData in terminalData.schedule">
-                        <span class="hour-box">{{hourData.hour}}</span>
+                        <span class="hour-box">{{hourData.hourStr}}</span>
                         <div class="minutes-wrapper">
                             <span v-for="trainInfo in hourData.dataList">{{trainInfo.minute}}</span>
                         </div>

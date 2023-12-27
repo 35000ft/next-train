@@ -52,7 +52,8 @@ const app = new Vue({
                             }, {})
                         temp = Object.entries(temp).map(item2 => {
                             return {
-                                hour: this.formatHour(item2[0]),
+                                hourStr: this.formatHour(item2[0]),
+                                hour: parseInt(item2[0]),
                                 dataList: item2[1]
                             }
                         })
@@ -178,6 +179,7 @@ const app = new Vue({
                     return acc
                 }, [])
             temp.forEach(item => item.dataList.sort((o1, o2) => o1.depTime.localeCompare(o2.depTime)))
+            temp.sort((o1, o2) => o1.hour - o2.hour)
             return temp
         },
     }
