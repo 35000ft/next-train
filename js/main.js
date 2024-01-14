@@ -101,9 +101,7 @@ const app = new Vue({
         },
         calcIsStarStation(stationId) {
             const obj = JSON.parse(localStorage.getItem("DefaultStationList"))
-            if (obj == null) {
-                return false
-            }
+            if (obj == null) return false
             return !(obj[stationId] === undefined)
         },
         calcTrainInfoAttr(trainInfoList) {
@@ -152,13 +150,11 @@ const app = new Vue({
         },
         delStarStation(stationId) {
             const obj = JSON.parse(localStorage.getItem("DefaultStationList"))
-            if (obj == null) {
-                return
-            }
+            if (obj == null) return
             let starStationMap = new Map(Object.entries(obj))
-            starStationMap.delete(stationId)
+            starStationMap.delete(stationId.toString())
             localStorage.setItem("DefaultStationList", JSON.stringify(Object.fromEntries(starStationMap.entries())))
-            this.isStarStation = this.calcIsStarStation(this.station.id)
+            this.isStarStation = false
         },
         handleSearch() {
             let station = this.searchHint[0]
