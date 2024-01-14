@@ -1,5 +1,7 @@
 import {fetchStationSchedule} from '../../js/api.js'
-import {SEARCH_STATION_REGEX} from '../../js/regex-patterns.js'
+import {getLineStation, LINES} from "../../js/line-data.js";
+import {getStationById, getStationByKeyword} from "../../js/station-data.js";
+import {TRAIN_LEVEL} from "../../js/train-level.js";
 
 const app = new Vue({
     el: '#app',
@@ -10,7 +12,8 @@ const app = new Vue({
         schedule: null,
         updateTime: "",
         version: "",
-        showVertical: true,
+        showVertical: false,
+        otherTerminals: []
     },
     methods: {
         init() {
@@ -34,62 +37,56 @@ const app = new Vue({
             }
             this.fetchStationSchedule(this.station.id, this.line.id)
         },
+        mergeTerminal(terminal, directionSchedule) {
+            let temp = Object.entries(directionSchedule)
+                .map(item => item[1].map(item2 => [...item2, item[0]]))
+                .reduce((item1, item2) => [...item1, ...item2])
+                .map(item => this.toData(item, terminal.name))
+                .reduce((acc, cur) => {
+                    const hour = cur.hour.toString()
+                    acc[hour] = acc[hour] ?? []
+                    acc[hour].push(cur)
+                    return acc
+                }, {})
+            return Object.entries(temp).map(item2 => {
+                return {
+                    hourStr: this.formatHour(item2[0]),
+                    hour: parseInt(item2[0]),
+                    dataList: item2[1]
+                }
+            })
+        },
         fetchStationSchedule(stationId, lineId) {
             fetchStationSchedule(stationId, lineId).then(res => {
                 if (res == null) return
                 this.updateTime = res.updateTime
                 this.version = res.version
                 this.date = moment(res.date)
-                this.schedule = new Map(Object.entries(res.schedule)
-                    .map(item => {
-                        // group data by "hour"
-                        let temp = item[1].map(t => this.toData(t))
-                            .reduce((acc, cur) => {
-                                const {hour} = cur
-                                acc[hour] = acc[hour] ?? []
-                                acc[hour].push(cur)
-                                return acc
-                            }, {})
-                        temp = Object.entries(temp).map(item2 => {
-                            return {
-                                hourStr: this.formatHour(item2[0]),
-                                hour: parseInt(item2[0]),
-                                dataList: item2[1]
-                            }
-                        })
-                        return [item[0], temp]
-                    })
-                )
+                const lineStation = getLineStation(this.line.code)
+                this.schedule = new Map()
+                const downTerminal = getStationById(lineStation.slice(-1)[0])
+                const upTerminal = getStationById(lineStation[0])
+                if (Object.keys(res.downSchedule).length !== 0) {
+                    this.schedule.set(downTerminal.name, this.mergeTerminal(downTerminal, res.downSchedule))
+                    this.otherTerminals.push(...Object.keys(res.downSchedule))
+                }
+                if (Object.keys(res.upSchedule).length !== 0) {
+                    this.schedule.set(upTerminal.name, this.mergeTerminal(upTerminal, res.upSchedule))
+                    this.otherTerminals.push(...Object.keys(res.upSchedule))
+                }
+                this.otherTerminals = this.otherTerminals.filter(item =>
+                    item !== downTerminal.name && item !== upTerminal.name)
                 console.log(this.schedule)
             })
         },
         getLineData(lineCode) {
-            return lineData[lineCode]
+            return LINES[lineCode]
         },
         parseStation(stationName) {
             if (stationName === undefined) return null
-            const stationRawString = this.getMatchedStation(stationName)[0]
-            if (stationRawString == null) {
-                return null
-            }
-            return this.toStation(stationRawString)
+            return getStationByKeyword(stationName)[0]
         },
-        getMatchedStation(keyWord) {
-            if (keyWord == null || keyWord === "") return null
-            const pattern = SEARCH_STATION_REGEX(keyWord)
-            return stationNames.match(pattern)
-        },
-        toStation(row) {
-            let split = row.split(',')
-            return {
-                id: split[0],
-                name: split[1],
-                foreignName: split[2],
-                code: split[3],
-                lines: split.slice(4).map(e => this.getLineData(e))
-            }
-        },
-        toData(rawInfo) {
+        toData(rawInfo, direction) {
             const depTime = this.date.clone().add(rawInfo[1], 's')
             if (depTime.seconds() >= 30) {
                 depTime.add(1, 'm')
@@ -101,7 +98,11 @@ const app = new Vue({
                 depTime,
                 hour: depTime.hours() + 24 * dayOffset,
                 minute: depTime.minutes().toString().padStart(2, '0'),
-                level: rawInfo[2],
+                level: TRAIN_LEVEL[rawInfo[2]],
+                terminal: rawInfo[3],
+                get showStr() {
+                    return this.terminal === direction ? this.minute : `${this.minute}${this.terminal.substring(0, 1)}`
+                }
             }
         },
         saveAsImg() {

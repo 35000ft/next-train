@@ -2,7 +2,8 @@ import {constants} from "./constants.js";
 import {fetchStationTrainInfo} from './api.js'
 import {formatFromNow} from './time-formatter.js'
 import {toMinutesOfDay} from './mytime.js'
-import {EXTRACT_LINE_REGEX, SEARCH_STATION_BY_LINE_REGEX, SEARCH_STATION_REGEX} from './regex-patterns.js'
+import {getStationByKeyword} from "./station-data.js";
+import {LINES} from "./line-data.js";
 
 const app = new Vue({
     el: '#app',
@@ -195,19 +196,7 @@ const app = new Vue({
             return historyStationList.reverse().map(e => this.parseStation(e))
         },
         getLineData(lineCode) {
-            return lineData[lineCode]
-        },
-        getMatchedStation(keyWord) {
-            if (keyWord == null || keyWord === "") return null
-            keyWord = keyWord.toString()
-            const line = EXTRACT_LINE_REGEX(keyWord)
-            let pattern
-            if (line != null) {
-                pattern = SEARCH_STATION_BY_LINE_REGEX(line)
-            } else {
-                pattern = SEARCH_STATION_REGEX(keyWord)
-            }
-            return stationNames.match(pattern)
+            return LINES[lineCode]
         },
         async getStationTrainInfo(stationId, lineId) {
             if (this.trainInfoMap.has(lineId)) {
@@ -223,36 +212,15 @@ const app = new Vue({
         },
         parseStation(stationName) {
             if (stationName === undefined) return null
-            const stationRawString = this.getMatchedStation(stationName)[0]
-            if (stationRawString == null) {
-                this.info = "暂无数据"
-                this.inputString = ""
-                return null
-            }
-            return this.toStation(stationRawString)
+            return getStationByKeyword(stationName)[0]
         },
         showSearchHint(keyWord) {
             if (keyWord === "") {
                 this.searchHint = this.getHistoryStation()
                 return
             }
-            let matchedStationList = this.getMatchedStation(keyWord);
-            if (matchedStationList == null) {
-                this.searchHint = []
-                return
-            }
-            this.searchHint = matchedStationList.map(e => this.toStation(e))
+            this.searchHint = getStationByKeyword(keyWord)
                 .sort((a, b) => a.name.localeCompare(b.name, "zh"))
-        },
-        toStation(row) {
-            let split = row.split(',')
-            return {
-                id: split[0],
-                name: split[1],
-                foreignName: split[2],
-                code: split[3],
-                lines: split.slice(4).map(e => this.getLineData(e))
-            }
         },
         updateTrainInfo() {
             console.log(`${moment()}: update train info`)

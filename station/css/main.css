@@ -115,7 +115,7 @@ html {
     margin-bottom: 5px;
 }
 
-.horizontal-item-wrapper .terminal-box {
+.horizontal-item-wrapper > .terminal-box {
     color: #ffffff;
     border-top-left-radius: 6px;
     border-top-right-radius: 6px;
@@ -124,6 +124,7 @@ html {
     padding-bottom: 2px;
     background-color: #36598f;
     font-size: 16px;
+    border-bottom: 1px solid #dcdcdc;
 }
 
 .horizontal-item-wrapper .hour-data-wrapper {
@@ -146,12 +147,17 @@ html {
     background-color: #efefef;
 }
 
-.horizontal-item-wrapper .minutes-wrapper > span {
-    width: 20px;
+.horizontal-wrapper .minute-wrapper {
+    width: 35px;
     float: left;
     line-height: 25px;
+    position: relative;
     text-align: center;
-    color: #132860;
+}
+
+.horizontal-item-wrapper .minutes-wrapper > .minute-wrapper > .terminal-hint {
+    color: #ffffff;
+    display: block;
 }
 
 .switch-schedule-format-wrapper {
@@ -191,4 +197,38 @@ html {
 .showing {
     background-color: #36598f;
     color: #ffffff;
+}
+
+.normal {
+
+}
+
+.express {
+    background-color: #e37b00;
+    color: white;
+}
+
+.through {
+    background-color: #009844;
+    color: white;
+}
+
+.interval {
+    background-color: #36598f;
+    color: white;
+}
+
+.legends-wrapper {
+    display: flex;
+    width: 80%;
+    margin-top: 5px;
+    flex-wrap: wrap;
+}
+
+.legend-wrapper {
+    height: 25px;
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+    margin-bottom: 5px;
 }

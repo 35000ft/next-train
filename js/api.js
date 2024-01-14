@@ -1,4 +1,4 @@
-const host = "https://api.nmtr.site"
+const host = "http://124.222.212.166"
 
 export async function fetchStationTrainInfo(stationId, lineId) {
     const url = `${host}/nj-metro-realtime/station/train-info/${stationId}/${lineId}`
