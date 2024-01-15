@@ -30,10 +30,11 @@
         <div class="container jumbotron">
             <div class="row">
                 <div class="col-xs-12 col-sm-10 col-sm-offset-1">
-                    <h2>下一班車 | Next Train</h2>
+                    <h2>下一班车 | Next Train</h2>
                     <div class="search-wrapper" role="search">
                         <div class="form-group">
-                            <input @focus="showSearchHint(inputString)"
+                            <input @blur="handleSearchBlur"
+                                   @focus="showSearchHint(inputString)"
                                    @keyup.enter="handleSearch"
                                    autocomplete="off"
                                    class="form-control search clearable"
@@ -115,9 +116,9 @@
 
         <div class="row">
             <div class="tool-bar-wrapper">
-                <span class="tool-item-wrapper">
-                    <i class="fa fa-cog"></i>
-                </span>
+                <!--                <span class="tool-item-wrapper">-->
+                <!--                    <i class="fa fa-cog"></i>-->
+                <!--                </span>-->
                 <span class="tool-item-wrapper" data-target="#addFavorStationModal" data-toggle="modal"
                       v-show="!isStarStation">
                     <i class="fa fa-star-o"></i>
@@ -152,7 +153,7 @@
                     <thead>
                     <tr>
                         <th></th>
-                        <th>目的地</th>
+                        <th>终点站</th>
                         <th>状态</th>
                         <th>发车时间</th>
                         <th>车种</th>

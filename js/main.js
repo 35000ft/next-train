@@ -2,8 +2,8 @@ import {constants} from "./constants.js";
 import {fetchStationTrainInfo} from './api.js'
 import {formatFromNow} from './time-formatter.js'
 import {toMinutesOfDay} from './mytime.js'
-import {getStationByKeyword} from "./station-data.js";
-import {LINES} from "./line-data.js";
+import {getStationById, getStationByKeyword} from "./station-data.js";
+import {getLineStation, LINES} from "./line-data.js";
 
 const app = new Vue({
     el: '#app',
@@ -136,6 +136,9 @@ const app = new Vue({
             }
             this.updateTimeString = formatFromNow(this.updateTime, 60, 'minutes', 'HH:mm')
         },
+        closeSearchHint() {
+            this.searchHint = []
+        },
         changeStation(station, line) {
             this.searchHint = []
             if (station == null || station === this.station) return
@@ -160,6 +163,9 @@ const app = new Vue({
             let station = this.searchHint[0]
             if (station === undefined) return
             this.changeStation(station)
+        },
+        handleSearchBlur() {
+            setTimeout(() => this.closeSearchHint(), 100)
         },
         init() {
             this.initDefaultStation()
@@ -210,12 +216,19 @@ const app = new Vue({
             if (stationName === undefined) return null
             return getStationByKeyword(stationName)[0]
         },
-        showSearchHint(keyWord) {
-            if (keyWord === "") {
+        showSearchHint(keyword) {
+            if (keyword === "") {
                 this.searchHint = this.getHistoryStation()
                 return
             }
-            this.searchHint = getStationByKeyword(keyWord)
+            const searchByLine = keyword.match(new RegExp('S[0-9]|[0-9]+(?=号线|hx)' +
+                '|(?<=line\s*)S[0-9]|[0-9]+', 'i'))
+            if (searchByLine != null) {
+                const lineCode = searchByLine[0].toUpperCase()
+                this.searchHint = getLineStation(lineCode).map(item => getStationById(item))
+                return
+            }
+            this.searchHint = getStationByKeyword(keyword)
                 .sort((a, b) => a.name.localeCompare(b.name, "zh"))
         },
         updateTrainInfo() {
