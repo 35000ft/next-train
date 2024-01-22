@@ -28,4 +28,7 @@ const LINE_STATION = {
     "S9": [128, 186, 187, 188, 189, 190]
 }
 
-export const getLineStation = (lineCode) => LINE_STATION[lineCode.toString()];
+export const getLineStation = (lineCode) => {
+    const temp = LINE_STATION[lineCode.toString()]
+    return temp === undefined ? [] : temp
+}

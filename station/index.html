@@ -71,7 +71,7 @@
             <!-- display vertical -->
             <div class="vertical-wrapper" v-show="showVertical">
                 <div class="vertical-item-wrapper" v-cloak v-for="hourData in verticalSchedule">
-                    <div class="hour-box"><b>{{hourData.hourStr}}</b></div>
+                    <div class="hour-box"><b v-cloak>{{hourData.hourStr}}</b></div>
                     <span class="minutes-wrapper" v-for="minuteData in hourData.dataList">
                                                                     <span class="minutes-box">{{minuteData.minute}}</span>
                                                                     <span class="terminal-box">{{minuteData.terminal}}</span>
@@ -83,21 +83,21 @@
             <div class="horizontal-wrapper" v-show="!showVertical">
                 <div style="height: 20px;background-color: #efefef;"></div>
                 <div class="horizontal-item-wrapper" v-for="terminalData in horizontalSchedule">
-                    <div class="terminal-box">
+                    <div class="terminal-box" v-cloak>
                         开往: <b><i> {{terminalData.terminal}}</i></b>
                     </div>
                     <div class="hour-data-wrapper" v-for="hourData in terminalData.schedule">
-                        <span class="hour-box">{{hourData.hourStr}}</span>
+                        <span class="hour-box" v-cloak>{{hourData.hourStr}}</span>
                         <div class="minutes-wrapper">
                             <span :class="trainInfo.level" class="minute-wrapper"
-                                  v-for="trainInfo in hourData.dataList">
+                                  v-cloak v-for="trainInfo in hourData.dataList">
                                 {{trainInfo.showStr}}
                             </span>
                         </div>
                     </div>
                 </div>
                 <div class="legends-wrapper">
-                    <span class="legend-wrapper" v-for="item in otherTerminals">
+                    <span class="legend-wrapper" v-cloak v-for="item in otherTerminals">
                         {{item.substring(0, 1)}}={{item}}
                     </span>
                     <span class="legend-wrapper">

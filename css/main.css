@@ -146,3 +146,15 @@
     display: inline-block;
     margin-left: 10px;
 }
+
+.train-arrived {
+    background-color: #a20200;
+    color: #ffffff;
+}
+
+
+.train-arriving {
+    background-color: #5a9333;
+    color: #ffffff;
+
+}

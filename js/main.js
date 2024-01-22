@@ -36,7 +36,7 @@ const app = new Vue({
             start = toMinutesOfDay(start)
             end = toMinutesOfDay(end)
             const obj = JSON.parse(localStorage.getItem("DefaultStationList"))
-            let starStationMap = obj == null ? new Map() : new Map(Object.entries(obj))
+            const starStationMap = obj == null ? new Map() : new Map(Object.entries(obj))
 
             const isCrossDay = end < start
             const current = Array.from(starStationMap).filter(e => {
@@ -63,17 +63,17 @@ const app = new Vue({
             this.$refs['closeFavourStationBtn'].click()
             this.isStarStation = this.calcIsStarStation(this.station.id)
         },
-        addHistoryStation(station) {
+        addHistoryStation(stationId) {
             let historyStationList = JSON.parse(localStorage.getItem("HistoryStationList"))
             if (historyStationList == null) historyStationList = new Set()
             if (historyStationList.length >= 10) {
                 historyStationList = historyStationList.slice(1, 10)
             }
             historyStationList = new Set(historyStationList)
-            if (historyStationList.has(station)) {
-                historyStationList.delete(station)
+            if (historyStationList.has(stationId)) {
+                historyStationList.delete(stationId)
             }
-            historyStationList.add(station)
+            historyStationList.add(stationId)
             localStorage.setItem("HistoryStationList", JSON.stringify(Array.from(historyStationList)))
         },
         calcCurrentDefaultStation(urlStationName) {
@@ -81,7 +81,8 @@ const app = new Vue({
 
             const obj = JSON.parse(localStorage.getItem("DefaultStationList"));
             if (obj == null) {
-                return this.parseStation(urlStationName)
+                const temp = getStationByKeyword(urlStationName)
+                return temp.length === 0 ? getStationByKeyword(constants.DEFAULT_STATION)[0] : temp[0]
             }
             let array = Array.from(Object.values(obj))
             const now = moment()
@@ -116,12 +117,16 @@ const app = new Vue({
                 let secArr = arrTime.diff(now, 's')
                 let secDep = depTime.diff(now, 's')
                 if (secArr > 15) {
-                    e['status'] = formatFromNow(arrTime, 60, 'minutes', 'HH:ss')
+                    e['style'] = ''
+                    e['status'] = formatFromNow(arrTime, 60, 'minutes', 'HH:mm')
                 } else if (secArr > 0) {
+                    e['style'] = 'train-arriving'
                     e['status'] = constants.TRAIN_STATUS_ARRIVE_SOON
                 } else if (secDep >= 0) {
+                    e['style'] = 'train-arrived'
                     e['status'] = constants.TRAIN_STATUS_ARRIVED
                 } else {
+                    e['style'] = ''
                     e['status'] = constants.TRAIN_STATUS_LEAVING
                     e['onService'] = false
                 }
@@ -165,7 +170,7 @@ const app = new Vue({
             this.changeStation(station)
         },
         handleSearchBlur() {
-            setTimeout(() => this.closeSearchHint(), 100)
+            setTimeout(() => this.closeSearchHint(), 200)
         },
         init() {
             this.initDefaultStation()
@@ -195,7 +200,7 @@ const app = new Vue({
         getHistoryStation() {
             let historyStationList = JSON.parse(localStorage.getItem("HistoryStationList"))
             if (historyStationList == null) return []
-            return historyStationList.reverse().map(e => this.parseStation(e))
+            return historyStationList.reverse().map(e => getStationById(e))
         },
         getLineData(lineCode) {
             return LINES[lineCode]
@@ -243,13 +248,20 @@ const app = new Vue({
         setInterval(() => this.trainInfoList = this.calcTrainInfoAttr(this.trainInfoList), 5000)
         setInterval(this.updateTrainInfo, 30000)
     },
+    mounted() {
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden === false) {
+                this.calcTrainInfoAttr(this.trainInfoList)
+            }
+        }, true)
+    },
     watch: {
         inputString(val) {
             this.showSearchHint(val)
         },
         station(val) {
             this.initTrainInfo()
-            this.addHistoryStation(val.name)
+            this.addHistoryStation(val.id)
             let strings = location.href.split('#');
             strings[1] = val.name
             location.href = encodeURI(`${strings[0]}#${strings[1]}`)

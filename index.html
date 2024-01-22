@@ -45,7 +45,7 @@
                             <!--  search hint  -->
                             <div class="search-hint-wrapper" v-cloak v-show="searchHint.length>0">
                                 <ul>
-                                    <li :key="hint.id" v-for="hint in searchHint">
+                                    <li :key="'station-hint-'+hint.id" v-for="hint in searchHint">
                                         <span @click="changeStation(hint)" class="search-hint-left">
                                             <span class="upper">{{hint.name}}</span>
                                             <span class="nether">{{hint.foreignName}}</span>
@@ -116,9 +116,6 @@
 
         <div class="row">
             <div class="tool-bar-wrapper">
-                <!--                <span class="tool-item-wrapper">-->
-                <!--                    <i class="fa fa-cog"></i>-->
-                <!--                </span>-->
                 <span class="tool-item-wrapper" data-target="#addFavorStationModal" data-toggle="modal"
                       v-show="!isStarStation">
                     <i class="fa fa-star-o"></i>
@@ -149,7 +146,7 @@
                 </div>
             </div>
             <div class="col-xs-12 col-md-8 col-md-offset-2 table-responsive" v-cloak>
-                <table class="table table-hover component train-info-table">
+                <table class="table component train-info-table">
                     <thead>
                     <tr>
                         <th></th>
@@ -162,12 +159,12 @@
                     <tbody>
                     <tr v-show="this.trainInfoList.length===0">
                         <td></td>
-                        <td>暂无列车</td>
-                        <td>No Trains</td>
+                        <td>今日服务已结束</td>
+                        <td>Out of Service</td>
                         <td>--</td>
                         <td>{{info}}</td>
                     </tr>
-                    <tr v-for="trainInfo in trainInfoList.slice(0,6)">
+                    <tr :class="trainInfo.style" v-for="trainInfo in trainInfoList.slice(0,6)">
                         <td></td>
                         <td>{{trainInfo.terminal}}</td>
                         <td>{{trainInfo.status}}</td>
