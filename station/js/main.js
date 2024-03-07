@@ -157,15 +157,7 @@ const app = new Vue({
                 tempMap.set(key, JSON.parse(JSON.stringify(item)))
             }
             const temp = Array.from(tempMap.entries())
-                .map(item => {
-                    return item[1].map(h => {
-                        h.dataList.forEach(t => {
-                            t.terminal = item[0]
-                            return t
-                        })
-                        return h
-                    })
-                })
+                .map(item => item[1].map(h => h))
                 .reduce((acc, cur) => {
                     return [...acc, ...cur]
                 }, [])

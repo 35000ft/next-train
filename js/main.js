@@ -200,6 +200,10 @@ const app = new Vue({
         getHistoryStation() {
             let historyStationList = JSON.parse(localStorage.getItem("HistoryStationList"))
             if (historyStationList == null) return []
+            let findIndex = historyStationList.findIndex(item => typeof item != "number")
+            if (findIndex !== -1) {
+                localStorage.removeItem("HistoryStationList")
+            }
             return historyStationList.reverse().map(e => getStationById(e))
         },
         getLineData(lineCode) {
