@@ -1,9 +1,9 @@
-import {constants} from "./constants.js";
-import {fetchStationTrainInfo} from './api.js'
-import {formatFromNow} from './time-formatter.js'
-import {toMinutesOfDay} from './mytime.js'
-import {getStationById, getStationByKeyword} from "./station-data.js";
-import {getLineStation, LINES} from "./line-data.js";
+import { constants } from "./constants.js";
+import { fetchStationTrainInfo } from './api.js'
+import { formatFromNow } from './time-formatter.js'
+import { toMinutesOfDay } from './mytime.js'
+import { getStationById, getStationByKeyword } from "./station-data.js";
+import { getLineStation, LINES } from "./line-data.js";
 
 const app = new Vue({
     el: '#app',
@@ -235,6 +235,7 @@ const app = new Vue({
             if (searchByLine != null) {
                 const lineCode = searchByLine[0].toUpperCase()
                 this.searchHint = getLineStation(lineCode).map(item => getStationById(item))
+                console.log('searchHint', this.searchHint);
                 return
             }
             this.searchHint = getStationByKeyword(keyword)
