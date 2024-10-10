@@ -194,7 +194,7 @@ const app = new Vue({
                     return []
                 }
                 this.updateTime = moment()
-                return e.slice(0, 3)
+                return e.slice
             })
         },
         getHistoryStation() {
