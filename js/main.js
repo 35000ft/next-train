@@ -194,7 +194,7 @@ const app = new Vue({
                     return []
                 }
                 this.updateTime = moment()
-                return e
+                return e.slice(0, 3)
             })
         },
         getHistoryStation() {
@@ -219,6 +219,7 @@ const app = new Vue({
             console.log(`${moment()}: fetching train info`)
             let data = await this.fetchStationTrainInfo(stationId, lineId)
             this.trainInfoMap.set(lineId, data)
+            console.log(`${moment()}: fetch train info OK.`)
             return data
         },
         parseStation(stationName) {
@@ -245,12 +246,20 @@ const app = new Vue({
             console.log(`${moment()}: update train info`)
             this.calcUpdateTimeString()
             if (this.station === null || this.selectedLine == null) return
-            this.getStationTrainInfo(this.station.id, this.selectedLine.id).then(e => this.trainInfoList = e)
+            this.getStationTrainInfo(this.station.id, this.selectedLine.id).then(e => {
+                this.trainInfoList = this.calcTrainInfoAttr(e)
+                console.log(this.trainInfoList);
+            })
         }
     },
     created() {
         this.init()
-        setInterval(() => this.trainInfoList = this.calcTrainInfoAttr(this.trainInfoList), 5000)
+        setInterval(() => {
+            if (this.trainInfoList.length <= 2) {
+                this.updateTrainInfo()
+            }
+            this.trainInfoList = this.calcTrainInfoAttr(this.trainInfoList)
+        }, 5000)
         setInterval(this.updateTrainInfo, 30000)
     },
     mounted() {
