@@ -3,7 +3,9 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') }
+      {name: 'home', path: '/', component: () => import('components/HomeNavView.vue')},
+      {name: 'metro-go', path: '/metro-go', component: () => import('components/MetroGoNavView.vue')},
+      {name: 'lines', path: '/lines', component: () => import('components/LinesNavView.vue')},
     ]
   },
 

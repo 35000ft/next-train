@@ -1,7 +1,6 @@
-import { route } from 'quasar/wrappers'
-import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
+import {createRouter, createMemoryHistory, createWebHistory, createWebHashHistory} from 'vue-router'
 import routes from './routes'
-
+import {i18n} from "boot/i18n";
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -11,20 +10,26 @@ import routes from './routes'
  * with the Router instance.
  */
 
-export default route(function (/* { store, ssrContext } */) {
-  const createHistory = process.env.SERVER
-    ? createMemoryHistory
-    : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
+const createHistory = process.env.SERVER
+  ? createMemoryHistory
+  : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
 
-  const Router = createRouter({
-    scrollBehavior: () => ({ left: 0, top: 0 }),
-    routes,
+const router = createRouter({
+  scrollBehavior: () => ({left: 0, top: 0}),
+  routes,
 
-    // Leave this as is and make changes in quasar.conf.js instead!
-    // quasar.conf.js -> build -> vueRouterMode
-    // quasar.conf.js -> build -> publicPath
-    history: createHistory(process.env.VUE_ROUTER_BASE)
-  })
-
-  return Router
+  // Leave this as is and make changes in quasar.conf.js instead!
+  // quasar.conf.js -> build -> vueRouterMode
+  // quasar.conf.js -> build -> publicPath
+  history: createHistory(process.env.VUE_ROUTER_BASE)
 })
+
+
+// 在每次路由导航时设置 locale
+router.beforeEach((to, from, next) => {
+  const lang = to.query.lang || 'cn'; // 从路由查询参数获取语言
+  console.log('language is', lang)
+  i18n.global.locale = lang;
+  next();
+});
+export default router;
