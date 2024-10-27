@@ -1,7 +1,15 @@
 // app global css in SCSS form
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
 :root {
   --q-primary: #36598f; /* 主色 */
   --q-secondary: #132860; /* 次色 */
   --q-accent: #9C27B0; /* 强调色 */
   /* 其他颜色变量 */
+}
+
+.q-header {
+  position: absolute;
+  top: 0;
+  z-index: 10; /* 确保 header 在页面内容之上 */
 }

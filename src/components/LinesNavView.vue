@@ -1,5 +1,5 @@
 <template>
-  <q-header elevated>
+  <q-header>
     <q-toolbar>
       <q-toolbar-title>Next Train</q-toolbar-title>
     </q-toolbar>

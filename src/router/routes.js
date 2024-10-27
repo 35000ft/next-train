@@ -1,11 +1,16 @@
 const routes = [
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    components:{
+      default: () => import('layouts/MainLayout.vue'),
+      // home:() => import('components/HomeNavView.vue'),
+      // 'metro-go': () => import('components/MetroGoNavView.vue'),
+      // lines:() => import('components/LinesNavView.vue'),
+    },
     children: [
-      {name: 'home', path: '/', component: () => import('components/HomeNavView.vue')},
-      {name: 'metro-go', path: '/metro-go', component: () => import('components/MetroGoNavView.vue')},
-      {name: 'lines', path: '/lines', component: () => import('components/LinesNavView.vue')},
+      {name: 'home', path: '', component: () => import('components/HomeNavView.vue')},
+      {name: 'metro-go', path: 'metro-go', component: () => import('components/MetroGoNavView.vue')},
+      {name: 'lines', path: 'lines', component: () => import('components/LinesNavView.vue')},
     ]
   },
 

@@ -4,22 +4,32 @@ import {boot} from "quasar/wrappers";
 
 const messages = {
   en: {
+    headers: {
+      search: {
+        placeholder: 'Station, Line...'
+      }
+    },
     nav: {
-      station: 'Station',
+      home: 'Station',
       go: 'GO!',
       line: 'Line',
     }
   },
   cn: {
+    headers: {
+      search: {
+        placeholder: '车站, 线路...'
+      }
+    },
     nav: {
-      station: '车站',
+      home: '车站',
       go: '出行',
       line: '线路',
     }
   },
   hk: {
     nav: {
-      station: '車站',
+      home: '車站',
       go: '行程',
       line: '線路',
     }

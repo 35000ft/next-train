@@ -1,18 +1,18 @@
 <template>
 
   <q-layout view="lHh Lpr lFf" class="full-height">
-    <q-page-container class="full-height">
-      <q-tab-panels swipeable animated v-model="tab">
-        <q-tab-panel name="station">
-          <router-view name="home"/>
-        </q-tab-panel>
 
-        <q-tab-panel name="go">
-          <router-view name="metro-go"/>
+    <q-page-container class="full-height" style="padding-top: 0; ">
+      <q-tab-panels class="full-height" style="background-color: #f1f1f1;" swipeable animated v-model="tab"
+                    @update:model-value="updateRoute">
+        <q-tab-panel name="home">
+          <router-view/>
         </q-tab-panel>
-
+        <q-tab-panel name="metro-go">
+          <router-view/>
+        </q-tab-panel>
         <q-tab-panel name="lines">
-          <router-view name="lines"/>
+          <router-view/>
         </q-tab-panel>
       </q-tab-panels>
     </q-page-container>
@@ -21,9 +21,9 @@
               dense
               active-color="white"
               indicator-color="transparent" class="bg-primary text-grey shadow-10" v-model="tab">
-        <q-route-tab name="station" to="/" icon="home" :label="t('nav.station')"/>
-        <q-route-tab name="go" to="/metro-go" icon="alarm" :label="t('nav.go')"/>
-        <q-route-tab name="lines" to="lines" icon="movie" :label="t('nav.line')"/>
+        <q-route-tab name="home" to="/" icon="home" :label="t('nav.home')"/>
+        <q-route-tab name="metro-go" to="/metro-go" icon="alarm" :label="t('nav.go')"/>
+        <q-route-tab name="lines" to="/lines" icon="movie" :label="t('nav.line')"/>
       </q-tabs>
     </q-footer>
   </q-layout>
@@ -32,14 +32,22 @@
 <script setup>
 import {ref} from 'vue'
 import {useI18n} from 'vue-i18n';
+import {useRouter} from "vue-router";
 
 const {t} = useI18n();
 
 defineOptions({
   name: 'MainLayout'
 })
-const tab = ref('station'); // 默认激活的导航项
 
+
+const tab = ref('station'); // 默认激活的导航项
+const router = useRouter()
+
+const updateRoute = (newTab) => {
+  // 根据选中的选项卡更新路由
+  router.push({name: newTab})
+}
 </script>
 <style scoped>
 /* 自定义样式 */
