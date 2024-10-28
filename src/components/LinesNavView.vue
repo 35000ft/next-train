@@ -11,7 +11,7 @@
 
 <script setup>
 defineOptions({
-  name: 'LineNavView'
+  name: 'LinesNavView'
 })
 
 const props = defineProps({})

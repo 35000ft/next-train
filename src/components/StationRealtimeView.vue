@@ -40,31 +40,66 @@
           </div>
         </div>
       </div>
-
-      <q-separator color="primary" size="2px" style="margin: 0;"/>
+      <q-separator color="primary" size="2px" style="margin: 0 0 5px;"/>
+      <div class="col-12" style="overflow-x: auto">
+        <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id" @click="handleClickLineIcon(line)"
+                  :disabled="line.code!==currentLine.code"/>
+      </div>
+      <q-tab-panels v-model="currentLineCode" @touchstart.stop @update:model-value="updateCurrentLine"
+                    swipeable animated>
+        <q-tab-panel v-for="line in currentStation.lines" :name="line.code" :key="line.id">
+          {{ line.name }}
+        </q-tab-panel>
+      </q-tab-panels>
     </q-tab-panel>
+
   </q-tab-panels>
 </template>
 <script setup>
 import {computed, ref} from "vue";
+import LineIcon from "components/LineIcon.vue";
 
 const stations = [{
   id: 2132,
   name: "南京站",
-  enName: "Nanjing Railway Station"
+  enName: "Nanjing Railway Station",
+  lines: [{
+    name: "1号线",
+    enName: "Line 1",
+    code: "L1",
+    color: "#009ACE"
+  }, {
+    name: "3号线",
+    enName: "Line 3",
+    code: "L3",
+    color: "#009A44"
+  }]
 }, {
   id: 2131,
   name: "新模范马路",
-  enName: "XINMOFANGMALU"
+  enName: "XINMOFANGMALU",
+  lines: [{
+    name: "1号线",
+    enName: "Line 1",
+    code: "L1",
+    color: "#009ACE"
+  }]
 }, {
   id: 2130,
   name: "玄武门",
-  enName: "XUANWUMEN"
+  enName: "XUANWUMEN",
+  lines: [{
+    name: "1号线",
+    enName: "Line 1",
+    code: "L1",
+    color: "#009ACE"
+  }]
 }]
 let currentStation = stations[0]
 const currentStationName = ref(currentStation.name)
 
-const currentLine = ref('home')
+let currentLine = currentStation.lines[0]
+const currentLineCode = ref(currentLine.code)
 
 const nextStation = computed(() => {
   if (currentStation == null) {
@@ -85,9 +120,18 @@ const previousStation = computed(() => {
 })
 
 const updateCurrentStation = (stationName) => {
-  console.log('update')
   currentStation = stations.find(it => it.name === stationName)
 }
+
+const handleClickLineIcon = (line) => {
+
+}
+
+const updateCurrentLine = (lineCode) => {
+  currentLine = currentStation.lines.find(it => it.code === lineCode)
+  console.log('currentLine', currentLine)
+}
+
 defineOptions({
   name: 'StationRealtimeView'
 })

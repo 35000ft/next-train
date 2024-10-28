@@ -11,7 +11,7 @@
 
 <script setup>
 defineOptions({
-  name: 'GoNavView'
+  name: 'MetroGoView'
 })
 
 const props = defineProps({})
