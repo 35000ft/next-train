@@ -40,15 +40,35 @@
           </div>
         </div>
       </div>
-      <q-separator color="primary" size="2px" style="margin: 0 0 5px;"/>
-      <div class="col-12" style="overflow-x: auto">
+      <q-separator color="primary" size="2px" style="margin: 0 0 10px;"/>
+      <div class="col-12" style="overflow-x: auto;white-space: nowrap;" @touchstart.stop>
         <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id" @click="handleClickLineIcon(line)"
-                  :disabled="line.code!==currentLine.code"/>
+                  :disabled="line.code!==currentLine.code" style="margin-right: 8px;"/>
       </div>
       <q-tab-panels v-model="currentLineCode" @touchstart.stop @update:model-value="updateCurrentLine"
                     swipeable animated>
-        <q-tab-panel v-for="line in currentStation.lines" :name="line.code" :key="line.id">
-          {{ line.name }}
+        <q-tab-panel v-for="line in currentStation.lines" :name="line.code" :key="line.id"
+                     style="justify-content: space-between;display: flex;padding-left: 0;padding-right: 0;margin-top: 5px;">
+          <div class="realtime-info-wrapper text-left">
+            <div class="border-bottom">
+              <span class="direction-text">八卦洲大桥南</span>
+              方向
+            </div>
+            <div class="row train-data border-bottom">
+              <div style="display: flex; align-items: center;text-align: left; ">
+                <TrainStatusIndicator size="25px"/>
+              </div>
+              <div class="col-8 text-left">
+                八卦洲大桥南BGASD11111111
+              </div>
+              <div class="col-2">
+                17:48
+              </div>
+            </div>
+
+          </div>
+          <div class="realtime-info-wrapper text-right">{{ line.name }}
+          </div>
         </q-tab-panel>
       </q-tab-panels>
     </q-tab-panel>
@@ -58,6 +78,7 @@
 <script setup>
 import {computed, ref} from "vue";
 import LineIcon from "components/LineIcon.vue";
+import TrainStatusIndicator from "components/TrainStatusIndicator.vue";
 
 const stations = [{
   id: 2132,
@@ -73,7 +94,7 @@ const stations = [{
     enName: "Line 3",
     code: "L3",
     color: "#009A44"
-  }]
+  },]
 }, {
   id: 2131,
   name: "新模范马路",
@@ -98,8 +119,11 @@ const stations = [{
 let currentStation = stations[0]
 const currentStationName = ref(currentStation.name)
 
-let currentLine = currentStation.lines[0]
-const currentLineCode = ref(currentLine.code)
+const currentLineCode = ref(currentStation.lines[0].code)
+
+const currentLine = computed(() => {
+  return currentStation.lines.find(it => it.code === currentLineCode.value)
+})
 
 const nextStation = computed(() => {
   if (currentStation == null) {
@@ -124,11 +148,13 @@ const updateCurrentStation = (stationName) => {
 }
 
 const handleClickLineIcon = (line) => {
-
+  if (line && line.code) {
+    currentLineCode.value = line.code
+  }
 }
 
 const updateCurrentLine = (lineCode) => {
-  currentLine = currentStation.lines.find(it => it.code === lineCode)
+  currentLine.value = currentStation.lines.find(it => it.code === lineCode)
   console.log('currentLine', currentLine)
 }
 
@@ -144,6 +170,7 @@ defineOptions({
   overflow-x: auto;
   white-space: nowrap;
 }
+
 
 .q-tab-panel {
   padding: 5px 10px;
@@ -162,5 +189,32 @@ defineOptions({
   white-space: nowrap;
   overflow-x: hidden; /* 超出内容隐藏 */
   text-overflow: ellipsis; /* 超出内容省略号 */
+}
+
+.realtime-info-wrapper {
+  font-size: 16px;
+  display: inline-block;
+  width: 50%;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #dcdcdc;
+}
+
+.train-data div {
+  padding-bottom: 4px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  padding-top: 4px;
+  align-items: center;
+  margin-right: 2px;
+}
+
+.direction-text {
+  color: var(--q-secondary);
+  font-style: italic;
+  font-weight: bold;
+  font-size: 18px;
 }
 </style>
