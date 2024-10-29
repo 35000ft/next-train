@@ -12,7 +12,7 @@
               {{ previousStation.name }}
             </div>
             <div>
-              {{ previousStation.enName }}
+              {{ previousStation.secName }}
             </div>
           </div>
         </div>
@@ -23,7 +23,7 @@
             {{ station.name }}
           </div>
           <div class="station-name-text">
-            {{ station.enName }}
+            {{ station.secName }}
           </div>
         </div>
         <div class="col-3 station-name-row small text-right">
@@ -35,7 +35,7 @@
               {{ nextStation.name }}
             </div>
             <div>
-              {{ nextStation.enName }}
+              {{ nextStation.secName }}
             </div>
           </div>
         </div>
@@ -54,14 +54,21 @@
               <span class="direction-text">八卦洲大桥南</span>
               方向
             </div>
-            <div class="row train-data border-bottom">
+            <div class="row train-data border-bottom"
+                 style="padding-left: 4px;">
               <div style="display: flex; align-items: center;text-align: left; ">
                 <TrainStatusIndicator size="25px"/>
               </div>
-              <div class="col-8 text-left">
-                八卦洲大桥南BGASD11111111
+              <div class="col-10 text-left">
+                八卦洲大桥南
               </div>
-              <div class="col-2">
+              <div class="col-4 text-left"
+                   style="height: 22px;font-size: 14px;padding: 0 1px;margin-bottom: 4px; color:#ffffff;background-color: var(--q-primary);border-radius: 5px;
+display: flex;justify-content: center;align-items: center;">
+                <q-icon name="alarm" style="font-size: 15px"/>
+                <span>17:48</span>
+              </div>
+              <div class="col-4" style="height: 22px;font-size: 12px;padding: 0">
                 17:48
               </div>
             </div>
@@ -83,35 +90,35 @@ import TrainStatusIndicator from "components/TrainStatusIndicator.vue";
 const stations = [{
   id: 2132,
   name: "南京站",
-  enName: "Nanjing Railway Station",
+  secName: "Nanjing Railway Station",
   lines: [{
     name: "1号线",
-    enName: "Line 1",
+    secName: "Line 1",
     code: "L1",
     color: "#009ACE"
   }, {
     name: "3号线",
-    enName: "Line 3",
+    secName: "Line 3",
     code: "L3",
     color: "#009A44"
   },]
 }, {
   id: 2131,
   name: "新模范马路",
-  enName: "XINMOFANGMALU",
+  secName: "XINMOFANGMALU",
   lines: [{
     name: "1号线",
-    enName: "Line 1",
+    secName: "Line 1",
     code: "L1",
     color: "#009ACE"
   }]
 }, {
   id: 2130,
   name: "玄武门",
-  enName: "XUANWUMEN",
+  secName: "XUANWUMEN",
   lines: [{
     name: "1号线",
-    enName: "Line 1",
+    secName: "Line 1",
     code: "L1",
     color: "#009ACE"
   }]
@@ -202,12 +209,11 @@ defineOptions({
 }
 
 .train-data div {
-  padding-bottom: 4px;
+  padding-bottom: 2px;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;
-  padding-top: 4px;
-  align-items: center;
+  padding-top: 2px;
   margin-right: 2px;
 }
 
