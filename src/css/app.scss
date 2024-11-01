@@ -13,3 +13,7 @@
   top: 0;
   z-index: 10; /* 确保 header 在页面内容之上 */
 }
+
+::-webkit-scrollbar {
+  display: none;
+}

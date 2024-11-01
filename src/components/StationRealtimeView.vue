@@ -1,11 +1,12 @@
 <template>
-  <q-tab-panels class="full-height" v-model="currentStationName" swipeable animated @touchstart.stop
-                @update:model-value="updateCurrentStation">
+  <q-tab-panels v-cloak v-if="currentStationName" class="full-height" v-model="currentStationName" swipeable
+                animated
+                @touchstart.stop>
     <q-tab-panel v-for="station in stations" :name="station.name" :key="station.id">
       <div class="row">
         <div class="col-3 station-name-row small text-left">
           <div v-if="previousStation!=null">
-            <div style="font-size: 25px;margin-bottom: 15px;">
+            <div style="font-size: 25px;margin-bottom: 15px;overflow: hidden">
               <i class="fa-solid fa-arrow-left"></i>
             </div>
             <div>
@@ -17,7 +18,7 @@
           </div>
         </div>
         <div class="col-6 station-name-row">
-          <div style="height: 20px;">
+          <div style="height: 20px;overflow-x: auto;">
           </div>
           <div class="text-h5 station-name-text current-station">
             {{ station.name }}
@@ -28,7 +29,7 @@
         </div>
         <div class="col-3 station-name-row small text-right">
           <div v-if="nextStation!=null">
-            <div style="font-size: 25px;margin-bottom: 15px;">
+            <div style="font-size: 25px;margin-bottom: 15px;overflow: hidden">
               <i class="fa-solid fa-arrow-right"></i>
             </div>
             <div>
@@ -41,40 +42,21 @@
         </div>
       </div>
       <q-separator color="primary" size="2px" style="margin: 0 0 10px;"/>
-      <div class="col-12" style="overflow-x: auto;white-space: nowrap;" @touchstart.stop>
-        <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id" @click="handleClickLineIcon(line)"
+      <div v-if="currentLine" class="col-12" style="overflow-x: auto;white-space: nowrap;" @touchstart.stop>
+        <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id"
+                  @click="handleClickLineIcon(line)"
                   :disabled="line.code!==currentLine.code" style="margin-right: 8px;"/>
       </div>
-      <q-tab-panels v-model="currentLineCode" @touchstart.stop @update:model-value="updateCurrentLine"
-                    swipeable animated>
+      <q-tab-panels v-model="currentLineCode" @touchstart="handleTouchStart"
+                    swipeable animated infinite>
         <q-tab-panel v-for="line in currentStation.lines" :name="line.code" :key="line.id"
                      style="justify-content: space-between;display: flex;padding-left: 0;padding-right: 0;margin-top: 5px;">
           <div class="realtime-info-wrapper text-left">
             <div class="border-bottom">
               <span class="direction-text">八卦洲大桥南</span>
-              方向
+              {{ t('direction') }}
             </div>
-            <div class="row train-data border-bottom"
-                 style="padding-left: 4px;">
-              <div style="display: flex; align-items: center;text-align: left; ">
-                <TrainStatusIndicator size="25px"/>
-              </div>
-              <div class="col-10 text-left">
-                八卦洲大桥南
-              </div>
-              <div class="col-4 text-left"
-                   style="height: 22px;font-size: 14px;padding: 0 1px;margin-bottom: 4px; color:#ffffff;background-color: var(--q-primary);border-radius: 5px;
-display: flex;justify-content: center;align-items: center;">
-                <q-icon name="alarm" style="font-size: 15px"/>
-                <span>17:48</span>
-              </div>
-              <div class="col-4" style="height: 22px;font-size: 12px;padding: 0">
-                17:48
-              </div>
-            </div>
-
-          </div>
-          <div class="realtime-info-wrapper text-right">{{ line.name }}
+            <TrainDataItem/>
           </div>
         </q-tab-panel>
       </q-tab-panels>
@@ -83,9 +65,12 @@ display: flex;justify-content: center;align-items: center;">
   </q-tab-panels>
 </template>
 <script setup>
-import {computed, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import LineIcon from "components/LineIcon.vue";
-import TrainStatusIndicator from "components/TrainStatusIndicator.vue";
+import TrainDataItem from "components/TrainDataItem.vue";
+import {useI18n} from "vue-i18n";
+
+const {t} = useI18n()
 
 const stations = [{
   id: 2132,
@@ -123,36 +108,61 @@ const stations = [{
     color: "#009ACE"
   }]
 }]
-let currentStation = stations[0]
-const currentStationName = ref(currentStation.name)
 
-const currentLineCode = ref(currentStation.lines[0].code)
+const props = defineProps({
+  currentStationIdProp: {
+    type: String,
+    default: () => "121"
+  },
+  currentLineCodeProp: {
+    type: String,
+  },
+})
+let currentStationName = ref(null)
+let currentLineCode = ref(null)
+
+function init() {
+  currentStationName.value = stations[0].name
+  currentLineCode.value = currentStation.value.lines[0].code
+}
+
+const currentStation = computed(() => {
+  return stations.find(it => it.name === currentStationName.value)
+})
+
+const handleTouchStart = (event) => {
+  if (currentStation.value.lines.length > 1) {
+    event.stopPropagation();
+  }
+}
+
+onMounted(() => {
+  init()
+});
+
+const isLoading = ref(true)
 
 const currentLine = computed(() => {
-  return currentStation.lines.find(it => it.code === currentLineCode.value)
+  return currentStation.value.lines.find(it => it.code === currentLineCode.value)
 })
 
 const nextStation = computed(() => {
-  if (currentStation == null) {
+  if (currentStation.value == null) {
     return null
   }
-  let number = stations.indexOf(currentStation)
+  let number = stations.indexOf(currentStation.value)
   if (stations[number + 1] === undefined) return null;
   return stations[number + 1]
 })
 
 const previousStation = computed(() => {
-  if (currentStation == null) {
+  if (currentStation.value == null) {
     return null
   }
-  let number = stations.indexOf(currentStation)
+  let number = stations.indexOf(currentStation.value)
   if (stations[number - 1] === undefined) return null;
   return stations[number - 1]
 })
-
-const updateCurrentStation = (stationName) => {
-  currentStation = stations.find(it => it.name === stationName)
-}
 
 const handleClickLineIcon = (line) => {
   if (line && line.code) {
@@ -160,10 +170,12 @@ const handleClickLineIcon = (line) => {
   }
 }
 
-const updateCurrentLine = (lineCode) => {
-  currentLine.value = currentStation.lines.find(it => it.code === lineCode)
-  console.log('currentLine', currentLine)
-}
+watch(currentStationName, () => {
+  let find = currentStation.value.lines.indexOf(it => it.code === currentLineCode.value)
+  if (find === -1) {
+    currentLineCode.value = currentStation.value.lines[0].code
+  }
+})
 
 defineOptions({
   name: 'StationRealtimeView'
@@ -201,7 +213,7 @@ defineOptions({
 .realtime-info-wrapper {
   font-size: 16px;
   display: inline-block;
-  width: 50%;
+  width: 100%;
 }
 
 .border-bottom {

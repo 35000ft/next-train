@@ -1,6 +1,6 @@
 <template>
   <div class="circle" :class="cssClass" :style="{height:size,width:size}">
-    {{ arriveMins }}
+    <span v-show="arriveMins>0 && arriveMins<10" style="padding-top:1px;">{{ arriveMins }}</span>
   </div>
 </template>
 <script setup>
@@ -10,25 +10,32 @@ import {scaleSize} from "src/utils/css-utils";
 const props = defineProps({
   size: {
     type: String,
-    default: '12px'
+    default: '15px'
   },
-})
-const arriveMins = computed(() => {
-  return 5
+  arriveMins: {
+    type: Number,
+    default: 5
+  }
 })
 
 const size = computed(() => {
+  let size
   if (cssClass.value === 'arrive-in-10-mins') {
-    return scaleSize(props.size, 0.8)
+    size = scaleSize(props.size, 1.4)
+  } else {
+    size = props.size
   }
-  return props.size
+  return size
 })
 
 const cssClass = computed(() => {
-  if (arriveMins.value < 10) {
+  if (props.arriveMins <= 0) {
+    return 'arrived'
+  }
+  if (props.arriveMins < 10) {
     return 'arrive-in-10-mins'
   }
-  return 'normal'
+  return 'arrive-after-10-mins'
 })
 </script>
 
@@ -42,8 +49,13 @@ const cssClass = computed(() => {
   align-items: center;
 }
 
-.normal {
-  background-color: darkseagreen;
+.arrive-after-10-mins {
+  background-color: #009A44;
+}
+
+.arrived {
+  background-color: #A6093D;
+  animation: scale-up-down 1s ease-in-out infinite;
 }
 
 
@@ -52,6 +64,16 @@ const cssClass = computed(() => {
   color: var(--q-primary);
   background-color: transparent;
   border: 2px solid var(--q-primary);
+}
+
+@keyframes scale-up-down {
+  0%, 100% {
+    transform: scale(0.8); /* 初始和结束状态为正常大小 */
+  }
+
+  50% {
+    transform: scale(1); /* 中间状态放大 */
+  }
 }
 
 
