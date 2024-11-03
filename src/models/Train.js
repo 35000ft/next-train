@@ -1,6 +1,6 @@
 const TRAIN_CATEGORY = {
-  LOCALE: {
-    code: 'locale',
+  LOCAL: {
+    code: 'local',
     bgColor: '#36598f'
   },
   EXPRESS: {

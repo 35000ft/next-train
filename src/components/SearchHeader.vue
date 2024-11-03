@@ -16,13 +16,16 @@
             @input="onSearch"
           />
         </div>
-        <div class="col" style="text-align: right; ">
+        <div class="col" style="text-align: right; " @click="handleClickSelectRailSystem">
           <q-btn flat label="南京" class="text-white" style="font-size: 20px;font-weight:bold;"/>
         </div>
 
       </div>
     </q-toolbar>
   </q-header>
+
+  <bottom-modal :display="displayRailSystemSelector" @close="handleCloseRailSystemSelector"/>
+
 </template>
 
 <script setup>
@@ -32,14 +35,26 @@ defineOptions({
   name: 'SearchHeader'
 })
 import {ref} from 'vue'
+import BottomModal from "components/BottomModal.vue";
 
 const {t} = useI18n();
 
 const searchText = ref('')  // 搜索框的绑定值
+const displayRailSystemSelector = ref(false)
+
+const handleClickSelectRailSystem = () => {
+  console.log('click', displayRailSystemSelector.value)
+  displayRailSystemSelector.value = true
+}
 
 const onSearch = () => {
   console.log('Search:', searchText.value)
 }
+
+const handleCloseRailSystemSelector = () => {
+  displayRailSystemSelector.value = false
+}
+
 </script>
 
 <style scoped>

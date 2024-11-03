@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import dayjs, {Dayjs} from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 
@@ -83,4 +83,56 @@ export function fixedMins(seconds) {
     result = Math.floor(seconds / 60)
   }
   return result
+}
+
+/**
+ *
+ * @param _date {Date|String|Dayjs}
+ * @returns {dayjs.Dayjs|null}
+ */
+function toDayjs(_date) {
+  if (!_date) {
+    console.warn(`${_date} cannot be null`)
+    return null
+  }
+  if (typeof _date === "string") {
+    return dayjs(_date)
+  }
+  if (_date instanceof Date) {
+    return dayjs(_date)
+  }
+  if (_date instanceof dayjs.Dayjs) {
+    return _date
+  }
+  console.warn(`${_date} is neither not string, nor Date, Dayjs!`)
+  return null
+}
+
+/**
+ * 格式化时间为 HH:MM，并对秒数四舍五入
+ *
+ * @param {dayjs.Dayjs|String} _date
+ * @returns {string} 格式化后的时间字符串
+ */
+export function formatToHHMM(_date) {
+  _date = toDayjs(_date)
+
+  // 获取小时和分钟
+  let hours = _date.hour();
+  let minutes = _date.minute();
+  const seconds = _date.second();
+
+  // 对秒数四舍五入，如果>=30秒则分钟+1
+  if (seconds >= 30) {
+    minutes += 1;
+  }
+
+  // 处理分钟溢出情况
+  if (minutes === 60) {
+    minutes = 0;
+    hours += 1;
+  }
+
+  // 格式化为 HH:MM
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }

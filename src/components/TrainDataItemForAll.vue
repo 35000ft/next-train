@@ -1,21 +1,21 @@
 <template>
   <div class="row train-data border-bottom"
-       style="padding-left: 4px;">
-    <div class="col-1" style="display: flex; align-items: center;text-align: left; ">
+       style="padding-left: 4px;display: flex;justify-content: space-around">
+    <div style="display: flex; align-items: center;text-align: left; ">
       <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
     </div>
-    <div class="col-5 text-left">
+    <div class="col-2" style="display: flex;align-items: center;">
+      <div class="pill" :style="{backgroundColor:trainData.lineColor}">
+        <span>{{ trainData.lineName }}</span>
+      </div>
+    </div>
+    <div class="col-6 text-left">
       {{ trainData.terminal }}
     </div>
-    <div class="col-5" style="display: flex;align-items: center;justify-content: flex-end;">
+    <div style="display: flex;align-items: center;justify-content: flex-end;">
       <div class="pill">
         <q-icon name="alarm" style="font-size: 15px;"/>
         <span>{{ formatToHHMM(trainData.dep) }}</span>
-      </div>
-
-      <div class="pill" v-for="(trainCategory,index) in trainCategories" :key="index"
-           :style="{backgroundColor:trainCategory.bgColor}">
-        {{ t(`trainCategory.${trainCategory.code}`) }}
       </div>
     </div>
   </div>
@@ -32,9 +32,9 @@ import dayjs from "dayjs";
 import {TRAIN_CATEGORY} from "src/models/Train";
 
 const {t} = useI18n()
-const trainCategories = computed(() => {
-  return ['LOCAL'].map(it => TRAIN_CATEGORY[it])
-})
+computed(() => {
+  return ['LOCALE', 'THROUGH'].map(it => TRAIN_CATEGORY[it])
+});
 const props = defineProps({
   trainData: {
     type: Object,
@@ -44,7 +44,9 @@ const props = defineProps({
         trainNo: "5101",
         arr: dayjs(new Date()).add(2, 'minute').toString(),
         dep: dayjs(new Date()).add(3, 'minute').toString(),
-        terminal: "TIANKONGSI",
+        terminal: "天隆寺",
+        lineName: "1号线",
+        lineColor: "#009ACE",
         direction: true,
       }
     }
@@ -62,10 +64,6 @@ const terminalStation = computed(() => {
 </script>
 
 <style scoped>
-.train-data {
-  justify-content: space-around;
-}
-
 .border-bottom {
   border-bottom: 1px solid #dcdcdc;
 }

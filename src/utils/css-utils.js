@@ -1,7 +1,7 @@
 function scaleSize(sizeStr, factor) {
   const match = sizeStr.match(/^(\d+(?:\.\d+)?)([a-z%]+)$/); // 匹配数字和单位
   if (!match) {
-    throw new Error("尺寸格式不正确");
+    throw new Error(`尺寸格式不正确: ${sizeStr}`);
   }
 
   const [_, value, unit] = match;
@@ -10,4 +10,13 @@ function scaleSize(sizeStr, factor) {
   return `${scaledValue}${unit}`;
 }
 
-export {scaleSize}
+function getNumberFromSizeString(sizeStr) {
+  const match = sizeStr.match(/^(-?\d+(?:\.\d+)?)([a-z%]+)$/); // 匹配数字和单位
+  if (!match) {
+    throw new Error(`尺寸格式不正确: ${sizeStr}`);
+  }
+  const [_, value, unit] = match;
+  return parseFloat(value)
+}
+
+export {scaleSize, getNumberFromSizeString}

@@ -1,6 +1,7 @@
 import {createRouter, createMemoryHistory, createWebHistory, createWebHashHistory} from 'vue-router'
 import routes from './routes'
 import {getUserDefaultLanguage, i18n} from "boot/i18n";
+import {useStore} from "vuex";
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -24,11 +25,17 @@ const router = createRouter({
   history: createHistory(process.env.VUE_ROUTER_BASE)
 })
 
-
 // 在每次路由导航时设置 locale
 router.beforeEach((to, from, next) => {
+
+  const store = useStore()
   const lang = to.query.lang || getUserDefaultLanguage(); // 从路由查询参数获取语言
-  console.log('language is', lang)
+  store.dispatch('language/setLanguage', lang).then(() => {
+  }).catch(error => {
+    // 处理错误
+    console.error('Error setting language:', error)
+  });
+
   i18n.global.locale = lang;
   next();
 });

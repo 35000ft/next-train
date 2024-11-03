@@ -45,6 +45,7 @@
 
     </div>
   </q-page-container>
+
 </template>
 
 <script setup>
@@ -58,6 +59,18 @@ defineOptions({
 
 const props = defineProps({})
 const topBanner = ref('home2')
+
+const displayRailSystemSelector = ref(true)
+const displayStationSelector = ref(true)
+
+const handleCloseRailSystemSelector = () => {
+  displayRailSystemSelector.value = false
+}
+const handleCloseStationSelector = () => {
+  displayStationSelector.value = false
+}
+
+
 </script>
 
 <style scoped>

@@ -4,6 +4,8 @@ import {boot} from "quasar/wrappers";
 
 const messages = {
   en: {
+    developing: "Under Development...",
+    all: "ALL",
     direction: "Towards",
     headers: {
       search: {
@@ -16,14 +18,14 @@ const messages = {
       line: 'Line',
     },
     trainCategory: {
-      locale: 'LOCALE',
-      express: 'EXPRESS',
-      nonstop: 'NON-STOP',
-      through: 'THROUGH',
+      local: 'LOCAL',
+      express: 'EXP',
+      nonstop: 'N.STOP',
+      through: 'THRU.',
       short: 'SHORT',
-      initial: 'INITIAL',
-      terminal: 'TERMINAL',
-      special: 'SPECIAL',
+      initial: 'INIT',
+      terminal: 'TERM',
+      special: 'SPL',
     },
     trainStatus: {
       arrived: "ARRIVED",
@@ -33,6 +35,8 @@ const messages = {
     }
   },
   cn: {
+    developing: "功能开发中, 敬请期待......",
+    all: "全部",
     direction: "方向",
     headers: {
       search: {
@@ -45,7 +49,7 @@ const messages = {
       line: '线路',
     },
     trainCategory: {
-      locale: '普通',
+      local: '普通',
       express: '快车',
       nonstop: '直达',
       through: '贯通',
@@ -62,6 +66,8 @@ const messages = {
     }
   },
   hk: {
+    developing: "功能開發中，敬請期待......",
+    all: "全部",
     direction: "方向",
     headers: {
       search: {
@@ -74,7 +80,7 @@ const messages = {
       line: '線路',
     },
     trainCategory: {
-      locale: '普通',
+      local: '普通',
       express: '快車',
       nonstop: '直達',
       through: '貫通',
@@ -112,7 +118,7 @@ const getUserDefaultLanguage = () => {
 }
 
 const i18n = createI18n({
-  locale: defaultLanguage,
+  local: defaultLanguage,
   messages,
 });
 // 导出 boot 函数和 i18n 实例

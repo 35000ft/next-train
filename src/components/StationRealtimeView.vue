@@ -9,22 +9,23 @@
             <div style="font-size: 25px;margin-bottom: 15px;overflow: hidden">
               <i class="fa-solid fa-arrow-left"></i>
             </div>
-            <div>
-              {{ previousStation.name }}
+            <div class="direction-text">
+              {{ t('direction') }} <b>{{ previousStation.direction }}</b>
             </div>
             <div>
-              {{ previousStation.secName }}
+              {{ previousStation.name }}
             </div>
           </div>
         </div>
         <div class="col-6 station-name-row">
-          <div style="height: 20px;overflow-x: auto;">
+          <div style="height: 10px;overflow-x: auto;">
           </div>
-          <div class="text-h5 station-name-text current-station">
+          <div class="text-h5 station-name-text current-station"
+               style="border-bottom: 1px solid var(--q-primary); margin-bottom: 5px;">
             {{ station.name }}
           </div>
-          <div class="station-name-text">
-            {{ station.secName }}
+          <div v-if="station.code" class="pill">
+            {{ station.code }}
           </div>
         </div>
         <div class="col-3 station-name-row small text-right">
@@ -32,43 +33,78 @@
             <div style="font-size: 25px;margin-bottom: 15px;overflow: hidden">
               <i class="fa-solid fa-arrow-right"></i>
             </div>
-            <div>
-              {{ nextStation.name }}
+            <div class="direction-text">
+              {{ t('direction') }} <b>{{ nextStation.direction }}</b>
             </div>
             <div>
-              {{ nextStation.secName }}
+              {{ nextStation.name }}
             </div>
           </div>
         </div>
       </div>
       <q-separator color="primary" size="2px" style="margin: 0 0 10px;"/>
-      <div v-if="currentLine" class="col-12" style="overflow-x: auto;white-space: nowrap;" @touchstart.stop>
+      <div v-if="currentLine" class="col-12" style="overflow-x: auto;white-space: nowrap;margin-bottom: 5px;"
+           @touchstart.stop>
+        <LineIcon class="line-icon" v-show="currentStation.lines.length>1" :line="{
+          name:t('all'),
+          color:'#36598f'
+        }" @click="handleClickLineIcon('all')" :disabled="currentLineCode!=='all'"/>
         <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id"
                   @click="handleClickLineIcon(line)"
-                  :disabled="line.code!==currentLine.code" style="margin-right: 8px;"/>
+                  :disabled="currentLineCode==='all'||line.code!==currentLine.code" class="line-icon"/>
       </div>
-      <q-tab-panels v-model="currentLineCode" @touchstart="handleTouchStart"
+      <q-tab-panels class="train-data-wrapper" v-model="currentLineCode" @touchstart="handleTouchStart"
+                    style="overflow-y: auto;height: 57%;"
                     swipeable animated infinite>
-        <q-tab-panel v-for="line in currentStation.lines" :name="line.code" :key="line.id"
-                     style="justify-content: space-between;display: flex;padding-left: 0;padding-right: 0;margin-top: 5px;">
+        <q-tab-panel v-if="currentStation.lines.length>1" name="all"
+                     style="padding-left: 0;padding-right: 0;padding-top: 0;">
           <div class="realtime-info-wrapper text-left">
-            <div class="border-bottom">
-              <span class="direction-text">八卦洲大桥南</span>
-              {{ t('direction') }}
-            </div>
-            <TrainDataItem/>
+            <TrainDataItemForAll/>
+            <TrainDataItemForAll/>
+            <TrainDataItemForAll/>
           </div>
+        </q-tab-panel>
+        <q-tab-panel v-for="line in currentStation.lines" :name="line.code" :key="line.id" v-scroll-to-view
+                     style="padding-left: 0;padding-right: 0;padding-top: 0;">
+
+          <div class="realtime-info-wrapper text-left">
+            <q-expansion-item expand-separator default-opened popup>
+              <template v-slot:header>
+                <div class="border-bottom" style="width: 100%;">
+                  <span class="direction-text"><i>八卦洲大桥南</i> {{ t('direction') }}</span>
+                </div>
+              </template>
+              <TrainDataItem/>
+              <TrainDataItem/>
+              <TrainDataItem/>
+            </q-expansion-item>
+          </div>
+          <div class="realtime-info-wrapper text-left">
+            <q-expansion-item expand-separator default-opened popup>
+              <template v-slot:header>
+                <div class="border-bottom" style="width: 100%;">
+                  <span class="direction-text"><i>八卦洲大桥南</i> {{ t('direction') }}</span>
+                </div>
+              </template>
+              <TrainDataItem/>
+              <TrainDataItem/>
+              <TrainDataItem/>
+            </q-expansion-item>
+          </div>
+
         </q-tab-panel>
       </q-tab-panels>
     </q-tab-panel>
 
   </q-tab-panels>
 </template>
+
 <script setup>
 import {computed, onMounted, ref, watch} from "vue";
 import LineIcon from "components/LineIcon.vue";
 import TrainDataItem from "components/TrainDataItem.vue";
 import {useI18n} from "vue-i18n";
+import TrainDataItemForAll from "components/TrainDataItemForAll.vue";
 
 const {t} = useI18n()
 
@@ -76,6 +112,7 @@ const stations = [{
   id: 2132,
   name: "南京站",
   secName: "Nanjing Railway Station",
+  code: "NJS",
   lines: [{
     name: "1号线",
     secName: "Line 1",
@@ -143,28 +180,36 @@ onMounted(() => {
 const isLoading = ref(true)
 
 const currentLine = computed(() => {
+  if (currentLineCode.value === 'all') {
+    return currentLine.value
+  }
   return currentStation.value.lines.find(it => it.code === currentLineCode.value)
 })
 
-const nextStation = computed(() => {
+function getStation(offset) {
   if (currentStation.value == null) {
-    return null
+    return null;
   }
-  let number = stations.indexOf(currentStation.value)
-  if (stations[number + 1] === undefined) return null;
-  return stations[number + 1]
-})
+  const number = stations.indexOf(currentStation.value);
+  const station = stations[number + offset];
 
-const previousStation = computed(() => {
-  if (currentStation.value == null) {
-    return null
-  }
-  let number = stations.indexOf(currentStation.value)
-  if (stations[number - 1] === undefined) return null;
-  return stations[number - 1]
-})
+  if (station === undefined) return null;
+
+  const newStation = Object.assign({}, station);
+  newStation.direction = offset > 0
+    ? stations.slice(-1)[0].name
+    : stations[0].name;
+  return newStation;
+}
+
+const nextStation = computed(() => getStation(1))
+const previousStation = computed(() => getStation(-1))
 
 const handleClickLineIcon = (line) => {
+  if (line === 'all') {
+    currentLineCode.value = 'all'
+    return
+  }
   if (line && line.code) {
     currentLineCode.value = line.code
   }
@@ -183,16 +228,22 @@ defineOptions({
 </script>
 <style scoped>
 .station-name-text {
-  color: var(--q-secondary);
+  color: var(--q-primary);
   font-weight: bold;
   text-align: center;
   overflow-x: auto;
   white-space: nowrap;
+  width: fit-content;
+  justify-self: center;
 }
-
 
 .q-tab-panel {
   padding: 5px 10px;
+}
+
+.train-data-wrapper .q-tab-panel {
+  overflow-y: scroll;
+  height: 100%;
 }
 
 .station-name-row {
@@ -210,14 +261,20 @@ defineOptions({
   text-overflow: ellipsis; /* 超出内容省略号 */
 }
 
+.line-icon {
+  margin-right: 8px;
+}
+
 .realtime-info-wrapper {
   font-size: 16px;
-  display: inline-block;
+  display: block;
   width: 100%;
 }
 
 .border-bottom {
   border-bottom: 1px solid #dcdcdc;
+  display: flex;
+  align-items: center;
 }
 
 .train-data div {
@@ -231,8 +288,40 @@ defineOptions({
 
 .direction-text {
   color: var(--q-secondary);
-  font-style: italic;
   font-weight: bold;
   font-size: 18px;
+}
+
+.station-name-row .direction-text {
+  margin-bottom: 2px;
+}
+
+.pill {
+  justify-self: center;
+  height: 22px;
+  font-size: 14px;
+  padding: 0 10px;
+  display: flex;
+  width: fit-content;
+  color: var(--q-primary);
+  font-weight: bold;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid var(--q-primary);
+  border-radius: 10px;
+}
+
+::v-deep .q-item {
+  padding: 0;
+  max-height: 40px;
+}
+
+::v-deep .q-expansion-item--popup .q-expansion-item__container {
+  border: none;
+}
+
+::v-deep .q-expansion-item--popup.q-expansion-item--expanded {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 </style>

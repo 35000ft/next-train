@@ -27,12 +27,15 @@
       </q-tabs>
     </q-footer>
   </q-layout>
+  
+  <!--  <bottom-modal :display="displayStationSelector" @close="handleCloseStationSelector"/>-->
 </template>
 
 <script setup>
 import {ref} from 'vue'
 import {useI18n} from 'vue-i18n';
 import {useRouter} from "vue-router";
+import BottomModal from "components/BottomModal.vue";
 
 const {t} = useI18n();
 
@@ -43,6 +46,7 @@ defineOptions({
 
 const tab = ref('station'); // 默认激活的导航项
 const router = useRouter()
+
 
 const updateRoute = (newTab) => {
   // 根据选中的选项卡更新路由
