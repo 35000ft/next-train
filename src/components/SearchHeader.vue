@@ -24,7 +24,7 @@
     </q-toolbar>
   </q-header>
 
-  <bottom-modal :display="displayRailSystemSelector" @close="handleCloseRailSystemSelector"/>
+  <rail-system-selector ref="railSystemSelector"/>
 
 </template>
 
@@ -35,24 +35,23 @@ defineOptions({
   name: 'SearchHeader'
 })
 import {ref} from 'vue'
-import BottomModal from "components/BottomModal.vue";
+import RailSystemSelector from "components/RailSystemSelector.vue";
 
 const {t} = useI18n();
 
 const searchText = ref('')  // 搜索框的绑定值
-const displayRailSystemSelector = ref(false)
+const railSystemSelector = ref(null)
 
 const handleClickSelectRailSystem = () => {
-  console.log('click', displayRailSystemSelector.value)
-  displayRailSystemSelector.value = true
+  console.log(railSystemSelector.value.showRailSystemSelector)
+  railSystemSelector.value.showRailSystemSelector()
+}
+const closeClickRailSystemSelector = () => {
+
 }
 
 const onSearch = () => {
   console.log('Search:', searchText.value)
-}
-
-const handleCloseRailSystemSelector = () => {
-  displayRailSystemSelector.value = false
 }
 
 </script>

@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click.self="()=>$emit('close')" v-show="showBg"
        :style="{backgroundColor:`rgb(0,0,0,${overlayOpacity})`}">
     <transition name="bottom-modal">
-      <div class="modal-content" v-show="display" ref="modalContent">
+      <div class="modal-content" v-show="display" ref="modalContent" :style="{backgroundColor:bgColor}">
         <div class="movable-banner"><span></span></div>
         <slot></slot>
       </div>
@@ -18,11 +18,15 @@ import {getNumberFromSizeString} from "src/utils/css-utils";
 const props = defineProps({
   display: {
     type: Boolean
+  },
+  bgColor: {
+    type: String,
+    default: "#ffffff"
   }
 })
 const emit = defineEmits(['close']);
 const showBg = ref(false)
-const targetOverlayOpacity = 0.2
+const targetOverlayOpacity = 0.5
 let overlayOpacity = ref(targetOverlayOpacity)
 
 const modalContent = ref(null);
@@ -35,8 +39,8 @@ onMounted(() => {
   })
   hammer.on('panend', evt => {
     const movedHeight = Math.abs(getNumberFromSizeString(modalContent.value.style.bottom))
-    if (movedHeight > modalContent.value.clientHeight * 0.3) {
-      //如果移动高度大于元素30%的高度则关闭模态框
+    if (movedHeight > modalContent.value.clientHeight * 0.25) {
+      //如果移动高度大于元素25%的高度则关闭模态框
       emit('close')
     } else {
       //否则恢复原位
@@ -50,10 +54,25 @@ watch(() => props.display, (newValue, oldValue) => {
   if (!newValue) {
     closeModal()
   } else {
-    showBg.value = true
-    overlayOpacity.value = targetOverlayOpacity
+    showModel()
   }
 })
+
+const showModel = () => {
+  showBg.value = true
+  overlayOpacity.value = targetOverlayOpacity * 0.1
+  const interval = setInterval(() => {
+    const newOpacity = overlayOpacity.value * 1.3
+    if (newOpacity < targetOverlayOpacity) {
+      overlayOpacity.value = newOpacity
+    } else {
+      overlayOpacity.value = targetOverlayOpacity
+    }
+  }, 50);
+  setTimeout(() => {
+    clearInterval(interval)
+  }, 350)
+}
 
 const closeModal = () => {
   //逐渐改变背景颜色的透明度
@@ -101,33 +120,24 @@ const closeModal = () => {
   border-top: 2px solid var(--q-primary);
 }
 
-.close-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+.bottom-modal-enter-active {
+  animation: selector-transition .8s;
 }
 
-/* 动画效果 */
-.bottom-modal-enter-active,
 .bottom-modal-leave-active {
-  transition: transform 1.5s cubic-bezier(0.25, 0.1, 0.25, 1); /* 非线性缓动 */
+  animation: selector-transition .5s reverse;
 }
 
-.bottom-modal-enter {
-  transform: translateY(100vh);
+
+@keyframes selector-transition {
+  from {
+    transform: translateY(90vh);
+  }
+  to {
+    transform: translateY(0px);
+  }
 }
 
-.bottom-modal-leave {
-  transform: translateY(0px);
-}
-
-.bottom-modal-leave-to {
-  transform: translateY(100vh);
-}
 
 .movable-banner {
   height: 30px;
