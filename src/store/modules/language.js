@@ -3,6 +3,7 @@ import {getUserDefaultLanguage} from "boot/i18n";
 
 const state = {
   currentLanguage: getUserDefaultLanguage() || 'en', // 默认语言，可以根据需求更改
+  mappedCurrentLanguage: getUserDefaultLanguage() || 'en', // 默认语言，可以根据需求更改
 };
 
 const mutations = {

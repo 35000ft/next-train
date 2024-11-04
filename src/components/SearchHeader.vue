@@ -43,7 +43,6 @@ const searchText = ref('')  // 搜索框的绑定值
 const railSystemSelector = ref(null)
 
 const handleClickSelectRailSystem = () => {
-  console.log(railSystemSelector.value.showRailSystemSelector)
   railSystemSelector.value.showRailSystemSelector()
 }
 const closeClickRailSystemSelector = () => {

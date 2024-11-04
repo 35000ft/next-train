@@ -34,7 +34,7 @@ const messages = {
       exitService: "EXIT SERVICE",
     }
   },
-  cn: {
+  'zh-Hans': {
     developing: "功能开发中, 敬请期待......",
     all: "全部",
     direction: "方向",
@@ -65,7 +65,7 @@ const messages = {
       exitService: "退出服务",
     }
   },
-  hk: {
+  'zh-Hant': {
     developing: "功能開發中，敬請期待......",
     all: "全部",
     direction: "方向",
@@ -102,10 +102,10 @@ const languages = Object.keys(messages)
 
 const mapLanguage = (language) => {
   if (['zh-CN', 'zh-SG', 'zh-MY'].includes(language)) {
-    return 'cn'
+    return 'zh-Hans'
   }
   if (['zh-TW', 'zh-HK', 'zh-MO'].includes(language)) {
-    return 'hk'
+    return 'zh-Hant'
   }
   return 'en'
 }

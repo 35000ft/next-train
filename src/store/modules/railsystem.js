@@ -1,5 +1,7 @@
 //线网，线路，车站数据
 
+import {toRaw} from "vue";
+
 const railSystems = {
   'NJMTR': {
     name: '南京',
@@ -32,8 +34,9 @@ const actions = {
   getRailSystem({state, commit}, code) {
     return state.railSystems.get(code)
   },
-  async getRailSystems({state, commit}) {
-    return Promise.resolve(state.railSystems.values())
+  async getRailSystems({state, commit, getters}) {
+    const lang = getters['language/currentLanguage']
+    return Promise.resolve(Array.from(toRaw(state.railSystems).values()))
   }
 }
 
