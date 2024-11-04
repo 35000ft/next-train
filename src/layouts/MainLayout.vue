@@ -21,14 +21,13 @@
               dense
               active-color="white"
               indicator-color="transparent" class="bg-primary text-grey shadow-10" v-model="tab">
-        <q-route-tab name="home" to="/" icon="home" :label="t('nav.home')"/>
-        <q-route-tab name="metro-go" to="/metro-go" icon="alarm" :label="t('nav.go')"/>
-        <q-route-tab name="lines" to="/lines" icon="movie" :label="t('nav.line')"/>
+        <q-route-tab name="home" to="/" icon="train" :label="t('nav.home')"/>
+        <q-route-tab name="metro-go" to="/metro-go" icon="alt_route" :label="t('nav.go')"/>
+        <q-route-tab name="lines" to="/lines" icon="timeline" :label="t('nav.line')"/>
       </q-tabs>
     </q-footer>
   </q-layout>
-  
-  <!--  <bottom-modal :display="displayStationSelector" @close="handleCloseStationSelector"/>-->
+
 </template>
 
 <script setup>

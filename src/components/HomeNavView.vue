@@ -80,7 +80,7 @@ const handleCloseStationSelector = () => {
 }
 
 .middle-card {
-  width: 47%;
+  width: 46.5%;
 }
 
 .middle-card .q-card {

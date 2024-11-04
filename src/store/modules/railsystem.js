@@ -19,14 +19,16 @@ const railSystems = {
 
 
 const state = {
+  currentRailSystem: railSystems['NJMTR'],
   railSystems: new Map(Object.entries(railSystems)),
-  stations: {},
-  lines: {}
-};
+  stations: null,
+  lines: null,
+}
 
 const mutations = {
-  SET_RAIL_SYSTEM(state, language) {
-    state.currentLanguage = language;
+  SET_CURRENT_RAIL_SYSTEM(state, railsystem) {
+    state.currentRailSystem = railsystem;
+    localStorage.setItem('currentRailSystem', JSON.stringify(railsystem))
   },
 }
 
@@ -37,10 +39,15 @@ const actions = {
   async getRailSystems({state, commit, getters}) {
     const lang = getters['language/currentLanguage']
     return Promise.resolve(Array.from(toRaw(state.railSystems).values()))
+  },
+  setCurrentRailSystem({commit}, railSystem) {
+    commit('SET_CURRENT_RAIL_SYSTEM', railSystem)
   }
 }
 
-const getters = {}
+const getters = {
+  currentRailSystem: state => state.currentRailSystem
+}
 
 export default {
   namespaced: true,

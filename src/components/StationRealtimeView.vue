@@ -17,15 +17,20 @@
             </div>
           </div>
         </div>
-        <div class="col-6 station-name-row">
-          <div style="height: 10px;overflow-x: auto;">
+        <div class="col-6 station-name-row" style="display: flex;align-items: center;justify-content: center;">
+          <div class="tool-bar">
+            <q-icon name="star"></q-icon>
+            <q-icon name="departure_board"></q-icon>
+            <q-icon name="map"></q-icon>
           </div>
-          <div class="text-h5 station-name-text current-station"
-               style="border-bottom: 1px solid var(--q-primary); margin-bottom: 5px;">
-            {{ station.name }}
-          </div>
-          <div v-if="station.code" class="pill">
-            {{ station.code }}
+          <div style="margin-top: 5px;">
+            <div class="text-h6 station-name-text current-station"
+                 style="border-bottom: 1px solid var(--q-primary); margin-bottom: 5px;">
+              {{ station.name }}
+            </div>
+            <div v-if="station.code" class="pill" style="margin: 0 auto">
+              {{ station.code }}
+            </div>
           </div>
         </div>
         <div class="col-3 station-name-row small text-right">
@@ -298,7 +303,7 @@ defineOptions({
 
 .pill {
   justify-self: center;
-  height: 22px;
+  height: 20px;
   font-size: 14px;
   padding: 0 10px;
   display: flex;
@@ -309,6 +314,24 @@ defineOptions({
   align-items: center;
   border: 2px solid var(--q-primary);
   border-radius: 10px;
+}
+
+.tool-bar {
+  height: 20px;
+  overflow-x: auto;
+  background-color: var(--q-primary);
+  width: 50%;
+  position: absolute;
+  top: 0;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.tool-bar .q-icon {
+  color: #ffffff;
 }
 
 ::v-deep .q-item {

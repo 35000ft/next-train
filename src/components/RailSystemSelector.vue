@@ -7,7 +7,9 @@
       <div class="row" style="overflow-y: auto;">
         <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
         <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
+        <div style="height: 10px;width: 100%;"></div>
         <div class="row rail-system-wrapper" v-for="(railsystem,index) in searchResults" :key="index"
+             @click="handleSelectRailSystem(railsystem)"
              style="width: 100%;">
           <div class="col-6">{{ railsystem.fullname }}</div>
           <div class="col-2"></div>
@@ -20,7 +22,7 @@
 
 <script>
 import BottomModal from "components/BottomModal.vue";
-import {defineComponent, ref} from "vue";
+import {defineComponent, ref, toRaw} from "vue";
 import {useStore} from "vuex";
 
 
@@ -32,9 +34,19 @@ export default defineComponent({
     const loading = ref(true)
     const store = useStore()
     const searchResults = ref([])
+    let currentRailSystem = toRaw(store.getters['railsystem/currentRailSystem'])
     const handleCloseRailSystemSelector = () => {
       displayRailSystemSelector.value = false
       emit('close')
+    }
+    const handleSelectRailSystem = (railsystem) => {
+      railsystem = toRaw(railsystem)
+      if (railsystem.code === currentRailSystem.code) {
+        return
+      }
+      emit('select', railsystem)
+      currentRailSystem = railsystem
+      displayRailSystemSelector.value = false
     }
     const showRailSystemSelector = () => {
       displayRailSystemSelector.value = true
@@ -48,6 +60,7 @@ export default defineComponent({
       showRailSystemSelector,
       displayRailSystemSelector,
       handleCloseRailSystemSelector,
+      handleSelectRailSystem,
       text,
       emit,
       loading,
@@ -61,10 +74,19 @@ export default defineComponent({
 
 <style scoped>
 .rail-system-wrapper {
-  margin-top: 5px;
+  padding: 5px;
   font-size: 16px;
-  color: var(--q-primary);
-  font-weight: bold;
+  color: #3a3a3a;
+  transition: .3s;
+  background-color: transparent;
   border-bottom: 1px solid #dcdcdc;
+}
+
+.rail-system-wrapper:active {
+  color: var(--q-primary);
+  background-color: #dcdcdc;
+  font-weight: bold;
+  align-items: center;
+  font-size: 18px;
 }
 </style>

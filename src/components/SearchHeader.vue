@@ -17,14 +17,14 @@
           />
         </div>
         <div class="col" style="text-align: right; " @click="handleClickSelectRailSystem">
-          <q-btn flat label="南京" class="text-white" style="font-size: 20px;font-weight:bold;"/>
+          <q-btn flat :label="currentRailSystem.name" class="text-white" style="font-size: 20px;font-weight:bold;"/>
         </div>
 
       </div>
     </q-toolbar>
   </q-header>
 
-  <rail-system-selector ref="railSystemSelector"/>
+  <rail-system-selector ref="railSystemSelector" @select="handleSelectRailSystem"/>
 
 </template>
 
@@ -34,10 +34,14 @@ import {useI18n} from "vue-i18n";
 defineOptions({
   name: 'SearchHeader'
 })
-import {ref} from 'vue'
+import {ref, toRaw} from 'vue'
 import RailSystemSelector from "components/RailSystemSelector.vue";
+import {useStore} from "vuex";
 
 const {t} = useI18n();
+const store = useStore()
+
+const currentRailSystem = ref(toRaw(store.getters['railsystem/currentRailSystem']))
 
 const searchText = ref('')  // 搜索框的绑定值
 const railSystemSelector = ref(null)
@@ -45,8 +49,13 @@ const railSystemSelector = ref(null)
 const handleClickSelectRailSystem = () => {
   railSystemSelector.value.showRailSystemSelector()
 }
-const closeClickRailSystemSelector = () => {
-
+const handleSelectRailSystem = (railsystem) => {
+  console.log('rec', railsystem)
+  if (!railsystem) {
+    return
+  }
+  currentRailSystem.value = railsystem
+  store.dispatch('railsystem/setCurrentRailSystem', railsystem)
 }
 
 const onSearch = () => {
