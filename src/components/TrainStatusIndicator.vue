@@ -63,7 +63,7 @@ const cssClass = computed(() => {
   padding: 0;
   color: var(--q-primary);
   background-color: transparent;
-  border: 2px solid var(--q-primary);
+  border: 2px solid #009A44;
 }
 
 @keyframes scale-up-down {

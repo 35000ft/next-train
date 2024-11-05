@@ -7,6 +7,7 @@ const messages = {
     developing: "Under Development...",
     all: "ALL",
     direction: "Towards",
+    directionShort: "To",
     headers: {
       search: {
         placeholder: 'Station, Line...'
@@ -20,7 +21,7 @@ const messages = {
     trainCategory: {
       local: 'LOCAL',
       express: 'EXP',
-      nonstop: 'N.STOP',
+      nonstop: 'N.ST.',
       through: 'THRU.',
       short: 'SHORT',
       initial: 'INIT',
@@ -38,6 +39,7 @@ const messages = {
     developing: "功能开发中, 敬请期待......",
     all: "全部",
     direction: "方向",
+    directionShort: "方向",
     headers: {
       search: {
         placeholder: '车站, 线路...'
@@ -69,6 +71,7 @@ const messages = {
     developing: "功能開發中，敬請期待......",
     all: "全部",
     direction: "方向",
+    directionShort: "方向",
     headers: {
       search: {
         placeholder: '車站, 線路...'

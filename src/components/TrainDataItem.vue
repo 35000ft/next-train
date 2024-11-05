@@ -9,7 +9,6 @@
     </div>
     <div class="col-5" style="display: flex;align-items: center;justify-content: flex-end;">
       <div class="pill">
-        <q-icon name="alarm" style="font-size: 15px;"/>
         <span>{{ formatToHHMM(trainData.dep) }}</span>
       </div>
 
@@ -33,7 +32,7 @@ import {TRAIN_CATEGORY} from "src/models/Train";
 
 const {t} = useI18n()
 const trainCategories = computed(() => {
-  return ['LOCAL'].map(it => TRAIN_CATEGORY[it])
+  return ['LOCAL', 'INITIAL'].map(it => TRAIN_CATEGORY[it])
 })
 const props = defineProps({
   trainData: {

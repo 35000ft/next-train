@@ -10,7 +10,7 @@
               <i class="fa-solid fa-arrow-left"></i>
             </div>
             <div class="direction-text">
-              {{ t('direction') }} <b>{{ previousStation.direction }}</b>
+              {{ t('directionShort') }} <b>{{ previousStation.direction }}</b>
             </div>
             <div>
               {{ previousStation.name }}
@@ -39,7 +39,7 @@
               <i class="fa-solid fa-arrow-right"></i>
             </div>
             <div class="direction-text">
-              {{ t('direction') }} <b>{{ nextStation.direction }}</b>
+              {{ t('directionShort') }} <b>{{ nextStation.direction }}</b>
             </div>
             <div>
               {{ nextStation.name }}
@@ -48,8 +48,8 @@
         </div>
       </div>
       <q-separator color="primary" size="2px" style="margin: 0 0 10px;"/>
-      <div v-if="currentLine" class="col-12" style="overflow-x: auto;white-space: nowrap;margin-bottom: 5px;"
-           @touchstart.stop>
+      <div v-if="currentLine" class="col-12" style="overflow-x: scroll;white-space: nowrap;margin-bottom: 5px;"
+           @touchstart="handleTouchLineIconRegionStart" ref="lineIconRegion">
         <LineIcon class="line-icon" v-show="currentStation.lines.length>1" :line="{
           name:t('all'),
           color:'#36598f'
@@ -58,7 +58,7 @@
                   @click="handleClickLineIcon(line)"
                   :disabled="currentLineCode==='all'||line.code!==currentLine.code" class="line-icon"/>
       </div>
-      <q-tab-panels class="train-data-wrapper" v-model="currentLineCode" @touchstart="handleTouchStart"
+      <q-tab-panels class="train-data-wrapper" v-model="currentLineCode" @touchstart="handleTouchTrainDataRegionStart"
                     style="overflow-y: auto;height: 57%;"
                     swipeable animated infinite>
         <q-tab-panel v-if="currentStation.lines.length>1" name="all"
@@ -105,7 +105,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref, toRaw, watch} from "vue";
 import LineIcon from "components/LineIcon.vue";
 import TrainDataItem from "components/TrainDataItem.vue";
 import {useI18n} from "vue-i18n";
@@ -150,7 +150,7 @@ const stations = [{
     color: "#009ACE"
   }]
 }]
-
+const lineIconRegion = ref(null)
 const props = defineProps({
   currentStationIdProp: {
     type: String,
@@ -172,12 +172,23 @@ const currentStation = computed(() => {
   return stations.find(it => it.name === currentStationName.value)
 })
 
-const handleTouchStart = (event) => {
+const handleTouchTrainDataRegionStart = (event) => {
   if (currentStation.value.lines.length > 1) {
     event.stopPropagation();
   }
 }
 
+const handleTouchLineIconRegionStart = (event) => {
+  const dom = toRaw(lineIconRegion.value)[0]
+  if (!dom) {
+    return
+  }
+  const clientWidth = dom.clientWidth
+  const scrollWidth = dom.scrollWidth
+  if (scrollWidth > clientWidth) {
+    event.stopPropagation();
+  }
+}
 onMounted(() => {
   init()
 });

@@ -8,12 +8,14 @@ const railSystems = {
     code: 'NJMTR',
     lang: 'cn',
     fullname: '南京地铁',
+    timezone: '+0800',
   },
   'GZMTR': {
     name: '广州',
     code: 'GZMTR',
     lang: 'cn',
     fullname: '广州地铁',
+    timezone: '+0800',
   }
 }
 

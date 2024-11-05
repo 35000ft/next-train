@@ -45,6 +45,14 @@ export function getNowTime(_date) {
   }
 }
 
+export function hasTimezone(_date) {
+  const dateInstance = toDayjs(_date)
+  if (dateInstance == null) {
+    return false
+  }
+  return dateInstance.utcOffset() !== 0
+}
+
 /**
  * 获取当前时间字符串
  * @param format {String}
