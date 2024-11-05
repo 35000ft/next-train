@@ -2,7 +2,8 @@
   <div class="modal-overlay" @click.self="()=>$emit('close')" v-show="showBg"
        :style="{backgroundColor:`rgb(0,0,0,${overlayOpacity})`}">
     <transition name="bottom-modal">
-      <div class="modal-content" v-show="display" ref="modalContent" :style="{backgroundColor:bgColor}">
+      <div class="modal-content" v-show="display" ref="modalContent"
+           :style="{backgroundColor:bgColor,height:contentHeight}">
         <div class="movable-banner"><span></span></div>
         <slot></slot>
       </div>
@@ -22,6 +23,10 @@ const props = defineProps({
   bgColor: {
     type: String,
     default: "#ffffff"
+  },
+  contentHeight: {
+    type: String,
+    default: "35vh"
   }
 })
 const emit = defineEmits(['close']);
@@ -110,7 +115,6 @@ const closeModal = () => {
   background-color: white;
   width: 90%;
   max-width: 400px;
-  height: 35vh;
   max-height: 600px;
   padding: 0 20px 20px;
   border-top-left-radius: 15px;

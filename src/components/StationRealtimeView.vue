@@ -23,7 +23,7 @@
             <q-icon name="departure_board"></q-icon>
             <q-icon name="map"></q-icon>
           </div>
-          <div style="margin-top: 5px;">
+          <div style="margin-top: 5px;" @click="handleClickStationName">
             <div class="text-h6 station-name-text current-station"
                  style="border-bottom: 1px solid var(--q-primary); margin-bottom: 5px;">
               {{ station.name }}
@@ -102,6 +102,8 @@
     </q-tab-panel>
 
   </q-tab-panels>
+
+  <station-selector ref="stationSelector"/>
 </template>
 
 <script setup>
@@ -110,6 +112,7 @@ import LineIcon from "components/LineIcon.vue";
 import TrainDataItem from "components/TrainDataItem.vue";
 import {useI18n} from "vue-i18n";
 import TrainDataItemForAll from "components/TrainDataItemForAll.vue";
+import StationSelector from "components/StationSelector.vue";
 
 const {t} = useI18n()
 
@@ -151,6 +154,7 @@ const stations = [{
   }]
 }]
 const lineIconRegion = ref(null)
+const stationSelector = ref(null)
 const props = defineProps({
   currentStationIdProp: {
     type: String,
@@ -176,6 +180,10 @@ const handleTouchTrainDataRegionStart = (event) => {
   if (currentStation.value.lines.length > 1) {
     event.stopPropagation();
   }
+}
+
+const handleClickStationName = (event) => {
+  stationSelector.value.showSelector()
 }
 
 const handleTouchLineIconRegionStart = (event) => {
