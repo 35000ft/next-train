@@ -8,7 +8,7 @@
         <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
         <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
         <div style="height: 10px;width: 100%;"></div>
-        <div class="row rail-system-wrapper" v-for="(railsystem,index) in searchResults" :key="index"
+        <div class="row station-result-wrapper" v-for="(railsystem,index) in searchResults" :key="index"
              @click="handleSelectRailSystem(railsystem)"
              style="width: 100%;">
           <div class="col-6">{{ railsystem.fullname }}</div>
@@ -73,7 +73,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.rail-system-wrapper {
+.station-result-wrapper {
   padding: 5px;
   font-size: 16px;
   color: #3a3a3a;
@@ -82,7 +82,7 @@ export default defineComponent({
   border-bottom: 1px solid #dcdcdc;
 }
 
-.rail-system-wrapper:active {
+.station-result-wrapper:active {
   color: var(--q-primary);
   background-color: #dcdcdc;
   font-weight: bold;

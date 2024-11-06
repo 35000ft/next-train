@@ -1,6 +1,7 @@
 //线网，线路，车站数据
 
 import {toRaw} from "vue";
+import LRUCache from "src/utils/LRU";
 
 const railSystems = {
   'NJMTR': {
@@ -24,6 +25,7 @@ const lines = [{
   code: "L1",
   color: "#009ACE"
 }, {
+  id: 3,
   name: "3号线",
   code: "L3",
   color: "#009A44"
@@ -71,8 +73,8 @@ const state = {
   currentRailSystem: railSystems['NJMTR'],
   currentStation: stations[0],
   railSystems: new Map(Object.entries(railSystems)),
-  stations: new Map(),
-  lines: new Map(),
+  stations: new LRUCache(200),
+  lines: new LRUCache(20),
 }
 
 const mutations = {
@@ -93,12 +95,20 @@ const mutations = {
     if (lines && lines instanceof Array) {
       railsystem['lines'] = lines
       state.railSystems.set(railsystemCode, railsystem)
+      state.lines.batchSet(lines, (v) => v['id'])
       console.log('Set railsystem lines OK, railsystem:', state.railSystems.get(railsystemCode))
     }
   },
   SET_LINE(state, line) {
     if (line && line.id) {
       state.lines.set(line.id, line)
+    }
+  },
+  SET_LINE_STATIONS(state, lineId, stations) {
+    if (state.lines.has(lineId)) {
+      state.lines.get(lineId).stations = stations
+      state.stations.batchSet(stations, (v) => v.id)
+      console.log('stat', state.lines.get(lineId))
     }
   },
   SET_STATION(state, station) {
@@ -115,18 +125,27 @@ const actions = {
   },
   async getStation({state, commit}, stationId) {
     // TODO
-    return Promise.resolve(state.railSystems.get(stationId))
+    return state.railSystems.get(stationId)
   },
   async getLine({state, commit}, lineId) {
     if (state.lines.has(lineId)) {
-      return Promise.resolve(toRaw(state.lines.get(lineId)))
+      return toRaw(state.lines.get(lineId))
     }
     //TODO
     // mutations.SET_LINE(state, line)
   },
+  async getStationsByLine({state, commit}, lineId) {
+    if (state.lines.has(lineId) && state.lines.get(lineId).stations) {
+      return toRaw(state.lines.get(lineId).stations)
+    }
+    //TODO 从接口获取车站
+    const _stations = stations
+    mutations.SET_LINE_STATIONS(state, lineId, _stations)
+    return _stations
+  },
   async getRailSystems({state, commit, getters}) {
     const lang = getters['language/currentLanguage']
-    return Promise.resolve(Array.from(toRaw(state.railSystems).values()))
+    return Array.from(toRaw(state.railSystems).values())
   },
   /**
    * 获取线网的所有线路信息
@@ -145,6 +164,7 @@ const actions = {
     } else {
       //TODO 从接口获取
       mutations.SET_RAIL_SYSTEM_LINES(state, railsystem.code, lines)
+      return lines
       // return Promise.resolve(toRaw(railsystem.lines))
     }
   },

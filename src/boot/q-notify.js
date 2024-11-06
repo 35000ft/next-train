@@ -10,4 +10,39 @@ export default boot(({app}) => {
     icon: 'info',
     offset: [0, 100],
   });
+  const $q = app.config.globalProperties.$q
+
+  // 通用的通知函数
+  function notify({type, message}) {
+    let config = {
+      message,
+      timeout: 3000,
+      position: 'bottom',
+      offset: [0, 100],
+    };
+    // 根据类型设置不同的颜色和图标
+    switch (type) {
+      case 'info':
+        config.color = 'primary';
+        config.icon = 'info';
+        break;
+      case 'warn':
+        config.color = 'orange';
+        config.icon = 'warning';
+        break;
+      case 'error':
+        config.color = 'negative';
+        config.icon = 'error';
+        break;
+      default:
+        config.color = 'primary';
+    }
+
+    $q.notify(config);
+  }
+
+  // 为 $q.notify 添加自定义方法
+  $q.notify.info = (message) => notify({type: 'info', message});
+  $q.notify.warn = (message) => notify({type: 'warn', message});
+  $q.notify.error = (message) => notify({type: 'error', message});
 });

@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click.self="()=>$emit('close')" v-show="showBg"
+  <div class="modal-overlay" @click.self="$emit('close')" v-show="showBg"
        :style="{backgroundColor:`rgb(0,0,0,${overlayOpacity})`}">
     <transition name="bottom-modal">
       <div class="modal-content" v-show="display" ref="modalContent"
