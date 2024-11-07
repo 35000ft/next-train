@@ -20,50 +20,47 @@ const railSystems = {
   }
 }
 const lines = [{
-  id: 1,
+  id: "1",
   name: "1号线",
   code: "L1",
   color: "#009ACE"
 }, {
-  id: 3,
+  id: "3",
   name: "3号线",
   code: "L3",
   color: "#009A44"
 },]
 
 const stations = [{
-  id: 2132,
+  id: "2132",
   name: "南京站",
-  secName: "Nanjing Railway Station",
   code: "NJS",
   lines: [{
+    id: '1',
     name: "1号线",
-    secName: "Line 1",
     code: "L1",
     color: "#009ACE"
   }, {
+    id: '3',
     name: "3号线",
-    secName: "Line 3",
     code: "L3",
     color: "#009A44"
   },]
 }, {
-  id: 2131,
+  id: "2131",
   name: "新模范马路",
-  secName: "XINMOFANGMALU",
   lines: [{
+    id: '1',
     name: "1号线",
-    secName: "Line 1",
     code: "L1",
     color: "#009ACE"
   }]
 }, {
-  id: 2130,
+  id: "2130",
   name: "玄武门",
-  secName: "XUANWUMEN",
   lines: [{
+    id: '1',
     name: "1号线",
-    secName: "Line 1",
     code: "L1",
     color: "#009ACE"
   }]
@@ -83,7 +80,7 @@ const mutations = {
     localStorage.setItem('currentRailSystem', JSON.stringify(railsystem))
   },
   SET_CURRENT_STATION(state, station) {
-    state.stations = station;
+    state.stations = station
     localStorage.setItem('currentStation', JSON.stringify(station))
   },
   SET_RAIL_SYSTEM_LINES(state, railsystemCode, lines) {
@@ -108,7 +105,6 @@ const mutations = {
     if (state.lines.has(lineId)) {
       state.lines.get(lineId).stations = stations
       state.stations.batchSet(stations, (v) => v.id)
-      console.log('stat', state.lines.get(lineId))
     }
   },
   SET_STATION(state, station) {
@@ -125,7 +121,14 @@ const actions = {
   },
   async getStation({state, commit}, stationId) {
     // TODO
-    return state.railSystems.get(stationId)
+    let station = state.stations.get(stationId)
+    if (!station) {
+      station = stations.find(it => it.id === stationId)
+      if (station) {
+        mutations.SET_STATION(state, station)
+      }
+    }
+    return station
   },
   async getLine({state, commit}, lineId) {
     if (state.lines.has(lineId)) {

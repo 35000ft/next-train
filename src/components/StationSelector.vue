@@ -28,6 +28,12 @@
           <q-tab-panel :name="line.name" :key="line.id" v-for="line in lines">
             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
+            <div class="row station-result-wrapper" v-for="(station,index) in line.stations" :key="index"
+                 @click="handleSelectRailSystem(station)">
+              <div class="col-6">{{ station.name }} <span class="pill" v-if="station.code">{{ station.code }}</span>
+              </div>
+              <div class="col-6" style="text-align: right;">{{ station.name }}</div>
+            </div>
           </q-tab-panel>
         </q-tab-panels>
 
@@ -71,6 +77,7 @@ export default defineComponent({
         $q.notify.warn('load lines error')
       })
     }
+
 
     async function loadStations(lineId) {
       return await store.dispatch('railsystem/getStationsByLine', lineId)

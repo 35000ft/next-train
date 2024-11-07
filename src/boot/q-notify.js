@@ -13,10 +13,10 @@ export default boot(({app}) => {
   const $q = app.config.globalProperties.$q
 
   // 通用的通知函数
-  function notify({type, message}) {
+  function notify({type, message, timeout}) {
     let config = {
       message,
-      timeout: 3000,
+      timeout: timeout || 3000,
       position: 'bottom',
       offset: [0, 100],
     };
@@ -34,6 +34,10 @@ export default boot(({app}) => {
         config.color = 'negative';
         config.icon = 'error';
         break;
+      case 'ok':
+        config.type = 'positive';
+        config.color = 'positive';
+        break;
       default:
         config.color = 'primary';
     }
@@ -45,4 +49,5 @@ export default boot(({app}) => {
   $q.notify.info = (message) => notify({type: 'info', message});
   $q.notify.warn = (message) => notify({type: 'warn', message});
   $q.notify.error = (message) => notify({type: 'error', message});
+  $q.notify.ok = (message) => notify({type: 'ok', message});
 });

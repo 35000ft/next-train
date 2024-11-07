@@ -4,11 +4,9 @@
       <div class="row"
            style="width: 100% ;display: flex;align-items: center;margin: 0 auto;align-content: space-around">
         <div class="col">
-          <!--          <span style="display: inline-flex;background-color: #efefef; padding: 5px;border-radius: 20px">-->
           <img src="../assets/logo.png" alt="logo" style="height: 20px;">
-          <!--          </span>-->
         </div>
-        <div class="col">
+        <div class="col" style="display: flex;justify-content: center;align-items: center;">
           <input
             class="q-field__control"
             :placeholder="t('headers.search.placeholder')"

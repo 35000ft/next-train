@@ -2,7 +2,7 @@
   <q-tab-panels v-cloak v-if="currentStationName" class="full-height" v-model="currentStationName" swipeable
                 animated
                 @touchstart.stop>
-    <q-tab-panel v-for="station in stations" :name="station.name" :key="station.id">
+    <q-tab-panel v-for="station in currentLine.stations" :name="station.name" :key="station.id">
       <div class="row">
         <div class="col-3 station-name-row small text-left">
           <div v-if="previousStation!=null">
@@ -48,61 +48,66 @@
         </div>
       </div>
       <q-separator color="primary" size="2px" style="margin: 0 0 10px;"/>
+      <q-skeleton v-if="!currentLine" class="col-12" style="height: 25px;margin-bottom: 5px;"/>
       <div v-if="currentLine" class="col-12" style="overflow-x: scroll;white-space: nowrap;margin-bottom: 5px;"
            @touchstart="handleTouchLineIconRegionStart" ref="lineIconRegion">
         <LineIcon class="line-icon" v-show="currentStation.lines.length>1" :line="{
           name:t('all'),
           color:'#36598f'
-        }" @click="handleClickLineIcon('all')" :disabled="currentLineCode!=='all'"/>
+        }" @click="handleClickLineIcon('all')" :disabled="currentLineId!=='all'"/>
         <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id"
                   @click="handleClickLineIcon(line)"
-                  :disabled="currentLineCode==='all'||line.code!==currentLine.code" class="line-icon"/>
+                  :disabled="currentLineId==='all'||line.id!==currentLine.id" class="line-icon"/>
       </div>
-      <q-tab-panels class="train-data-wrapper" v-model="currentLineCode" @touchstart="handleTouchTrainDataRegionStart"
-                    style="overflow-y: auto;height: 57%;"
-                    swipeable animated infinite>
-        <q-tab-panel v-if="currentStation.lines.length>1" name="all"
-                     style="padding-left: 0;padding-right: 0;padding-top: 0;">
-          <div class="realtime-info-wrapper text-left">
-            <TrainDataItemForAll/>
-            <TrainDataItemForAll/>
-            <TrainDataItemForAll/>
-          </div>
-        </q-tab-panel>
-        <q-tab-panel v-for="line in currentStation.lines" :name="line.code" :key="line.id" v-scroll-to-view
-                     style="padding-left: 0;padding-right: 0;padding-top: 0;">
+      <q-pull-to-refresh @refresh="handleRefreshTrainData" @touchstart="handleTouchTrainDataRegionStart">
+        <div style="overflow-y: auto;height: 57%;">
+          <!--        <q-skeleton v-if="!currentTrains||currentTrains.length===0" square height="150px"/>-->
+          <q-tab-panels class="train-data-wrapper" v-model="currentLineId"
+                        swipeable animated infinite>
+            <q-skeleton v-if="!currentTrains||currentTrains.length===0" square height="150px"/>
+            <q-tab-panel v-if="currentStation.lines.length>1" name="all"
+                         style="padding-left: 0;padding-right: 0;padding-top: 0;">
+              <div class="realtime-info-wrapper text-left">
+                <TrainDataItemForAll/>
+                <TrainDataItemForAll/>
+                <TrainDataItemForAll/>
+              </div>
+            </q-tab-panel>
+            <q-tab-panel v-for="line in currentStation.lines" :name="line.id" :key="line.id" v-scroll-to-view
+                         style="padding-left: 0;padding-right: 0;padding-top: 0;">
 
-          <div class="realtime-info-wrapper text-left">
-            <q-expansion-item expand-separator default-opened popup>
-              <template v-slot:header>
-                <div class="border-bottom" style="width: 100%;">
-                  <span class="direction-text"><i>八卦洲大桥南</i> {{ t('direction') }}</span>
-                </div>
-              </template>
-              <TrainDataItem/>
-              <TrainDataItem/>
-              <TrainDataItem/>
-            </q-expansion-item>
-          </div>
-          <div class="realtime-info-wrapper text-left">
-            <q-expansion-item expand-separator default-opened popup>
-              <template v-slot:header>
-                <div class="border-bottom" style="width: 100%;">
-                  <span class="direction-text"><i>八卦洲大桥南</i> {{ t('direction') }}</span>
-                </div>
-              </template>
-              <TrainDataItem/>
-              <TrainDataItem/>
-              <TrainDataItem/>
-            </q-expansion-item>
-          </div>
-
-        </q-tab-panel>
-      </q-tab-panels>
+              <div class="realtime-info-wrapper text-left">
+                <q-expansion-item expand-separator default-opened popup>
+                  <template v-slot:header>
+                    <div class="border-bottom" style="width: 100%;">
+                      <span class="direction-text"><i>八卦洲大桥南</i> {{ t('direction') }}</span>
+                    </div>
+                  </template>
+                  <TrainDataItem/>
+                  <TrainDataItem/>
+                  <TrainDataItem/>
+                </q-expansion-item>
+              </div>
+              <div class="realtime-info-wrapper text-left">
+                <q-expansion-item expand-separator default-opened popup>
+                  <template v-slot:header>
+                    <div class="border-bottom" style="width: 100%;">
+                      <span class="direction-text"><i>八卦洲大桥南</i> {{ t('direction') }}</span>
+                    </div>
+                  </template>
+                  <TrainDataItem/>
+                  <TrainDataItem/>
+                  <TrainDataItem/>
+                </q-expansion-item>
+              </div>
+            </q-tab-panel>
+          </q-tab-panels>
+        </div>
+      </q-pull-to-refresh>
     </q-tab-panel>
 
-  </q-tab-panels>
 
+  </q-tab-panels>
   <station-selector ref="stationSelector"/>
 </template>
 
@@ -113,72 +118,85 @@ import TrainDataItem from "components/TrainDataItem.vue";
 import {useI18n} from "vue-i18n";
 import TrainDataItemForAll from "components/TrainDataItemForAll.vue";
 import StationSelector from "components/StationSelector.vue";
+import {useStore} from "vuex";
+import {useQuasar} from "quasar";
 
+const $q = useQuasar()
 const {t} = useI18n()
-
-const stations = [{
-  id: 2132,
-  name: "南京站",
-  secName: "Nanjing Railway Station",
-  code: "NJS",
-  lines: [{
-    name: "1号线",
-    secName: "Line 1",
-    code: "L1",
-    color: "#009ACE"
-  }, {
-    name: "3号线",
-    secName: "Line 3",
-    code: "L3",
-    color: "#009A44"
-  },]
-}, {
-  id: 2131,
-  name: "新模范马路",
-  secName: "XINMOFANGMALU",
-  lines: [{
-    name: "1号线",
-    secName: "Line 1",
-    code: "L1",
-    color: "#009ACE"
-  }]
-}, {
-  id: 2130,
-  name: "玄武门",
-  secName: "XUANWUMEN",
-  lines: [{
-    name: "1号线",
-    secName: "Line 1",
-    code: "L1",
-    color: "#009ACE"
-  }]
-}]
+const emit = defineEmits(['changeStation'])
+const store = useStore()
 const lineIconRegion = ref(null)
 const stationSelector = ref(null)
+const currentStation = ref(null)
+const currentTrains = ref([])
 const props = defineProps({
   currentStationIdProp: {
     type: String,
-    default: () => "121"
   },
-  currentLineCodeProp: {
+  currentLineIdProp: {
     type: String,
   },
 })
+const stations = ref(null)
 let currentStationName = ref(null)
-let currentLineCode = ref(null)
+let currentLineId = ref(null)
 
 function init() {
-  currentStationName.value = stations[0].name
-  currentLineCode.value = currentStation.value.lines[0].code
+  loadStationInfo(props.currentStationIdProp, props.currentLineIdProp).then(r => {
+    console.log('load station info OK.')
+  })
 }
 
-const currentStation = computed(() => {
-  return stations.find(it => it.name === currentStationName.value)
+async function loadStationInfo(stationId, lineId) {
+  isLoading.value = true
+  const station = await store.dispatch('railsystem/getStation', stationId)
+  if (!station || !(station.lines instanceof Array)) {
+    console.warn('Change station error, cannot get station info. stationId:', station)
+    isLoading.value = false
+    return
+  }
+  let line
+  if (typeof lineId === "string") {
+    line = station.lines.find(it => it.id === lineId)
+  }
+  if (!line) {
+    line = station.lines[0]
+  }
+  if (!line.stations) {
+    line.stations = await store.dispatch('railsystem/getStationsByLine', line.id)
+    stations.value = line.stations
+    store.commit('railsystem/SET_STATION', station)
+  }
+  currentStation.value = station
+  currentStationName.value = station.name
+  currentLineId.value = line.id
+  isLoading.value = false
+}
+
+watch(currentLineId, (newValue, oldValue) => {
+  console.log('line changed: new:', newValue)
+  if (!newValue || currentLine.value.stations) {
+    return
+  }
+  store.dispatch('railsystem/getStationsByLine', newValue).then(_stations => {
+    if (_stations instanceof Array) {
+      currentLine.value.stations = _stations
+    } else {
+      console.warn('load stations of line err! lineId:', newValue)
+    }
+  })
 })
+
+const handleRefreshTrainData = (done) => {
+  setTimeout(() => {
+    done()
+    $q.notify.ok('列车数据已更新')
+  }, 1000)
+}
 
 const handleTouchTrainDataRegionStart = (event) => {
   if (currentStation.value.lines.length > 1) {
-    event.stopPropagation();
+    event.stopPropagation()
   }
 }
 
@@ -197,6 +215,7 @@ const handleTouchLineIconRegionStart = (event) => {
     event.stopPropagation();
   }
 }
+
 onMounted(() => {
   init()
 });
@@ -204,46 +223,53 @@ onMounted(() => {
 const isLoading = ref(true)
 
 const currentLine = computed(() => {
-  if (currentLineCode.value === 'all') {
+  if (currentLineId.value === 'all') {
     return currentLine.value
   }
-  return currentStation.value.lines.find(it => it.code === currentLineCode.value)
+  return currentStation.value.lines.find(it => it.id === currentLineId.value)
 })
 
-function getStation(offset) {
-  if (currentStation.value == null) {
+function calcRelativeStation(offset) {
+  if (!currentLine.value || !currentLine.value.stations) {
     return null;
   }
-  const number = stations.indexOf(currentStation.value);
-  const station = stations[number + offset];
+  const _stations = currentLine.value.stations
+  const number = _stations.indexOf(currentStation.value)
+  const station = _stations[number + offset]
 
   if (station === undefined) return null;
 
-  const newStation = Object.assign({}, station);
+  const newStation = Object.assign({}, station)
   newStation.direction = offset > 0
-    ? stations.slice(-1)[0].name
-    : stations[0].name;
+    ? _stations.slice(-1)[0].name
+    : _stations[0].name;
   return newStation;
 }
 
-const nextStation = computed(() => getStation(1))
-const previousStation = computed(() => getStation(-1))
+const nextStation = computed(() => calcRelativeStation(1))
+const previousStation = computed(() => calcRelativeStation(-1))
 
 const handleClickLineIcon = (line) => {
   if (line === 'all') {
-    currentLineCode.value = 'all'
+    currentLineId.value = 'all'
     return
   }
-  if (line && line.code) {
-    currentLineCode.value = line.code
+  if (line && line.id) {
+    currentLineId.value = line.id
   }
 }
 
 watch(currentStationName, () => {
-  let find = currentStation.value.lines.indexOf(it => it.code === currentLineCode.value)
-  if (find === -1) {
-    currentLineCode.value = currentStation.value.lines[0].code
+  if (!currentStationName.value) {
+    return
   }
+
+  let line = currentStation.value.lines.find(it => it.id === currentLineId.value)
+  console.log('change station line', line)
+  if (!line) {
+    currentLineId.value = currentStation.value.lines[0].id
+  }
+  emit('changeStation')
 })
 
 defineOptions({
