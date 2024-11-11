@@ -57,7 +57,8 @@
         }" @click="handleClickLineIcon('all')" :disabled="currentLineId!=='all'"/>
         <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id"
                   @click="handleClickLineIcon(line)"
-                  :disabled="currentLineId==='all'||line.id!==currentLine.id" class="line-icon"/>
+                  :disabled="currentLineId==='all'||line.id!==currentLine.id" class="line-icon">
+        </LineIcon>
       </div>
       <q-pull-to-refresh @refresh="handleRefreshTrainData" @touchstart="handleTouchTrainDataRegionStart">
         <div style="overflow-y: auto;height: 57%;">
@@ -108,6 +109,7 @@
 
 
   </q-tab-panels>
+  <line-stations-selector ref="lineStationsSelector"/>
   <station-selector ref="stationSelector"/>
 </template>
 
@@ -120,13 +122,16 @@ import TrainDataItemForAll from "components/TrainDataItemForAll.vue";
 import StationSelector from "components/StationSelector.vue";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
+import LineStationsSelector from "components/LineStationsSelector.vue";
 
 const $q = useQuasar()
 const {t} = useI18n()
 const emit = defineEmits(['changeStation'])
 const store = useStore()
+
 const lineIconRegion = ref(null)
 const stationSelector = ref(null)
+const lineStationsSelector = ref(null)
 const currentStation = ref(null)
 const currentTrains = ref([])
 const props = defineProps({
@@ -165,7 +170,6 @@ async function loadStationInfo(stationId, lineId) {
   if (!line.stations) {
     line.stations = await store.dispatch('railsystem/getStationsByLine', line.id)
     stations.value = line.stations
-    store.commit('railsystem/SET_STATION', station)
   }
   currentStation.value = station
   currentStationName.value = station.name
@@ -255,7 +259,11 @@ const handleClickLineIcon = (line) => {
     return
   }
   if (line && line.id) {
-    currentLineId.value = line.id
+    if (currentLineId.value === line.id) {
+      lineStationsSelector.value.showSelector(currentLine.value)
+    } else {
+      currentLineId.value = line.id
+    }
   }
 }
 
@@ -265,7 +273,6 @@ watch(currentStationName, () => {
   }
 
   let line = currentStation.value.lines.find(it => it.id === currentLineId.value)
-  console.log('change station line', line)
   if (!line) {
     currentLineId.value = currentStation.value.lines[0].id
   }
@@ -277,8 +284,13 @@ defineOptions({
 })
 </script>
 <style scoped>
+.q-tab-panels {
+  color: var(--q-primary-d);
+  background-color: var(--q-background);
+}
+
+
 .station-name-text {
-  color: var(--q-primary);
   font-weight: bold;
   text-align: center;
   overflow-x: auto;
@@ -303,7 +315,6 @@ defineOptions({
 }
 
 .small div {
-  color: var(--q-secondary);
   font-size: 12px;
   line-height: 15px;
   white-space: nowrap;
@@ -337,7 +348,6 @@ defineOptions({
 }
 
 .direction-text {
-  color: var(--q-secondary);
   font-weight: bold;
   font-size: 18px;
 }
@@ -353,12 +363,15 @@ defineOptions({
   padding: 0 10px;
   display: flex;
   width: fit-content;
-  color: var(--q-primary);
   font-weight: bold;
   justify-content: center;
   align-items: center;
   border: 2px solid var(--q-primary);
   border-radius: 10px;
+}
+
+.q-dark .pill {
+  background-color: var(--q-primary);
 }
 
 .tool-bar {

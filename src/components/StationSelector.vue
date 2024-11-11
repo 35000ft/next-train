@@ -1,9 +1,9 @@
 <template>
-  <bottom-modal content-height="40vh" :display="displayRailSystemSelector" @close="handleCloseRailSystemSelector"
+  <bottom-modal content-height="40vh" :display="displaySelector" @close="handleCloseSelector"
                 @touchstart.stop>
     <template v-slot:default>
       <div>
-        <q-input outlined rounded v-model="keyword" label="车站名 | 车站代码" :bg-color="'grey-2'"/>
+        <q-input outlined rounded v-model="keyword" label="车站名 | 车站代码" :bg-color="isDark?'grey-10':'grey-2'"/>
       </div>
       <div class="row" style="overflow-y: auto;">
 
@@ -20,7 +20,7 @@
             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
             <div class="row station-result-wrapper" v-for="(station,index) in searchResults" :key="index"
-                 @click="handleSelectRailSystem(station)">
+                 @click="handleSelect(station)">
               <div class="col-6">{{ station.name }} <span class="pill">{{ station.code }}</span></div>
               <div class="col-6" style="text-align: right;">{{ station.name }}</div>
             </div>
@@ -29,7 +29,7 @@
             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
             <div class="row station-result-wrapper" v-for="(station,index) in line.stations" :key="index"
-                 @click="handleSelectRailSystem(station)">
+                 @click="handleSelect(station)">
               <div class="col-6">{{ station.name }} <span class="pill" v-if="station.code">{{ station.code }}</span>
               </div>
               <div class="col-6" style="text-align: right;">{{ station.name }}</div>
@@ -64,6 +64,7 @@ export default defineComponent({
     const searchResults = ref([])
     const lines = ref([])
     const $q = useQuasar()
+    const isDark = computed(() => $q.dark.isActive)
 
     function init() {
       console.log('station selector init...')
@@ -138,13 +139,14 @@ export default defineComponent({
     }
     return {
       showSelector,
-      displayRailSystemSelector: displaySelector,
-      handleCloseRailSystemSelector: handleCloseSelector,
-      handleSelectRailSystem: handleSelect,
+      displaySelector,
+      handleCloseSelector,
+      handleSelect,
       keyword,
       emit,
       ALL_STR,
       loading,
+      isDark,
       searchResults,
       currentSearchGroup,
       lines,

@@ -3,7 +3,7 @@
        :style="{backgroundColor:`rgb(0,0,0,${overlayOpacity})`}">
     <transition name="bottom-modal">
       <div class="modal-content" v-show="display" ref="modalContent"
-           :style="{backgroundColor:bgColor,height:contentHeight}">
+           :style="{height:contentHeight}">
         <div class="movable-banner"><span></span></div>
         <slot></slot>
       </div>
@@ -19,10 +19,6 @@ import {getNumberFromSizeString} from "src/utils/css-utils";
 const props = defineProps({
   display: {
     type: Boolean
-  },
-  bgColor: {
-    type: String,
-    default: "#ffffff"
   },
   contentHeight: {
     type: String,
@@ -112,7 +108,7 @@ const closeModal = () => {
 .modal-content {
   position: fixed;
   bottom: 0;
-  background-color: white;
+  background-color: var(--q-background);
   width: 90%;
   max-width: 400px;
   max-height: 600px;

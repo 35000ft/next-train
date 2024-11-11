@@ -61,7 +61,6 @@ const cssClass = computed(() => {
 
 .arrive-in-10-mins {
   padding: 0;
-  color: var(--q-primary);
   background-color: transparent;
   border: 2px solid #009A44;
 }

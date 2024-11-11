@@ -5,6 +5,9 @@
   --q-primary: #36598f; /* 主色 */
   --q-secondary: #132860; /* 次色 */
   --q-accent: #9C27B0; /* 强调色 */
+  --q-primary-d: #dcdcdc;
+  --q-normal: #121212;
+  --q-background: #ffffff;
   /* 其他颜色变量 */
 }
 
@@ -20,4 +23,8 @@
 
 .q-notifications__list--bottom {
   bottom: 60px;
+}
+
+[data-theme='dark'] {
+  --q-primary: var(--q-brand-darkPrimary); /* 黑暗模式下的 primary */
 }

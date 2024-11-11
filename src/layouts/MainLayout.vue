@@ -2,8 +2,8 @@
 
   <q-layout view="lHh Lpr lFf" class="full-height">
 
-    <q-page-container class="full-height" style="padding-top: 0; ">
-      <q-tab-panels class="full-height" style="background-color: #f1f1f1;" swipeable animated v-model="tab"
+    <q-page-container class="full-height " style="padding-top: 0; ">
+      <q-tab-panels class="full-height page-background" swipeable animated v-model="tab"
                     @update:model-value="updateRoute">
         <q-tab-panel name="home">
           <router-view/>
@@ -53,6 +53,14 @@ const updateRoute = (newTab) => {
 }
 </script>
 <style scoped>
+.q-dark .page-background {
+  background-color: #292929;
+}
+
+.body--light .page-background {
+  background-color: #f1f1f1;
+}
+
 /* 自定义样式 */
 .q-bottom-nav .q-btn {
   flex: 1; /* 平均分配宽度 */
