@@ -4,7 +4,7 @@
     <div class="col-1" style="display: flex; align-items: center;text-align: left; ">
       <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
     </div>
-    <div class="col-5 text-left">
+    <div class="col-5 text-left" style="color: var(--q-normal)">
       {{ trainData.terminal }}
     </div>
     <div class="col-5" style="display: flex;align-items: center;justify-content: flex-end;">

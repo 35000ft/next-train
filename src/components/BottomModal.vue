@@ -109,6 +109,7 @@ const closeModal = () => {
   position: fixed;
   bottom: 0;
   background-color: var(--q-background);
+  color: var(--q-normal);
   width: 90%;
   max-width: 400px;
   max-height: 600px;

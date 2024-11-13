@@ -79,7 +79,6 @@ export default defineComponent({
       })
     }
 
-
     async function loadStations(lineId) {
       return await store.dispatch('railsystem/getStationsByLine', lineId)
     }
@@ -163,7 +162,6 @@ export default defineComponent({
 .station-result-wrapper {
   padding: 5px;
   font-size: 16px;
-  color: #3a3a3a;
   transition: .3s;
   background-color: transparent;
   border-bottom: 1px solid #dcdcdc;

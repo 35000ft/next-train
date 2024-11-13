@@ -9,12 +9,11 @@
         <span>{{ trainData.lineName }}</span>
       </div>
     </div>
-    <div class="col-6 text-left">
+    <div class="col-6 text-left text-bold" style="color: var(--q-normal);">
       {{ trainData.terminal }}
     </div>
     <div style="display: flex;align-items: center;justify-content: flex-end;">
       <div class="pill">
-        <q-icon name="alarm" style="font-size: 15px;"/>
         <span>{{ formatToHHMM(trainData.dep) }}</span>
       </div>
     </div>

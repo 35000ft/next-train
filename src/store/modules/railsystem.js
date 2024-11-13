@@ -19,18 +19,6 @@ const railSystems = {
     timezone: '+0800',
   }
 }
-const lines = [{
-  id: "1",
-  name: "1号线",
-  code: "L1",
-  color: "#009ACE"
-}, {
-  id: "3",
-  name: "3号线",
-  code: "L3",
-  color: "#009A44"
-},]
-
 const stations = [{
   id: "2132",
   name: "南京站",
@@ -65,6 +53,20 @@ const stations = [{
     color: "#009ACE"
   }]
 }]
+const lines = [{
+  id: "1",
+  name: "1号线",
+  code: "L1",
+  color: "#009ACE",
+  stations
+}, {
+  id: "3",
+  name: "3号线",
+  code: "L3",
+  color: "#009A44",
+  stations
+},]
+
 
 const state = {
   currentRailSystem: railSystems['NJMTR'],
