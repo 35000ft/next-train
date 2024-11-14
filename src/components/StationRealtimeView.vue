@@ -63,7 +63,7 @@
             <div class="scroll" style="height: 57%;" ref="trainInfoArea">
                 <q-pull-to-refresh @refresh="handleRefreshTrainData" @touchstart="handleTouchTrainDataRegionStart">
                     <div>
-                        <div v-if="!currentTrains||currentTrains.length===0">
+                        <div v-if="isLoadingTrains && (!currentTrains||currentTrains.length===0)">
                             <q-skeleton height="40px" style="margin-bottom: 5px;"/>
                             <q-skeleton height="30px" style="margin-bottom: 2px;"/>
                             <q-skeleton height="30px" style="margin-bottom: 2px;"/>
@@ -75,6 +75,11 @@
                             <q-tab-panel v-if="currentStation.lines.length>1" name="all"
                                          style="padding-left: 0;padding-right: 0;padding-top: 0;">
                                 <div class="realtime-info-wrapper text-left">
+                                    <div class="row train-data border-bottom"
+                                         v-if="!isLoadingTrains && (currentTrains&&currentTrains.length===0)"
+                                         style="padding-left: 4px; color: var(--q-normal);height: 40px;justify-content: center">
+                                        {{ t('noTrain') }}
+                                    </div>
                                     <transition-group name="list-view" tag="div">
                                         <TrainDataItemForAll v-for="_trainInfo in currentTrains" :key="_trainInfo.id"
                                                              :train-data="_trainInfo"/>
@@ -92,7 +97,11 @@
                             style="color: var(--q-normal)">{{ t('direction') }}</span> </span>
                                             </div>
                                         </template>
-                                        <TrainDataItem v-if="directionTrainInfo.trains.length===0"/>
+                                        <div class="row train-data border-bottom"
+                                             v-if="!isLoadingTrains && (directionTrainInfo.trains&&directionTrainInfo.trains.length===0)"
+                                             style="padding-left: 4px; color: var(--q-normal);height: 40px;justify-content: center">
+                                            {{ t('noTrain') }}
+                                        </div>
                                         <TrainDataItem v-for="_trainInfo in directionTrainInfo.trains"
                                                        :key="_trainInfo.id"
                                                        :train-data="_trainInfo"/>
@@ -132,7 +141,12 @@ const trainInfoMap = ref(new Map())
 
 const lineIconRegion = ref(null)
 const trainInfoArea = ref(null)
-
+const isLoadingStation = ref(true)
+const isLoadingTrains = ref(true)
+const currentLine = ref(null)
+const stationSelector = ref(null)
+const lineStationsSelector = ref(null)
+const currentStation = ref(null)
 const currentTrains = ref([])
 
 /**
@@ -191,6 +205,9 @@ async function calcCurrentTrains() {
 }
 
 async function loadLineTrains(lineId) {
+    if (lineId === 'all') {
+        return Promise.reject()
+    }
     console.log('loadLineTrains lineId:', lineId)
     const currentStationId = currentStation.value.id
     if (lineId && currentStationId) {
@@ -204,15 +221,16 @@ async function loadLineTrains(lineId) {
 
 function updateCurrentTrains() {
     console.log('updateCurrentTrains')
+    isLoadingTrains.value = true
     calcCurrentTrains().then(r => {
-        if (r instanceof Array) {
+        isLoadingTrains.value = false
+        if (r instanceof Array && r.length > 0) {
             if (r[0].id === undefined) {
                 currentTrains.value = r
                 return
             }
             if (r.length > 0) {
-                currentTrains.value.push(r[0])
-                let index = 1
+                let index = 0
                 const interval = setInterval(() => {
                     if (index >= r.length) {
                         clearInterval(interval)
@@ -243,9 +261,6 @@ function updateCurrentTrains() {
     })
 }
 
-const stationSelector = ref(null)
-const lineStationsSelector = ref(null)
-const currentStation = ref(null)
 const props = defineProps({
     currentStationIdProp: {
         type: String,
@@ -265,11 +280,11 @@ function init() {
 }
 
 async function loadStationInfo(stationId, lineId) {
-    isLoading.value = true
+    isLoadingStation.value = true
     const station = await store.dispatch('railsystem/getStation', stationId)
     if (!station || !(station.lines instanceof Array)) {
         console.warn('Load station error, cannot get station info. stationId:', station)
-        isLoading.value = false
+        isLoadingStation.value = false
         return
     }
     let line
@@ -287,7 +302,7 @@ async function loadStationInfo(stationId, lineId) {
     currentStationId.value = station.id
     currentLineId.value = line.id
     currentLine.value = line
-    isLoading.value = false
+    isLoadingStation.value = false
 }
 
 watch(currentLineId, (lineId, oldValue) => {
@@ -344,8 +359,6 @@ onMounted(() => {
     init()
 });
 
-const isLoading = ref(true)
-const currentLine = ref(null)
 
 function calcRelativeStation(offset) {
     if (!currentLine.value || !currentLine.value.stations) {
@@ -386,8 +399,9 @@ watch(currentStationId, (stationId, oldValue) => {
         return
     }
     //change station
-    if (stationId && stationId !== currentStationId.value) {
+    if (stationId) {
         trainInfoMap.value = new Map()
+        updateCurrentTrains()
     }
     loadStationInfo(stationId, currentLine.value.id)
     emit('changeStation')
@@ -531,7 +545,8 @@ defineOptions({
 
 @keyframes stop-info-view-transition {
     from {
-        transform: translateY(800px);
+        opacity: 0;
+        transform: translateY(-30px);
     }
     to {
         transform: translateY(0px);

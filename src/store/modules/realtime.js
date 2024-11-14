@@ -10,12 +10,14 @@ const line1Trains = [{
         arr: dayjs(new Date()).add(7, 'minute').toDate(),
         dep: dayjs(new Date()).add(10, 'minute').toDate(),
         terminal: "中国药科大学",
+        category: ["LOCAL",]
     }, {
         id: 424,
         trainNo: "5103",
         arr: dayjs(new Date()).add(4, 'minute').toDate(),
         dep: dayjs(new Date()).add(5, 'minute').toDate(),
         terminal: "河定桥",
+        category: ["SHORT",]
     }]
 }, {
     direction: "八卦洲大桥南",
@@ -25,12 +27,14 @@ const line1Trains = [{
         arr: dayjs(new Date()).add(1, 'minute').toDate(),
         dep: dayjs(new Date()).add(2, 'minute').toDate(),
         terminal: "迈皋桥",
+        category: ["SHORT",]
     }, {
         id: 2752,
         trainNo: "5104",
         arr: dayjs(new Date()).add(2, 'minute').toDate(),
         dep: dayjs(new Date()).add(5, 'minute').toDate(),
         terminal: "八卦洲大桥南",
+        category: ["LOCAL",]
     },]
 },
 ]
@@ -42,12 +46,14 @@ const line3Trains = [{
         arr: dayjs(new Date()).add(3, 'minute').toDate(),
         dep: dayjs(new Date()).add(4, 'minute').toDate(),
         terminal: "林场",
+        category: ["LOCAL",]
     }, {
         id: 73245,
         trainNo: "4103",
         arr: dayjs(new Date()).add(7, 'minute').toDate(),
         dep: dayjs(new Date()).add(10, 'minute').toDate(),
         terminal: "林场",
+        category: ["LOCAL",]
     }]
 }, {
     direction: "秣周东路",
@@ -57,12 +63,14 @@ const line3Trains = [{
         arr: dayjs(new Date()).add(1, 'minute').toDate(),
         dep: dayjs(new Date()).add(2, 'minute').toDate(),
         terminal: "秣周东路",
+        category: ["LOCAL",]
     }, {
         id: 6786,
         trainNo: "4104",
         arr: dayjs(new Date()).add(2, 'minute').toDate(),
         dep: dayjs(new Date()).add(5, 'minute').toDate(),
         terminal: "胜太西路",
+        category: ["SHORT",]
     },]
 },
 ]

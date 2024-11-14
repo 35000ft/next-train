@@ -1,9 +1,4 @@
 <template>
-    <div class="row train-data border-bottom" v-if="!trainData"
-         style="padding-left: 4px; color: var(--q-normal)">
-        {{ t('noTrain') }}
-    </div>
-
     <div class="row train-data border-bottom" v-if="trainData"
          style="padding-left: 4px;">
         <div class="col-1" style="display: flex; align-items: center;text-align: left; ">
