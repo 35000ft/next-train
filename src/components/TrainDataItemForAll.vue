@@ -5,17 +5,17 @@
       <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
     </div>
     <div class="col-2" style="display: flex;align-items: center;">
-      <div class="pill" :style="{backgroundColor:trainData.lineColor}">
-        <span>{{ trainData.lineName }}</span>
-      </div>
+      <span class="pill" :style="{backgroundColor:trainData.line.color}">
+        {{ trainData.line.name }}
+      </span>
     </div>
-    <div class="col-6 text-left text-bold" style="color: var(--q-normal);">
+    <div class="col-6 text-left" style="color: var(--q-normal);">
       {{ trainData.terminal }}
     </div>
     <div style="display: flex;align-items: center;justify-content: flex-end;">
-      <div class="pill">
-        <span>{{ formatToHHMM(trainData.dep) }}</span>
-      </div>
+      <span class="pill">
+        {{ formatToHHMM(trainData.dep) }}
+      </span>
     </div>
   </div>
 
@@ -27,7 +27,6 @@ import TrainStatusIndicator from "components/TrainStatusIndicator.vue";
 import {useI18n} from "vue-i18n";
 import {computed} from "vue";
 import {diffFromNow, fixedMins, formatToHHMM} from "src/utils/time-utils";
-import dayjs from "dayjs";
 import {TRAIN_CATEGORY} from "src/models/Train";
 
 const {t} = useI18n()
@@ -37,28 +36,11 @@ computed(() => {
 const props = defineProps({
   trainData: {
     type: Object,
-    default: () => {
-      return {
-        id: 23,
-        trainNo: "5101",
-        arr: dayjs(new Date()).add(2, 'minute').toString(),
-        dep: dayjs(new Date()).add(3, 'minute').toString(),
-        terminal: "天隆寺",
-        lineName: "1号线",
-        lineColor: "#009ACE",
-        direction: true,
-      }
-    }
   }
 })
 const arriveMins = computed(() => {
   let diffSeconds = diffFromNow(props.trainData.arr, 'second')
   return fixedMins(diffSeconds)
-})
-const terminalStation = computed(() => {
-  const trainData = props.trainData
-  const terminalStationId = trainData.schedules.slice(-1)[0].id
-  return terminalStationId
 })
 </script>
 
@@ -79,11 +61,14 @@ const terminalStation = computed(() => {
 .pill {
   height: 22px;
   font-size: 14px;
-  padding: 0 5px;
+  text-align: center;
+  padding-top: 0;
+  padding-bottom: 0;
+  min-width: 43px;
+  margin-right: 3px;
   color: #ffffff;
   display: flex;
   justify-content: center;
-  align-items: center;
   background-color: var(--q-primary);
   border-radius: 5px;
 }
