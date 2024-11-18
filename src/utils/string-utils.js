@@ -6,7 +6,7 @@ function isNumber(str) {
 }
 
 function isAlphabet(str) {
-    const regex = /^[A-Za-z]+$/;
+    const regex = /^[A-Za-z\s]+$/;
     return regex.test(str);
 }
 
@@ -19,23 +19,50 @@ function getPinyinAbbr(str) {
     return pinyin(str, {type: 'string', separator: '', pattern: 'first'})
 }
 
-function findByPinyin(pinyinAbbr, texts) {
-    if (!texts instanceof Array || typeof pinyinAbbr !== "string") {
+/**
+ *
+ * @param {String} str
+ */
+function getFirstLetters(str) {
+    return str
+        .split(' ')
+        .map(it => it.slice(0, 1))
+        .join('').toLowerCase()
+}
+
+function findByAbbr(targetAbbr, texts) {
+    if (!texts instanceof Array || typeof targetAbbr !== "string") {
         return texts
     }
-    pinyinAbbr = pinyinAbbr.toLowerCase()
+    targetAbbr = targetAbbr.toLowerCase()
     return texts.map((it, index) => {
-        const pinyin = getPinyinAbbr(it).toLowerCase()
-        const findStartIndex = pinyin.indexOf(pinyinAbbr)
-        if (findStartIndex !== -1) {
-            const match = it.slice(findStartIndex, findStartIndex + pinyinAbbr.length)
+        it = it.replace(/\s+/g, " ")
+        let _abbr
+        let match
+        if (containsChinese(it)) {
+            _abbr = getPinyinAbbr(it).toLowerCase()
+            const findStartIndex = _abbr.indexOf(targetAbbr)
+            if (findStartIndex !== -1) {
+                match = it.slice(findStartIndex, findStartIndex + targetAbbr.length)
+            }
+        } else if (isAlphabet(it)) {
+            _abbr = getFirstLetters(it)
+            const findStartIndex = _abbr.indexOf(targetAbbr)
+            if (findStartIndex !== -1) {
+                match = it.split(' ').slice(findStartIndex, findStartIndex + _abbr.length - 1).join(' ')
+            }
+        } else {
+            return null
+        }
+        if (match) {
             return {
                 index,
                 match,
-                ratio: (pinyinAbbr.length / it.length).toFixed(4)
+                ratio: (targetAbbr.length / it.length).toFixed(4)
             }
+        } else {
+            return null
         }
-        return null
     })
         .filter(it => it != null)
 }
@@ -147,4 +174,4 @@ function toHighlighted(obj, matchedData, sourcePropertyName, highlightedClass) {
     return _obj
 }
 
-export {isNumber, findMatches, containsChinese, findByPinyin, isAlphabet, toHighlighted}
+export {isNumber, findMatches, containsChinese, findByAbbr, isAlphabet, toHighlighted}

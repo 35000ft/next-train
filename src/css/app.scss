@@ -32,3 +32,37 @@
 .highlight-text {
     color: var(--q-primary-d);
 }
+
+.auto-scroll-content {
+    display: inline-block; /* 确保内容在一行显示 */
+    animation: first-scroll 5s linear 1, loop-scroll 8s linear infinite;
+}
+
+/* 第一次滚动动画 */
+@keyframes first-scroll {
+    0% {
+        transform: translateX(0); /* 从当前位置开始 */
+    }
+    20% {
+        transform: translateX(0); /* 从当前位置开始 */
+    }
+    100% {
+        transform: translateX(-100%); /* 移出容器左侧 */
+    }
+}
+
+/* 循环滚动动画 */
+@keyframes loop-scroll {
+    0% {
+        transform: translateX(100%); /* 从容器右侧开始 */
+    }
+    30% {
+        transform: translateX(0%); /* 从容器右侧开始 */
+    }
+    60% {
+        transform: translateX(0%); /* 从容器右侧开始 */
+    }
+    100% {
+        transform: translateX(-100%); /* 移出容器左侧 */
+    }
+}

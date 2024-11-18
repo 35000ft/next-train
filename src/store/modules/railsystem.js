@@ -49,7 +49,7 @@ const stations = [{
     }]
 }, {
     id: "2130",
-    name: "玄武门",
+    name: "NAN JING ROAD",
     timezone: '+0800',
     railsystem: 'NJMTR',
     lines: [{

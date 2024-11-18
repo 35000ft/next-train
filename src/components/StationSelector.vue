@@ -23,10 +23,13 @@
                         <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
                         <div class="row station-result-wrapper" v-for="(station,index) in searchResults" :key="index"
                              @click="handleSelect(station)">
-                            <div class="col-6">
-                                <span v-if="station.highlighted" v-html="station.highlighted"></span>
-                                <span v-if="!station.highlighted">{{ station.name }}</span>
-                                <span class="pill">{{ station.railsystem }}</span></div>
+                            <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;">
+                                <div v-overflow-auto-scroll>
+                                    <span v-if="station.highlighted" v-html="station.highlighted"></span>
+                                    <span v-if="!station.highlighted">{{ station.name }}</span>
+                                    <span class="pill">{{ station.railsystem }}</span>
+                                </div>
+                            </div>
                             <div class="col-6" style="text-align: right;">{{ station.name }}</div>
                         </div>
                     </q-tab-panel>
@@ -55,7 +58,7 @@ import {computed, defineComponent, onMounted, ref, toRaw, watch} from "vue";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import {useI18n} from "vue-i18n";
-import {containsChinese, findByPinyin, findMatches, isAlphabet, isNumber, toHighlighted} from "src/utils/string-utils";
+import {containsChinese, findByAbbr, findMatches, isAlphabet, isNumber, toHighlighted} from "src/utils/string-utils";
 import _ from 'lodash';
 
 export default defineComponent({
@@ -125,17 +128,12 @@ export default defineComponent({
                     return r
                 }
                 const names = r.map(it => it.name)
-
                 let matchResults = []
-
-                //Special optimise for Chinese station name search
-                const isChinese = containsChinese(r[0].name)
-                if (isChinese && isAlphabet(_keyword)) {
-                    matchResults = matchResults.concat(...findByPinyin(_keyword, names))
+                if (isAlphabet(_keyword) && _keyword.length <= 4) {
+                    matchResults = matchResults.concat(...findByAbbr(_keyword, names))
                 }
 
                 matchResults = matchResults.concat(...findMatches(_keyword, names))
-
                 if (matchResults.length > 0) {
                     const matchResultMap = matchResults.reduce((acc, cur) => {
                         if (acc.has(cur.index)) {
@@ -258,4 +256,5 @@ export default defineComponent({
 .q-tab-panel {
     padding: 0;
 }
+
 </style>
