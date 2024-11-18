@@ -1,0 +1,150 @@
+import {pinyin} from 'pinyin-pro';
+
+function isNumber(str) {
+    if (!str) return false
+    return /^(-?(0|[1-9]\d{0,18}))$/.test(str)
+}
+
+function isAlphabet(str) {
+    const regex = /^[A-Za-z]+$/;
+    return regex.test(str);
+}
+
+function isChineseChar(char) {
+    const regex = /^[\u4e00-\u9fa5]+$/;
+    return regex.test(char);
+}
+
+function getPinyinAbbr(str) {
+    return pinyin(str, {type: 'string', separator: '', pattern: 'first'})
+}
+
+function findByPinyin(pinyinAbbr, texts) {
+    if (!texts instanceof Array || typeof pinyinAbbr !== "string") {
+        return texts
+    }
+    pinyinAbbr = pinyinAbbr.toLowerCase()
+    return texts.map((it, index) => {
+        const pinyin = getPinyinAbbr(it).toLowerCase()
+        const findStartIndex = pinyin.indexOf(pinyinAbbr)
+        if (findStartIndex !== -1) {
+            const match = it.slice(findStartIndex, findStartIndex + pinyinAbbr.length)
+            return {
+                index,
+                match,
+                ratio: (pinyinAbbr.length / it.length).toFixed(4)
+            }
+        }
+        return null
+    })
+        .filter(it => it != null)
+}
+
+function containsChinese(str) {
+    // 正则表达式匹配一个或多个汉字字符
+    const regex = /[\u4e00-\u9fa5]+/g;
+    // 测试字符串是否匹配正则表达式
+    return regex.test(str);
+}
+
+/**
+ * 计算给定模式字符串的部分匹配表（也称为失败函数）。
+ * @param {string} pattern - 模式字符串。
+ * @return {number[]} - 部分匹配表数组。
+ */
+function computeLPSArray(pattern) {
+    let lps = [0];
+    let len = 0;
+    let i = 1;
+    if (pattern[0] === pattern[i]) {
+        lps[0] = 1;
+    }
+    while (i < pattern.length) {
+        if (pattern[i] === pattern[len]) {
+            len++;
+            lps[i] = len;
+            i++;
+        } else {
+            if (len !== 0) {
+                len = lps[len - 1];
+            } else {
+                lps[i] = 0;
+                i++;
+            }
+        }
+    }
+    return lps;
+}
+
+/**
+ * 使用 KMP 算法在给定文本中搜索模式字符串的所有出现。
+ * @param {string} pat - 要搜索的模式字符串。
+ * @param {string} txt - 被搜索的文本字符串。
+ * @return {Object} - 包含匹配信息的对象数组，每个对象包含原始数组索引、匹配词和匹配内容占原文的比例。
+ */
+function KMPSearch(pat, txt) {
+    let lps = computeLPSArray(pat);
+    let i = 0; // index for txt
+    let j = 0; // index for pat
+    while (i < txt.length) {
+        if (pat[j] === txt[i]) {
+            i++;
+            j++;
+        }
+        if (j === pat.length) {
+            return {
+                index: -1,
+                match: pat, // matched word
+                ratio: (pat.length / txt.length).toFixed(4) // ratio of match content to original text
+            }
+        } else if (i < txt.length && pat[j] !== txt[i]) {
+            if (j !== 0) {
+                j = lps[j - 1];
+            } else {
+                i++;
+            }
+        }
+    }
+    return null
+}
+
+/**
+ * 使用 KMP 算法在数组的每个文本中搜索模式字符串，并返回一个 Map，其中键是数组索引，值是匹配结果对象数组。
+ * @param {string[]} texts - 包含多个字符串的数组。
+ * @param {string} pattern - 要搜索的模式字符串。
+ * @return {Array} - 键为数组索引，值为匹配结果对象数组的 Map。
+ */
+function findMatches(pattern, texts) {
+    const processText = (txt, index) => {
+        const result = KMPSearch(pattern, txt)
+        if (result == null) {
+            return null
+        }
+        result.index = index
+        return result
+    }
+
+    // 使用 flatMap 遍历 texts 数组，并对每个文本应用 processText 函数
+    return texts.map((txt, index) => {
+        return processText(txt, index);
+    }).filter(it => it != null)
+}
+
+/**
+ *
+ * @param {Object} obj
+ * @param {Object}  matchedData
+ * @param {String}  sourcePropertyName
+ * @param {String} highlightedClass
+ * @return {Object} obj with highlighted info
+ */
+function toHighlighted(obj, matchedData, sourcePropertyName, highlightedClass) {
+    const {ratio, match} = matchedData
+    const _obj = Object.assign({}, obj)
+    _obj.ratio = ratio
+    _obj.match = match
+    _obj.highlighted = obj[sourcePropertyName].replace(match, `<span class="${highlightedClass}">${match}</span>`)
+    return _obj
+}
+
+export {isNumber, findMatches, containsChinese, findByPinyin, isAlphabet, toHighlighted}

@@ -9,6 +9,7 @@ const messages = {
         all: "ALL",
         direction: "Towards",
         directionShort: "To",
+        trainDataUpdated: "Train data is update to date",
         headers: {
             search: {
                 placeholder: 'Station, Line...'
@@ -42,6 +43,7 @@ const messages = {
         all: "全部",
         direction: "方向",
         directionShort: "方向",
+        trainDataUpdated: "列车数据已更新",
         headers: {
             search: {
                 placeholder: '车站, 线路...'
@@ -75,6 +77,7 @@ const messages = {
         all: "全部",
         direction: "方向",
         directionShort: "方向",
+        trainDataUpdated: "列車資料已更新",
         headers: {
             search: {
                 placeholder: '車站, 線路...'

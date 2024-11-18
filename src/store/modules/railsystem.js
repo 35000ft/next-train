@@ -24,6 +24,7 @@ const stations = [{
     name: "南京站",
     code: "NJS",
     timezone: '+0800',
+    railsystem: 'NJMTR',
     lines: [{
         id: '1',
         name: "1号线",
@@ -39,6 +40,7 @@ const stations = [{
     id: "2131",
     name: "新模范马路",
     timezone: '+0800',
+    railsystem: 'NJMTR',
     lines: [{
         id: '1',
         name: "1号线",
@@ -49,13 +51,32 @@ const stations = [{
     id: "2130",
     name: "玄武门",
     timezone: '+0800',
+    railsystem: 'NJMTR',
     lines: [{
         id: '1',
         name: "1号线",
         code: "L1",
         color: "#009ACE"
     }]
-}]
+}, {
+    id: "98774",
+    name: "鼓楼",
+    timezone: '+0800',
+    railsystem: 'NJMTR',
+    lines: [{
+        id: '1',
+        name: "1号线",
+        code: "L1",
+        color: "#009ACE"
+    }, {
+        id: '4',
+        name: "4号线",
+        code: "L4",
+        color: "#7D55C7"
+    }
+    ]
+}
+]
 const lines = [{
     id: "1",
     name: "1号线",
@@ -80,14 +101,7 @@ const state = {
 }
 
 const mutations = {
-    SET_CURRENT_RAIL_SYSTEM(state, railsystem) {
-        state.currentRailSystem = railsystem;
-        localStorage.setItem('currentRailSystem', JSON.stringify(railsystem))
-    },
-    SET_CURRENT_STATION(state, station) {
-        state.stations = station
-        localStorage.setItem('currentStation', JSON.stringify(station))
-    },
+
     SET_RAIL_SYSTEM_LINES(state, railsystemCode, lines) {
         const railsystem = state.railSystems.get(railsystemCode)
         if (!railsystemCode) {
@@ -104,6 +118,11 @@ const mutations = {
     SET_LINE(state, line) {
         if (line && line.id) {
             state.lines.set(line.id, line)
+        }
+    },
+    SET_RAILSYSTEM(state, railsystem) {
+        if (railsystem && railsystem.code) {
+            state.railSystems.set(railsystem.id, railsystem)
         }
     },
     SET_LINE_STATIONS(state, lineId, stations) {
@@ -135,10 +154,28 @@ const actions = {
         }
         return station
     },
+    async getAllStations({state, commit}) {
+        const currentRailSystem = state.currentRailSystem
+        //TODO
+        if (currentRailSystem.stations) {
+            return toRaw(currentRailSystem.stations)
+        } else {
+            currentRailSystem.stations = stations
+            mutations.SET_RAILSYSTEM(state, currentRailSystem)
+            return stations
+        }
+    },
     async getLine({state, commit}, lineId) {
         if (state.lines.has(lineId)) {
-            return toRaw(state.lines.get(lineId))
+            const _line = state.lines.get(lineId)
+            if (_line.stations instanceof Array) {
+                return toRaw(_line)
+            } else {
+                _line.stations = await this.getStationsByLine({state, commit}, lineId)
+                return _line
+            }
         }
+        return Promise.reject(`No such line, lineId:${lineId}`)
         //TODO
         // mutations.SET_LINE(state, line)
     },
@@ -176,10 +213,6 @@ const actions = {
             // return Promise.resolve(toRaw(railsystem.lines))
         }
     },
-
-    setCurrentRailSystem({commit}, railSystem) {
-        commit('SET_CURRENT_RAIL_SYSTEM', railSystem)
-    }
 }
 
 const getters = {

@@ -1,5 +1,6 @@
 <template>
-    <q-tab-panels v-cloak v-if="currentStationId" class="full-height" v-model="currentStationId" swipeable
+    <q-tab-panels v-cloak v-if="currentStationId&&currentLine" class="full-height" v-model="currentStationId"
+                  swipeable
                   animated
                   @touchstart.stop>
         <q-tab-panel v-for="station in currentLine.stations" :name="station.id" :key="station.id">
@@ -63,7 +64,7 @@
             <div class="scroll" style="height: 57%;" ref="trainInfoArea">
                 <q-pull-to-refresh @refresh="handleRefreshTrainData" @touchstart="handleTouchTrainDataRegionStart">
                     <div>
-                        <div v-if="isLoadingTrains && (!currentTrains||currentTrains.length===0)">
+                        <div v-if="showSkeleton">
                             <q-skeleton height="40px" style="margin-bottom: 5px;"/>
                             <q-skeleton height="30px" style="margin-bottom: 2px;"/>
                             <q-skeleton height="30px" style="margin-bottom: 2px;"/>
@@ -71,8 +72,8 @@
                         </div>
                         <q-tab-panels class="train-data-wrapper" v-model="currentLineId"
                                       swipeable animated infinite>
-                            <q-skeleton v-if="!currentTrains||currentTrains.length===0" square height="150px"/>
-                            <q-tab-panel v-if="currentStation.lines.length>1" name="all"
+                            <q-tab-panel v-if="currentStation.lines.length>1"
+                                         name="all"
                                          style="padding-left: 0;padding-right: 0;padding-top: 0;">
                                 <div class="realtime-info-wrapper text-left">
                                     <div class="row train-data border-bottom"
@@ -113,15 +114,13 @@
                 </q-pull-to-refresh>
             </div>
         </q-tab-panel>
-
-
     </q-tab-panels>
     <line-stations-selector ref="lineStationsSelector"/>
     <station-selector ref="stationSelector"/>
 </template>
 
 <script setup>
-import {computed, onMounted, ref, toRaw, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, toRaw, watch} from "vue";
 import LineIcon from "components/LineIcon.vue";
 import TrainDataItem from "components/TrainDataItem.vue";
 import {useI18n} from "vue-i18n";
@@ -131,6 +130,7 @@ import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineStationsSelector from "components/LineStationsSelector.vue";
 import {getNowByTimezone} from "src/utils/time-utils";
+import {isNumber} from "src/utils/string-utils";
 
 const $q = useQuasar()
 const {t} = useI18n()
@@ -149,11 +149,33 @@ const lineStationsSelector = ref(null)
 const currentStation = ref(null)
 const currentTrains = ref([])
 
+const props = defineProps({
+    currentStationIdProp: {
+        type: String,
+    },
+    currentLineIdProp: {
+        type: String,
+        default: null
+    },
+})
+
+watch(props, () => {
+    console.log('change')
+    init()
+}, {deep: true})
+
+const showSkeleton = computed(() => {
+    return isLoadingTrains.value && (currentTrains.value && currentTrains.value.length === 0)
+})
+
 /**
  * Calculate trains to show on current line tab
  */
 async function calcCurrentTrains() {
-    console.log('calc currentTrains')
+    console.log('calculating current trains...')
+    if (!trainInfoMap.value || !currentStation.value) {
+        return []
+    }
     const _t = toRaw(trainInfoMap.value)
     const allLines = new Map(currentStation.value.lines.map(it => [it.id, it]))
     const currentTimezone = currentStation.value.timezone
@@ -197,6 +219,12 @@ async function calcCurrentTrains() {
                 directionTrains.forEach(it => {
                     it.trains = it.trains.filter(it => it.arr >= now || (now >= it.arr && now < it.dep)).slice(0, EACH_DIRECTION_TRAIN_AMOUNT_LIMIT).sort((i1, i2) => i1.dep - i2.dep)
                 })
+                const trainCount = directionTrains.map(it => it.trains.length).reduce((acc, cur) => cur + acc, 0)
+                if (trainCount < directionTrains.length * (EACH_DIRECTION_TRAIN_AMOUNT_LIMIT - 1)) {
+                    loadLineTrains(_lineId).then(() => {
+                        console.log(`Train info too less, load ${_lineId} train info ok.`)
+                    })
+                }
                 return directionTrains
             }
         }
@@ -205,10 +233,10 @@ async function calcCurrentTrains() {
 }
 
 async function loadLineTrains(lineId) {
-    if (lineId === 'all') {
+    console.log('loading line trains lineId:', lineId)
+    if (!isNumber(lineId)) {
         return Promise.reject()
     }
-    console.log('loadLineTrains lineId:', lineId)
     const currentStationId = currentStation.value.id
     if (lineId && currentStationId) {
         return store.dispatch('realtime/loadStationTrains', {currentStationId, lineId}).then(r => {
@@ -219,17 +247,18 @@ async function loadLineTrains(lineId) {
     }
 }
 
-function updateCurrentTrains() {
-    console.log('updateCurrentTrains')
+async function updateCurrentTrains() {
+    console.log('Updating current trains...')
     isLoadingTrains.value = true
-    calcCurrentTrains().then(r => {
-        isLoadingTrains.value = false
+    return calcCurrentTrains().then(r => {
         if (r instanceof Array && r.length > 0) {
-            if (r[0].id === undefined) {
+            if (r[0].direction) {
+                // Logic for single line
                 currentTrains.value = r
+                isLoadingTrains.value = false
                 return
-            }
-            if (r.length > 0) {
+            } else {
+                // Logic for All Trains
                 let index = 0
                 const interval = setInterval(() => {
                     if (index >= r.length) {
@@ -241,42 +270,45 @@ function updateCurrentTrains() {
                                 currentTrains.value.splice(i, 1)
                             }
                         }
+                        isLoadingTrains.value = false
                         return
                     }
                     const rItem = r[index]
-                    const existingIndex = currentTrains.value.findIndex(item => item.id === rItem.id);
+                    const existingIndex = currentTrains.value.findIndex(item => item.id === rItem.id)
                     if (existingIndex === -1) {
-                        currentTrains.value.splice(index, 0, rItem);
+                        currentTrains.value.splice(index, 0, rItem)
                     } else if (existingIndex !== index) {
                         // 如果位置不一致，将其移动到正确位置
-                        const [item] = currentTrains.value.splice(existingIndex, 1);
-                        currentTrains.value.splice(index, 0, item);
+                        const [item] = currentTrains.value.splice(existingIndex, 1)
+                        currentTrains.value.splice(index, 0, item)
                     }
                     index++
                 }, 250)
             }
         } else {
+            isLoadingTrains.value = false
             currentTrains.value = []
         }
+        isLoadingTrains.value = false
     })
 }
 
-const props = defineProps({
-    currentStationIdProp: {
-        type: String,
-    },
-    currentLineIdProp: {
-        type: String,
-    },
+const refreshTrainInfoTimer = setInterval(() => {
+    console.log('Auto refresh train info')
+    updateCurrentTrains()
+}, 30000)
+
+//clean refresh train info timer
+onBeforeUnmount(() => {
+    clearInterval(refreshTrainInfoTimer)
 })
-const stations = ref(null)
+
 let currentStationId = ref(null)
 let currentLineId = ref(null)
 
 function init() {
-    loadStationInfo(props.currentStationIdProp, props.currentLineIdProp).then(r => {
-        console.log('load station info OK.')
-    })
+    currentLineId.value = props.currentLineIdProp
+    currentStationId.value = props.currentStationIdProp
 }
 
 async function loadStationInfo(stationId, lineId) {
@@ -294,15 +326,9 @@ async function loadStationInfo(stationId, lineId) {
     if (!line) {
         line = station.lines[0]
     }
-    if (!line.stations) {
-        line.stations = await store.dispatch('railsystem/getStationsByLine', line.id)
-        stations.value = line.stations
-    }
-    currentStation.value = station
-    currentStationId.value = station.id
     currentLineId.value = line.id
-    currentLine.value = line
     isLoadingStation.value = false
+    return station
 }
 
 watch(currentLineId, (lineId, oldValue) => {
@@ -318,7 +344,6 @@ watch(currentLineId, (lineId, oldValue) => {
     store.dispatch('railsystem/getLine', lineId).then(_line => {
         if (_line) {
             currentLine.value = _line
-            currentLineId.value = _line.id
             updateCurrentTrains()
         } else {
             console.warn('Load line info err! lineId:', lineId)
@@ -327,10 +352,12 @@ watch(currentLineId, (lineId, oldValue) => {
 })
 
 const handleRefreshTrainData = (done) => {
-    setTimeout(() => {
-        done()
-        $q.notify.ok('列车数据已更新')
-    }, 1000)
+    updateCurrentTrains().then(_ => {
+        setTimeout(() => {
+            done()
+            $q.notify.ok(t('trainDataUpdated'))
+        }, 1000)
+    })
 }
 
 const handleTouchTrainDataRegionStart = (event) => {
@@ -399,12 +426,13 @@ watch(currentStationId, (stationId, oldValue) => {
         return
     }
     //change station
-    if (stationId) {
-        trainInfoMap.value = new Map()
+    trainInfoMap.value = new Map()
+    const _currentLineId = currentLine.value && currentLine.value.id || null
+    loadStationInfo(stationId, _currentLineId).then(station => {
+        currentStation.value = station
         updateCurrentTrains()
-    }
-    loadStationInfo(stationId, currentLine.value.id)
-    emit('changeStation')
+        emit('changeStation', station)
+    })
 })
 
 defineOptions({
@@ -416,7 +444,6 @@ defineOptions({
     color: var(--q-primary-d);
     background-color: var(--q-background);
 }
-
 
 .station-name-text {
     font-weight: bold;
