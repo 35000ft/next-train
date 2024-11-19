@@ -9,7 +9,7 @@ const line1Trains = [{
         trainNo: "5101",
         arr: dayjs(new Date()).add(7, 'minute').toDate(),
         dep: dayjs(new Date()).add(10, 'minute').toDate(),
-        terminal: "中国药科大学",
+        terminal: "中国药科大学ASDSADDSADA",
         category: ["LOCAL",]
     }, {
         id: 424,

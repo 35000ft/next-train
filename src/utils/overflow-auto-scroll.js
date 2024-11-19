@@ -3,7 +3,6 @@ export default {
     mounted(el) {
         // 检查元素是否超出容器
         const checkOverflow = () => {
-            console.log('check', el)
             const containerWidth = el.offsetWidth; // 容器宽度
             const contentWidth = el.scrollWidth;  // 内容实际宽度
 

@@ -5,13 +5,12 @@
             <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
         </div>
         <div class="col-5 text-left" style="color: var(--q-normal)">
-            {{ trainData.terminal }}
+            <span v-overflow-auto-scroll style="display: block;"> {{ trainData.terminal }}</span>
         </div>
         <div class="col-5" style="display: flex;align-items: center;justify-content: flex-end;">
       <span class="pill">
         {{ formatToHHMM(trainData.dep) }}
       </span>
-
             <span class="pill" v-for="(trainCategory,index) in trainCategories" :key="index"
                   :style="{backgroundColor:trainCategory.bgColor}">
         {{ t(`trainCategory.${trainCategory.code}`) }}
@@ -56,7 +55,6 @@ const arriveMins = computed(() => {
 .train-data div {
     padding-bottom: 2px;
     white-space: nowrap;
-    text-overflow: ellipsis;
     overflow-x: hidden;
     padding-top: 2px;
     margin-right: 2px;

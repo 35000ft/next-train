@@ -21,16 +21,26 @@
                     <q-tab-panel :name="ALL_STR">
                         <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
                         <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
-                        <div class="row station-result-wrapper" v-for="(station,index) in searchResults" :key="index"
-                             @click="handleSelect(station)">
-                            <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;">
+                        <div class="row station-result-wrapper" v-for="(station,index) in searchResults" :key="index">
+                            <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;"
+                                 @click="handleSelect(station)">
                                 <div v-overflow-auto-scroll>
                                     <span v-if="station.highlighted" v-html="station.highlighted"></span>
                                     <span v-if="!station.highlighted">{{ station.name }}</span>
                                     <span class="pill">{{ station.railsystem }}</span>
                                 </div>
                             </div>
-                            <div class="col-6" style="text-align: right;">{{ station.name }}</div>
+                            <div class="col-6"
+                                 style="text-align: right;overflow:hidden;white-space: nowrap; position: relative;">
+                                <div v-overflow-auto-scroll>
+                                    <LineIcon v-for="line in station.lines" :key="line.id" :line="line"
+                                              :font-size="'13px'"
+                                              style="margin-right: 4px;"
+                                              :disabled="false"
+                                              @click="handleSelect(station,line)"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </q-tab-panel>
                     <q-tab-panel :name="line.name" :key="line.id" v-for="line in lines">
@@ -54,15 +64,17 @@
 
 <script>
 import BottomModal from "components/BottomModal.vue";
-import {computed, defineComponent, onMounted, ref, toRaw, watch} from "vue";
+import {computed, defineComponent, markRaw, onMounted, ref, toRaw, watch} from "vue";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import {useI18n} from "vue-i18n";
-import {containsChinese, findByAbbr, findMatches, isAlphabet, isNumber, toHighlighted} from "src/utils/string-utils";
+import {findByAbbr, findMatches, isAlphabet, isNumber, toHighlighted} from "src/utils/string-utils";
 import _ from 'lodash';
+import LineIcon from "components/LineIcon.vue";
 
 export default defineComponent({
-    components: {BottomModal},
+    methods: {markRaw},
+    components: {LineIcon, BottomModal},
     setup(_0, {emit}) {
         const displaySelector = ref(false)
         const keyword = ref('')
@@ -183,12 +195,16 @@ export default defineComponent({
                 loading.value = false
             })
         }
-        const handleSelect = (station) => {
+        const handleSelect = (station, line) => {
             station = toRaw(station)
-            if (station.code === currentStation.value.code) {
+            if (line) {
+                line = toRaw(line)
+            }
+            if (station.id === currentStation.value.id && !line) {
                 return
             }
-            emit('select', station)
+
+            emit('select', station.id, (line && line.id) || null)
             displaySelector.value = false
         }
         const showSelector = () => {

@@ -35,7 +35,12 @@ const stations = [{
         name: "3号线",
         code: "L3",
         color: "#009A44"
-    },]
+    }, {
+        id: '4',
+        name: "4号线",
+        code: "L4",
+        color: "#7D55C7"
+    }]
 }, {
     id: "2131",
     name: "新模范马路",
@@ -88,6 +93,12 @@ const lines = [{
     name: "3号线",
     code: "L3",
     color: "#009A44",
+    stations
+}, {
+    id: "4",
+    name: "4号线",
+    code: "L4",
+    color: "#7D55C7",
     stations
 },]
 

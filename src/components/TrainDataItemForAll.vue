@@ -4,19 +4,16 @@
         <div class="col-1" style="display: flex;justify-content: center; align-items: center;text-align: left; ">
             <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
         </div>
-        <div
-            style="display: flex;align-items: center;">
-         <span class="pill" :style="{backgroundColor:trainData.line.color}">
-           {{ trainData.line.name }}
-         </span>
+        <div class="col-5 text-left" style="color: var(--q-normal);overflow: hidden;">
+            <div v-overflow-auto-scroll>
+                 <span class="pill" style="display: inline-block;" :style="{backgroundColor:trainData.line.color}">
+                     {{ trainData.line.name }}
+                 </span>
+                <span>{{ trainData.terminal }}</span>
+            </div>
         </div>
-        <div class="col-6 text-left" style="color: var(--q-normal);">
-            {{ trainData.terminal }}
-        </div>
-        <div style="display: flex;align-items: center;justify-content: flex-end;">
-      <span class="pill">
-        {{ formatToHHMM(trainData.dep) }}
-      </span>
+        <div class="col-4" style="align-items: center;display: flex;justify-content: flex-end;">
+            <span class="pill">{{ formatToHHMM(trainData.dep) }}</span>
         </div>
     </div>
 
@@ -58,6 +55,7 @@ const arriveMins = computed(() => {
 
 .pill {
     height: 22px;
+    max-width: 30px;
     font-size: 14px;
     text-align: center;
     padding-top: 0;
