@@ -8,9 +8,7 @@
             <span v-overflow-auto-scroll style="display: block;"> {{ trainData.terminal }}</span>
         </div>
         <div class="col-5" style="display: flex;align-items: center;justify-content: flex-end;">
-      <span class="pill">
-        {{ formatToHHMM(trainData.dep) }}
-      </span>
+            <DepTrainTime :train-data="trainData" :station="station"/>
             <span class="pill" v-for="(trainCategory,index) in trainCategories" :key="index"
                   :style="{backgroundColor:trainCategory.bgColor}">
         {{ t(`trainCategory.${trainCategory.code}`) }}
@@ -26,6 +24,7 @@ import {useI18n} from "vue-i18n";
 import {computed} from "vue";
 import {diffFromNow, fixedMins, formatToHHMM} from "src/utils/time-utils";
 import {TRAIN_CATEGORY} from "src/models/Train";
+import DepTrainTime from "components/DepTrainTime.vue";
 
 const {t} = useI18n()
 const trainCategories = computed(() => {
@@ -33,6 +32,9 @@ const trainCategories = computed(() => {
 })
 const props = defineProps({
     trainData: {
+        type: Object,
+    },
+    station: {
         type: Object,
     }
 })

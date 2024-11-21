@@ -24,7 +24,7 @@ const stations = [{
     name: "南京站",
     code: "NJS",
     timezone: '+0800',
-    railsystem: 'NJMTR',
+    railsystem: '南京地铁',
     lines: [{
         id: '1',
         name: "1号线",
@@ -45,7 +45,7 @@ const stations = [{
     id: "2131",
     name: "新模范马路",
     timezone: '+0800',
-    railsystem: 'NJMTR',
+    railsystem: '南京地铁',
     lines: [{
         id: '1',
         name: "1号线",
@@ -54,9 +54,9 @@ const stations = [{
     }]
 }, {
     id: "2130",
-    name: "NAN JING ROAD",
+    name: "玄武门",
     timezone: '+0800',
-    railsystem: 'NJMTR',
+    railsystem: '南京地铁',
     lines: [{
         id: '1',
         name: "1号线",
@@ -67,7 +67,7 @@ const stations = [{
     id: "98774",
     name: "鼓楼",
     timezone: '+0800',
-    railsystem: 'NJMTR',
+    railsystem: '南京地铁',
     lines: [{
         id: '1',
         name: "1号线",
@@ -105,7 +105,6 @@ const lines = [{
 
 const state = {
     currentRailSystem: railSystems['NJMTR'],
-    currentStation: stations[0],
     railSystems: new Map(Object.entries(railSystems)),
     stations: new LRUCache(200),
     lines: new LRUCache(20),
@@ -228,7 +227,6 @@ const actions = {
 
 const getters = {
     currentRailSystem: state => state.currentRailSystem,
-    currentStation: state => state.currentStation,
 }
 
 export default {

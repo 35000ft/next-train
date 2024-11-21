@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="col-4" style="align-items: center;display: flex;justify-content: flex-end;">
-            <span class="pill">{{ formatToHHMM(trainData.dep) }}</span>
+            <DepTrainTime :train-data="trainData" :station="station"/>
         </div>
     </div>
 
@@ -26,11 +26,15 @@ import {useI18n} from "vue-i18n";
 import {computed} from "vue";
 import {diffFromNow, fixedMins, formatToHHMM} from "src/utils/time-utils";
 import {TRAIN_CATEGORY} from "src/models/Train";
+import DepTrainTime from "components/DepTrainTime.vue";
 
 const {t} = useI18n()
 const props = defineProps({
     trainData: {
         type: Object,
+    },
+    station: {
+        type: Object
     }
 })
 const arriveMins = computed(() => {

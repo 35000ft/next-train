@@ -52,6 +52,15 @@ export function getNowByTimezone(_timezone) {
     return dayjs().tz(_timezone)
 }
 
+export function isAfterNow(_date) {
+    const diff = diffFromNow(_date)
+    return diff > 0
+}
+
+export function isBeforeNow(_date) {
+    return !isAfterNow(_date)
+}
+
 export function hasTimezone(_date) {
     const dateInstance = toDayjs(_date)
     if (dateInstance == null) {
@@ -71,7 +80,13 @@ export function getNowTimeString(format = TIME_FORMATS.DEFAULT, _date) {
     return _dayjs.format(format)
 }
 
-
+/**
+ *
+ * @param d1
+ * @param d2
+ * @param unit
+ * @return {number}
+ */
 export function diff(d1, d2, unit = 'second') {
     const d1UTC = dayjs(d1).utc()
     const d2UTC = dayjs(d2).utc()
@@ -83,6 +98,17 @@ export function diffFromNow(d1, unit = 'second') {
     const nowUTC = dayjs().utc()
     return diff(d1UTC, nowUTC, unit);
 }
+
+export function diffFromNowFormatted(d1) {
+    const diffSeconds = Math.abs(diffFromNow(d1))
+    const hours = Math.floor(diffSeconds / 3600)
+    const minutes = Math.floor((diffSeconds / 60) % 60)
+    const seconds = diffSeconds % 60
+    return {
+        hours, minutes, seconds
+    }
+}
+
 
 /**
  * 对给定的秒数四舍五入为分钟
@@ -121,6 +147,22 @@ function toDayjs(_date) {
     }
     console.warn(`${_date} is neither not string, nor Date, Dayjs!`)
     return null
+}
+
+/**
+ *
+ * @param {Date} _date
+ * @return {string}
+ */
+export function date2StringWithTimezone(_date) {
+    const offset = -_date.getTimezoneOffset()
+    const sign = offset >= 0 ? '+' : '-'
+    const hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0')
+    const minutes = String(Math.abs(offset) % 60).padStart(2, '0')
+
+    let _dayjsDate = toDayjs(_date)
+    _dayjsDate = _dayjsDate.add(Number(hours), 'hours').add(Number(minutes), 'minutes')
+    return _dayjsDate.toDate().toISOString().slice(0, -1) + `${sign}${hours}:${minutes}`
 }
 
 /**

@@ -22,9 +22,7 @@
 
             <div class="middle-card">
                 <q-card class="my-card">
-                    <q-card-section>
-                        HOME
-                    </q-card-section>
+                    <FocusTrainsView/>
                 </q-card>
             </div>
             <div class="middle-card">
@@ -53,6 +51,7 @@ import SearchHeader from "components/SearchHeader.vue";
 import {ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
+import FocusTrainsView from "components/FocusTrainsView.vue";
 
 defineOptions({
     name: 'HomeView'

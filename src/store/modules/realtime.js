@@ -103,6 +103,19 @@ const actions = {
             }, 1200)
         })
     },
+    //TODO
+    getTrainInfoById({commit}, {trainInfoId}) {
+        const trainInfo = Object.values(tm)
+            .flatMap(it => it.trains)
+            .find(it => it.id === trainInfoId)
+        console.log(trainInfo)
+        if (trainInfo) {
+            return Promise.resolve(trainInfo)
+        } else {
+            return Promise.reject('No such trainInfo. id:' + trainInfo)
+        }
+    }
+
 }
 
 const getters = {}

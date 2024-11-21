@@ -1,23 +1,25 @@
 <template>
-  <router-view/>
+    <router-view/>
 </template>
 
 <script setup>
-import {nextTick, onMounted} from "vue";
-import {setCssVar, useQuasar} from "quasar";
+import {onMounted} from "vue";
+import {useQuasar} from "quasar";
 
 defineOptions({
-  name: 'App'
+    name: 'App'
 });
 const $q = useQuasar()
 
 onMounted(() => {
-  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--q-primary').trim()
-  if (!$q.dark.isActive) {
-    document.documentElement.style.setProperty('--q-primary-d', primaryColor);
-  } else {
-    document.documentElement.style.setProperty('--q-normal', '#dcdcdc');
-    document.documentElement.style.setProperty('--q-background', '#3e3e3e');
-  }
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--q-primary').trim()
+    if (!$q.dark.isActive) {
+        document.documentElement.style.setProperty('--q-primary-d', primaryColor);
+    } else {
+        document.documentElement.style.setProperty('--q-normal', '#ffffff');
+        document.documentElement.style.setProperty('--q-background', '#3e3e3e');
+        document.documentElement.style.setProperty('--q-background-grey', '#222222');
+        document.documentElement.style.setProperty('--q-grey', '#dcdcdc');
+    }
 })
 </script>
