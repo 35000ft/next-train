@@ -5,7 +5,7 @@
             <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
         </div>
         <div class="col-5 text-left" style="color: var(--q-normal)">
-            <span v-overflow-auto-scroll style="display: block;"> {{ trainData.terminal }}</span>
+            <TrainTerminal :train-data="trainData"/>
         </div>
         <div class="col-5" style="display: flex;align-items: center;justify-content: flex-end;">
             <DepTrainTime :train-data="trainData" :station="station"/>
@@ -25,6 +25,7 @@ import {computed} from "vue";
 import {diffFromNow, fixedMins, formatToHHMM} from "src/utils/time-utils";
 import {TRAIN_CATEGORY} from "src/models/Train";
 import DepTrainTime from "components/DepTrainTime.vue";
+import TrainTerminal from "components/TrainTerminal.vue";
 
 const {t} = useI18n()
 const trainCategories = computed(() => {

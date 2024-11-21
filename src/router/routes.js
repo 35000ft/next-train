@@ -13,7 +13,7 @@ const routes = [
             {name: 'lines', path: 'lines', component: () => import('components/LinesNavView.vue')},
             {
                 name: 'train-info-detail',
-                path: '/:prefix*/trainInfoDetailView/:id*',
+                path: '/:prefix*/train-info/:id*',
                 component: () => import('components/TrainInfoDetailView.vue')
             }
         ]

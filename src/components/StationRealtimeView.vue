@@ -127,10 +127,11 @@
     </q-tab-panels>
     <line-stations-selector ref="lineStationsSelector"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
+    <train-info-detail-view :train-info-id-prop="showTrainInfoId"/>
 </template>
 
 <script setup>
-import {computed, onBeforeUnmount, onMounted, ref, toRaw, watch} from "vue";
+import {computed, provide, onBeforeUnmount, onMounted, ref, toRaw, watch} from "vue";
 import LineIcon from "components/LineIcon.vue";
 import TrainDataItem from "components/TrainDataItem.vue";
 import {useI18n} from "vue-i18n";
@@ -141,6 +142,7 @@ import {useQuasar} from "quasar";
 import LineStationsSelector from "components/LineStationsSelector.vue";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {isNumber} from "src/utils/string-utils";
+import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 
 const $q = useQuasar()
 const {t} = useI18n()
@@ -159,6 +161,7 @@ const lineStationsSelector = ref(null)
 const currentStation = ref(null)
 const currentTrains = ref([])
 const allTrains = ref([])
+const showTrainInfoId = ref(null)
 
 
 const props = defineProps({
@@ -179,6 +182,13 @@ watch(props, () => {
 const showSkeleton = computed(() => {
     return isLoadingTrains.value && (currentTrains.value && currentTrains.value.length === 0)
 })
+
+const showTrainInfoDetailView = (trainInfoId) => {
+    if (isNumber(trainInfoId)) {
+        showTrainInfoId.value = trainInfoId
+    }
+}
+provide('showTrainInfoDetailView', showTrainInfoDetailView)
 
 /**
  * Calculate trains to show on current line tab

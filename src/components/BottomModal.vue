@@ -1,9 +1,9 @@
 <template>
-    <div class="modal-overlay" @click.self="$emit('close')" v-show="showBg"
+    <div class="modal-overlay" @click.self="$emit('close')" v-show="showBg" v-back="handleBack"
          :style="{backgroundColor:`rgb(0,0,0,${overlayOpacity})`}">
         <transition name="bottom-modal">
             <div class="modal-content" v-show="display" ref="modalContent"
-                 :style="{height:contentHeight}">
+                 :style="{height:contentHeight,width:contentWidth}">
                 <div class="movable-banner"><span></span></div>
                 <slot></slot>
             </div>
@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import {onMounted, ref, watch} from 'vue'
+import {onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import Hammer from 'hammerjs';
 import {getNumberFromSizeString} from "src/utils/css-utils";
 import {useRouter} from "vue-router";
@@ -25,6 +25,10 @@ const props = defineProps({
         type: String,
         default: "35vh"
     },
+    contentWidth: {
+        type: String,
+        default: "90%"
+    },
     name: {
         type: String,
         default: "selector"
@@ -33,6 +37,7 @@ const props = defineProps({
         type: Function
     }
 })
+const router = useRouter()
 const emit = defineEmits(['close']);
 const showBg = ref(false)
 const targetOverlayOpacity = 0.5
@@ -58,6 +63,15 @@ onMounted(() => {
     })
 })
 
+onMounted(() => {
+    // window.addEventListener('popstate', handleBack);
+})
+const handleBack = () => {
+    emit('close')
+}
+onBeforeUnmount(() => {
+    // window.removeEventListener('popstate', handleBack);
+})
 
 watch(() => props.display, (newValue, oldValue) => {
     if (!newValue) {
@@ -67,10 +81,6 @@ watch(() => props.display, (newValue, oldValue) => {
     }
 })
 
-// router.beforeEach((to, from, next) => {
-//     emit('close')
-//     next()
-// })
 
 const showModel = () => {
     showBg.value = true
@@ -131,7 +141,6 @@ const closeModal = () => {
     bottom: 0;
     background-color: var(--q-background);
     color: var(--q-normal);
-    width: 90%;
     max-width: 400px;
     padding: 0 20px 20px;
     border-top-left-radius: 15px;

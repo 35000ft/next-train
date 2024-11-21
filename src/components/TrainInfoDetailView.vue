@@ -1,5 +1,5 @@
 <template>
-    <bottom-modal :display="display" @close="handleCloseSelector" content-height="95vh"
+    <bottom-modal :display="display" @close="handleCloseSelector" content-height="95vh" content-width="100%"
                   :after-close="afterClose"
                   @touchstart.stop name="trainInfoDetailView">
     </bottom-modal>
@@ -7,7 +7,7 @@
 
 <script>
 import BottomModal from "components/BottomModal.vue";
-import {defineComponent, onMounted, ref} from "vue";
+import {defineComponent, onMounted, ref, watch} from "vue";
 import {useStore} from "vuex";
 import {useRoute, useRouter} from "vue-router";
 
@@ -19,51 +19,72 @@ export default defineComponent({
             default: null
         },
         trainInfoIdProp: {
-            type: String,
-            default: null
+            type: String
         }
     },
     setup(props, {emit}) {
         const store = useStore()
+        const loading = ref(true)
         const trainInfo = ref(null)
+        const trainInfoId = ref(null)
         const display = ref(false)
         const route = useRoute()
         const router = useRouter()
         let prefix = null
         onMounted(() => {
-            console.log('trainInfoDetailView init', props)
-            const routeId = route.params.id
-            prefix = '/' + route.params.prefix.join('/')
-            if (routeId) {
-                showSelector()
+            if (route.params.id) {
+                trainInfoId.value = route.params.id
+                if (route.params.prefix === '') {
+                    prefix = '/'
+                } else {
+                    prefix = '/' + route.params.prefix.join('/')
+                }
             }
             if (props.trainInfoProp) {
-                trainInfo.value = this.props.trainInfoProp
+                trainInfo.value = props.trainInfoProp
             } else if (props.trainInfoIdProp) {
-                store.dispatch('realtime/getTrainInfoById', this.props.trainInfoIdProp)
-                    .then(res => {
-                        console.log('load train info ok.')
-                    })
+                trainInfoId.value = props.trainInfoIdProp
             }
         })
+        watch(() => props.trainInfoIdProp, (newVal, oldValue) => {
+            if (newVal) {
+                trainInfoId.value = newVal
+            }
+        })
+        watch(trainInfoId, (newVal, oldValue) => {
+            console.log('tranINFO ', newVal, oldValue)
+            if (newVal) {
+                if (!oldValue) {
+                    show()
+                }
+                loading.value = true
+                // store.dispatch('realtime/getTrainInfoById', newVal)
+                //     .then(res => {
+                //         console.log('load train info ok.')
+                //     })
+                //     .finally(_ => {
+                //         loading.value = false
+                //     })
+            }
+        })
+
         const handleCloseSelector = () => {
             display.value = false
         }
 
         function afterClose() {
             if (prefix) {
-                console.log('pr', prefix)
                 router.push(prefix)
             }
             emit('close')
         }
 
-        const showSelector = () => {
+        const show = () => {
             display.value = true
         }
 
         return {
-            handleCloseSelector, showSelector, display, afterClose
+            handleCloseSelector, show, display, afterClose
         }
     }
 
