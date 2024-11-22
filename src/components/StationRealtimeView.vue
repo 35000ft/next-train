@@ -127,7 +127,7 @@
     </q-tab-panels>
     <line-stations-selector ref="lineStationsSelector"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
-    <train-info-detail-view :train-info-id-prop="showTrainInfoId"/>
+    <train-info-detail-view :train-info-id-prop="showTrainInfoId" @close="handleCloseShowTrainDetail"/>
 </template>
 
 <script setup>
@@ -162,6 +162,10 @@ const currentStation = ref(null)
 const currentTrains = ref([])
 const allTrains = ref([])
 const showTrainInfoId = ref(null)
+
+const handleCloseShowTrainDetail = () => {
+    showTrainInfoId.value = null
+}
 
 
 const props = defineProps({

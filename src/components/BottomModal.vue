@@ -37,7 +37,7 @@ const props = defineProps({
         type: Function
     }
 })
-const router = useRouter()
+
 const emit = defineEmits(['close']);
 const showBg = ref(false)
 const targetOverlayOpacity = 0.5
@@ -130,13 +130,12 @@ const closeModal = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.modal-overlay.show {
-    background-color: rgba(0, 0, 0, 0.2); /* 动画结束时的透明度 */
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
 }
 
 .modal-content {
+    opacity: 90%;
     position: fixed;
     bottom: 0;
     background-color: var(--q-background);

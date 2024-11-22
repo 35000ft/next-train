@@ -47,24 +47,12 @@ export default defineComponent({
             }
         })
         watch(() => props.trainInfoIdProp, (newVal, oldValue) => {
-            if (newVal) {
-                trainInfoId.value = newVal
-            }
+            trainInfoId.value = newVal
         })
         watch(trainInfoId, (newVal, oldValue) => {
-            console.log('tranINFO ', newVal, oldValue)
             if (newVal) {
-                if (!oldValue) {
-                    show()
-                }
+                show()
                 loading.value = true
-                // store.dispatch('realtime/getTrainInfoById', newVal)
-                //     .then(res => {
-                //         console.log('load train info ok.')
-                //     })
-                //     .finally(_ => {
-                //         loading.value = false
-                //     })
             }
         })
 
