@@ -5,23 +5,16 @@
 </template>
 
 <script setup>
-import {useRouter} from "vue-router";
-import {inject} from 'vue';
-
-const router = useRouter()
 
 const props = defineProps({
     trainData: {
         type: Object
     }
 })
-const notify = inject('showTrainInfoDetailView')
-
+const emit = defineEmits(['showTrainDetail'])
 const handleShowDetail = () => {
-    // const base = window.location.hash.slice(2)
-    // const url = base + `/train-info/${props.trainData.id}`;
-    // router.push(url.toString())
-    notify(props.trainData.id.toString())
+    // notify(props.trainData.id.toString())
+    emit('showTrainDetail', props.trainData.id.toString())
 }
 
 </script>

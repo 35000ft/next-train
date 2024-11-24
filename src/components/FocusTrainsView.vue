@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import {computed, onBeforeUnmount, ref, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import {useStore} from "vuex";
 import {diff, fixedMins, formatToHHMM} from "src/utils/time-utils";
 import {calcTrainStatus, TRAIN_STATUS} from "src/models/Train";
@@ -45,7 +45,7 @@ const {t} = useI18n()
 const store = useStore()
 
 const updateTrainStatus = (trains) => {
-    console.log('Update train status')
+    console.log('Update focus train status', trains)
     if (!trains) return
     trains.forEach(train => {
         const [status, seconds] = calcTrainStatus(train)
@@ -79,10 +79,20 @@ watch(focusTrains, (newTrains, oldTrains) => {
 })
 const currentTrainId = ref((focusTrains.value.length > 0 && focusTrains.value[0].id) || null)
 
-const updateTrainStatusInterval = setInterval(() => updateTrainStatus(focusTrains.value), 5000)
+let updateTrainStatusInterval;
+
+onMounted(() => {
+    updateTrainStatusInterval = setInterval(() => {
+        if (focusTrains.value && focusTrains.value.length > 0) {
+            updateTrainStatus(focusTrains.value)
+        }
+    }, 5000)
+})
 
 onBeforeUnmount(() => {
-    clearInterval(updateTrainStatusInterval)
+    if (updateTrainStatusInterval) {
+        clearInterval(updateTrainStatusInterval)
+    }
 })
 
 </script>

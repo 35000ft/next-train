@@ -1,6 +1,6 @@
 //线网，线路，车站数据
 
-import {toRaw} from "vue";
+import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
 
 const railSystems = {
@@ -105,9 +105,9 @@ const lines = [{
 
 const state = {
     currentRailSystem: railSystems['NJMTR'],
-    railSystems: new Map(Object.entries(railSystems)),
-    stations: new LRUCache(200),
-    lines: new LRUCache(20),
+    railSystems: reactive(new Map(Object.entries(railSystems))),
+    stations: reactive(new LRUCache(200)),
+    lines: reactive(new LRUCache(100)),
 }
 
 const mutations = {
@@ -184,10 +184,15 @@ const actions = {
                 _line.stations = await this.getStationsByLine({state, commit}, lineId)
                 return _line
             }
+        } else {
+            //TODO
+            mutations.SET_LINE(state, lines[2])
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(lines[2])
+                }, 1500)
+            })
         }
-        return Promise.reject(`No such line, lineId:${lineId}`)
-        //TODO
-        // mutations.SET_LINE(state, line)
     },
     async getStationsByLine({state, commit}, lineId) {
         if (state.lines.has(lineId) && state.lines.get(lineId).stations) {
@@ -227,6 +232,7 @@ const actions = {
 
 const getters = {
     currentRailSystem: state => state.currentRailSystem,
+    lines: state => state.lines
 }
 
 export default {

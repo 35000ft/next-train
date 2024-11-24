@@ -20,6 +20,7 @@
     "fingerprintjs2": "^2.1.4",
     "hammerjs": "^2.0.8",
     "lodash": "^4.17.21",
+    "mitt": "^3.0.1",
     "pinyin-pro": "^3.26.0",
     "quasar": "^2.16.0",
     "vue": "^3.4.18",

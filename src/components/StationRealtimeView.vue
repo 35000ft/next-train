@@ -115,6 +115,7 @@
                                         <TrainDataItem v-for="_trainInfo in directionTrainInfo.trains"
                                                        :key="_trainInfo.id"
                                                        :station="currentStation"
+                                                       @show-train-detail="showTrainInfoDetailView"
                                                        :train-data="_trainInfo"/>
                                     </q-expansion-item>
                                 </div>
@@ -192,7 +193,6 @@ const showTrainInfoDetailView = (trainInfoId) => {
         showTrainInfoId.value = trainInfoId
     }
 }
-provide('showTrainInfoDetailView', showTrainInfoDetailView)
 
 /**
  * Calculate trains to show on current line tab

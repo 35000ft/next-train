@@ -5,7 +5,7 @@
             <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
         </div>
         <div class="col-5 text-left" style="color: var(--q-normal)">
-            <TrainTerminal :train-data="trainData"/>
+            <TrainTerminal :train-data="trainData" @show-train-detail="handleShowTrainDetail"/>
         </div>
         <div class="col-5" style="display: flex;align-items: center;justify-content: flex-end;">
             <DepTrainTime :train-data="trainData" :station="station"/>
@@ -43,6 +43,11 @@ const arriveMins = computed(() => {
     let diffSeconds = diffFromNow(props.trainData.arr, 'second')
     return fixedMins(diffSeconds)
 })
+const emit = defineEmits(['showTrainDetail'])
+const handleShowTrainDetail = (trainInfoId) => {
+    emit('showTrainDetail', trainInfoId)
+}
+
 
 </script>
 

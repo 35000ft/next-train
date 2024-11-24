@@ -19,6 +19,7 @@ onMounted(() => {
         document.documentElement.style.setProperty('--q-normal', '#ffffff');
         document.documentElement.style.setProperty('--q-background', '#3e3e3e');
         document.documentElement.style.setProperty('--q-background-grey', '#222222');
+        document.documentElement.style.setProperty('--q-background-grey-2', '#222222');
         document.documentElement.style.setProperty('--q-grey', '#dcdcdc');
     }
 })
