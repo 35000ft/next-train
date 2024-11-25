@@ -10,6 +10,7 @@ const railSystems = {
         lang: 'cn',
         fullname: '南京地铁',
         timezone: '+0800',
+        defaultStationId: "8"
     },
     'GZMTR': {
         name: '广州',
@@ -17,10 +18,11 @@ const railSystems = {
         lang: 'cn',
         fullname: '广州地铁',
         timezone: '+0800',
+        defaultStationId: "10"
     }
 }
 const stations = [{
-    id: "2132",
+    id: "8",
     name: "南京站",
     code: "NJS",
     timezone: '+0800',
@@ -42,7 +44,7 @@ const stations = [{
         color: "#7D55C7"
     }]
 }, {
-    id: "2131",
+    id: "9",
     name: "新模范马路",
     timezone: '+0800',
     railsystem: '南京地铁',
@@ -53,7 +55,7 @@ const stations = [{
         color: "#009ACE"
     }]
 }, {
-    id: "2130",
+    id: "10",
     name: "玄武门",
     timezone: '+0800',
     railsystem: '南京地铁',
@@ -64,7 +66,7 @@ const stations = [{
         color: "#009ACE"
     }]
 }, {
-    id: "98774",
+    id: "11",
     name: "鼓楼",
     timezone: '+0800',
     railsystem: '南京地铁',
@@ -228,6 +230,9 @@ const actions = {
             // return Promise.resolve(toRaw(railsystem.lines))
         }
     },
+    async getCurrentDefaultStation({commit}) {
+        return
+    }
 }
 
 const getters = {

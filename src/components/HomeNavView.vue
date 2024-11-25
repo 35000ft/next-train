@@ -36,7 +36,7 @@
             <div class="col-12" style="height: 300px;">
                 <q-card class="my-card full-height">
                     <q-card-section class="full-height" style="padding: 0;">
-                        <StationRealtimeView current-station-id-prop="2132" @change-station="handleChangeStation"/>
+                        <StationRealtimeView current-station-id-prop="9" @change-station="handleChangeStation"/>
                     </q-card-section>
                 </q-card>
             </div>

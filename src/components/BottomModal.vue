@@ -12,14 +12,13 @@
 </template>
 
 <script setup>
-import {onBeforeUnmount, onMounted, ref, watch} from 'vue'
+import {onMounted, ref, watch} from 'vue'
 import Hammer from 'hammerjs';
-import {getNumberFromSizeString} from "src/utils/css-utils";
-import {useRouter} from "vue-router";
 
 const props = defineProps({
     display: {
-        type: Boolean
+        type: Boolean,
+        default: false
     },
     contentHeight: {
         type: String,
@@ -35,6 +34,10 @@ const props = defineProps({
     },
     afterClose: {
         type: Function
+    },
+    onMoveUp: {
+        type: Function,
+        default: null
     }
 })
 
@@ -43,35 +46,53 @@ const showBg = ref(false)
 const targetOverlayOpacity = 0.5
 let overlayOpacity = ref(targetOverlayOpacity)
 
+let rawHeight = null
 const modalContent = ref(null);
 onMounted(() => {
     const hammer = new Hammer(modalContent.value)
-    hammer.get('pan').set({direction: Hammer.DIRECTION_DOWN})
+    hammer.get('pan').set({direction: Hammer.DIRECTION_VERTICAL})
     hammer.on('pan', evt => {
-        if (evt.deltaY < 0) return
-        modalContent.value.style.bottom = -evt.deltaY + 'px'
+        if (!rawHeight) {
+            rawHeight = modalContent.value.clientHeight
+        }
+        if (evt.deltaY < 0) {
+            // move up
+            if (!props.onMoveUp) {
+                return
+            }
+            const newHeight = rawHeight - evt.deltaY; // deltaY 为负，需减法
+            modalContent.value.style.height = newHeight + 'px';
+        } else {
+            // move down
+            modalContent.value.style.bottom = -evt.deltaY + 'px'
+        }
     })
     hammer.on('panend', evt => {
-        const movedHeight = Math.abs(getNumberFromSizeString(modalContent.value.style.bottom))
-        if (movedHeight > modalContent.value.clientHeight * 0.25) {
-            //如果移动高度大于元素25%的高度则关闭模态框
-            emit('close')
+        const movedHeight = evt.deltaY
+        if (movedHeight > 0) {
+            // move down
+            if (Math.abs(movedHeight) > rawHeight * 0.25) {
+                // if movedHeight > 25% height of element then close
+                emit('close')
+            } else {
+                // otherwise recover to the origin position
+                modalContent.value.style.bottom = '0'
+            }
         } else {
-            //否则恢复原位
-            modalContent.value.style.bottom = '0'
+            // move up
+            if (Math.abs(movedHeight) > rawHeight * 0.5) {
+                // call function onMoveUp
+                if (props.onMoveUp) {
+                    props.onMoveUp()
+                }
+            }
         }
     })
 })
 
-onMounted(() => {
-    // window.addEventListener('popstate', handleBack);
-})
 const handleBack = () => {
     emit('close')
 }
-onBeforeUnmount(() => {
-    // window.removeEventListener('popstate', handleBack);
-})
 
 watch(() => props.display, (newValue, oldValue) => {
     if (!newValue) {
@@ -84,6 +105,10 @@ watch(() => props.display, (newValue, oldValue) => {
 
 const showModel = () => {
     showBg.value = true
+    const hasName = window.location.href.endsWith(props.name)
+    if (hasName) {
+        return
+    }
     const newPath = window.location.href + `#${props.name}`;
     window.history.pushState({}, '', newPath);
     overlayOpacity.value = targetOverlayOpacity * 0.1
@@ -140,7 +165,6 @@ const closeModal = () => {
     bottom: 0;
     background-color: var(--q-background);
     color: var(--q-normal);
-    max-width: 400px;
     padding: 0 20px 20px;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;

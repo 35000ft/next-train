@@ -77,7 +77,8 @@
                                      :class="getStopStatus(stop.stationId)"
                                      :key="stop.stationId">
                                     <div class="col-4 grey-border-bottom">
-                                    <span class="show-text-in-2-line station-name">
+                                    <span class="show-text-in-2-line station-name"
+                                          @click="handleClickStationName(stop.stationId)">
                                         {{ stop.stationName }}
                                     </span>
                                     </div>
@@ -365,6 +366,12 @@ export default defineComponent({
             }
         })
 
+        const handleClickStationName = (_stationId) => {
+            if (_stationId) {
+                store.dispatch('application/showStationRealtimeModal', {stationId: _stationId})
+            }
+        }
+
         const handleCloseSelector = () => {
             display.value = false
         }
@@ -384,6 +391,7 @@ export default defineComponent({
             handleCloseSelector,
             show,
             afterClose,
+            handleClickStationName,
             getStopStatus,
             t,
             showLocatedTool,

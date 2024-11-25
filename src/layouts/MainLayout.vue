@@ -28,6 +28,7 @@
         </q-footer>
     </q-layout>
 
+    <StationRealtimeModal/>
 </template>
 
 <script setup>
@@ -35,6 +36,7 @@ import {ref} from 'vue'
 import {useI18n} from 'vue-i18n';
 import {useRouter} from "vue-router";
 import BottomModal from "components/BottomModal.vue";
+import StationRealtimeModal from "components/StationRealtimeModal.vue";
 
 const {t} = useI18n();
 

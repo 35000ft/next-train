@@ -1,5 +1,5 @@
 <template>
-      <span class="pill" @click="addToFocusTrains">
+      <span class="_pill" @click="addToFocusTrains">
         {{ formatToHHMM(trainData.dep) }}
       </span>
 </template>
@@ -37,15 +37,15 @@ const addToFocusTrains = () => {
 </script>
 
 <style scoped>
-.pill {
+._pill {
     height: 22px;
     font-size: 14px;
     text-align: center;
     padding-top: 0;
     padding-bottom: 0;
     min-width: 43px;
-    margin-right: 3px;
     color: #ffffff;
+    margin-right: 0;
     display: flex;
     justify-content: center;
     background-color: var(--q-primary);

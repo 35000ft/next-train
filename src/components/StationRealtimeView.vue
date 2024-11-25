@@ -132,7 +132,7 @@
 </template>
 
 <script setup>
-import {computed, provide, onBeforeUnmount, onMounted, ref, toRaw, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, toRaw, watch} from "vue";
 import LineIcon from "components/LineIcon.vue";
 import TrainDataItem from "components/TrainDataItem.vue";
 import {useI18n} from "vue-i18n";
@@ -180,7 +180,6 @@ const props = defineProps({
 })
 
 watch(props, () => {
-    console.log('change')
     init()
 }, {deep: true})
 
@@ -354,7 +353,6 @@ const handleSelectStation = (stationId, lineId) => {
 }
 
 const refreshTrainInfoTimer = setInterval(() => {
-    console.log('Auto refresh train info')
     updateCurrentTrains()
 }, 30000)
 
@@ -378,6 +376,7 @@ async function changeStation(stationId, lineId) {
     const station = await store.dispatch('railsystem/getStation', stationId)
     if (!station || !(station.lines instanceof Array)) {
         isLoadingStation.value = false
+        console.warn(`Load station error, cannot get station info. stationId:${stationId}`)
         return Promise.reject(`Load station error, cannot get station info. stationId:${stationId}`)
     }
     let line

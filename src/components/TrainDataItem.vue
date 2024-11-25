@@ -1,18 +1,24 @@
 <template>
     <div class="row train-data border-bottom" v-if="trainData"
          style="padding-left: 4px;">
-        <div class="col-1" style="display: flex; align-items: center;text-align: left; ">
+        <div style="display: flex; align-items: center;text-align: left; width: auto;">
             <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
         </div>
         <div class="col-5 text-left" style="color: var(--q-normal)">
             <TrainTerminal :train-data="trainData" @show-train-detail="handleShowTrainDetail"/>
         </div>
-        <div class="col-5" style="display: flex;align-items: center;justify-content: flex-end;">
-            <DepTrainTime :train-data="trainData" :station="station"/>
-            <span class="pill" v-for="(trainCategory,index) in trainCategories" :key="index"
-                  :style="{backgroundColor:trainCategory.bgColor}">
-        {{ t(`trainCategory.${trainCategory.code}`) }}
-      </span>
+        <div class="col-5">
+            <div v-overflow-auto-scroll
+                 style="margin-left: auto;display: flex;align-items: center;justify-content: flex-end;">
+                <div style="flex-shrink: 0">
+                    <DepTrainTime :train-data="trainData" :station="station"/>
+                </div>
+                <span class="pill"
+                      v-for="(trainCategory,index) in trainCategories" :key="index"
+                      :style="{backgroundColor:trainCategory.bgColor}">
+                        {{ t(`trainCategory.${trainCategory.code}`) }}
+                    </span>
+            </div>
         </div>
     </div>
 </template>
@@ -22,7 +28,7 @@
 import TrainStatusIndicator from "components/TrainStatusIndicator.vue";
 import {useI18n} from "vue-i18n";
 import {computed} from "vue";
-import {diffFromNow, fixedMins, formatToHHMM} from "src/utils/time-utils";
+import {diffFromNow, fixedMins} from "src/utils/time-utils";
 import {TRAIN_CATEGORY} from "src/models/Train";
 import DepTrainTime from "components/DepTrainTime.vue";
 import TrainTerminal from "components/TrainTerminal.vue";
@@ -47,7 +53,6 @@ const emit = defineEmits(['showTrainDetail'])
 const handleShowTrainDetail = (trainInfoId) => {
     emit('showTrainDetail', trainInfoId)
 }
-
 
 </script>
 
@@ -81,5 +86,6 @@ const handleShowTrainDetail = (trainInfoId) => {
     justify-content: center;
     background-color: var(--q-primary);
     border-radius: 5px;
+    flex-shrink: 1;
 }
 </style>
