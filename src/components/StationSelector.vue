@@ -1,6 +1,6 @@
 <template>
     <bottom-modal content-height="40vh" :display="displaySelector" @close="handleCloseSelector"
-                  @touchstart.stop name="stationSelector">
+                  @touchstart.stop name="station-selector">
         <template v-slot:default>
             <div>
                 <q-input outlined rounded v-model="keyword" label="车站名 | 车站代码" @update:model-value="handleSearch"

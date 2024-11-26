@@ -1,6 +1,8 @@
 export default {
     mounted(el, binding) {
-        window.addEventListener('popstate', binding.value)
+        window.addEventListener('popstate', (event) => {
+            (binding.value)()
+        })
     },
     unmounted(el, binding) {
         window.removeEventListener('popstate', binding.value)

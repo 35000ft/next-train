@@ -19,11 +19,25 @@ const routes = [
         ]
     },
 
+    {
+        path: '/detail',
+        name: 'detail',
+        components: {
+            default: () => import('layouts/RightInRightOutLayout.vue')
+        },
+        children: [
+            {
+                name: 'station-detail',
+                path: 'station/:id',
+                component: () => import('components/StationDetailView.vue')
+            }
+        ]
+    },
     // Always leave this as last one,
     // but you can also remove it
     {
         path: '/:catchAll(.*)*',
-        component: () => import('pages/ErrorNotFound.vue')
+        redirect: '/'  // 重定向到根路径
     },
 ]
 

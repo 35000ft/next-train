@@ -13,9 +13,8 @@
     --q-background: #ffffff;
     --q-background-grey: #dcdcdc;
     --q-background-grey-2: #f3f3f3;
-    --q-arrived: #c50c4d;
+    --q-arrived: #f3397a;
     --q-ontime: #009A44;
-    /* 其他颜色变量 */
 }
 
 .q-header {
@@ -86,4 +85,21 @@
     text-overflow: ellipsis;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+}
+
+@keyframes scroll-from-right-view-transition {
+    from {
+        transform: translateX(100vw);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.right-in-right-out-enter-active {
+    animation: scroll-from-right-view-transition .5s;
+}
+
+.right-in-right-out-leave-active {
+    animation: scroll-from-right-view-transition .5s reverse;
 }

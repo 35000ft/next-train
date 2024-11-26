@@ -1,7 +1,7 @@
 <template>
     <bottom-modal :display="display" @close="handleCloseSelector" content-height="95vh" content-width="100%"
                   :after-close="afterClose"
-                  @touchstart.stop name="trainInfoDetailView">
+                  @touchstart.stop name="train-info-detail-view">
         <template v-slot:default>
             <div v-if="trainInfo">
                 <div class="wrapper">

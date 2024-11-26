@@ -1,5 +1,7 @@
 <template>
-    <router-view/>
+    <transition name="right-in-right-out">
+        <router-view/>
+    </transition>
 </template>
 
 <script setup>

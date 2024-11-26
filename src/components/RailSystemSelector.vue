@@ -1,5 +1,5 @@
 <template>
-    <bottom-modal :display="display" @close="handleClose">
+    <bottom-modal :display="display" @close="handleClose" name="railsystem-selector">
         <template v-slot:default>
             <div>
                 <q-input outlined rounded v-model="text" label="线网名 | 城市名" :bg-color="'grey-2'"/>

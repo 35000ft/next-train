@@ -4,8 +4,10 @@
         <transition name="bottom-modal">
             <div class="modal-content" v-show="display" ref="modalContent"
                  :style="{height:contentHeight,width:contentWidth}">
-                <div class="movable-banner"><span></span></div>
-                <slot></slot>
+                <div class="movable-banner" ref="movableBanner"><span></span></div>
+                <div>
+                    <slot></slot>
+                </div>
             </div>
         </transition>
     </div>
@@ -30,7 +32,7 @@ const props = defineProps({
     },
     name: {
         type: String,
-        default: "selector"
+        default: "bottom-modal"
     },
     afterClose: {
         type: Function
@@ -47,9 +49,12 @@ const targetOverlayOpacity = 0.5
 let overlayOpacity = ref(targetOverlayOpacity)
 
 let rawHeight = null
-const modalContent = ref(null);
+const movableBanner = ref(null)
+const modalContent = ref(null)
+let callOnMoveUp = false
+
 onMounted(() => {
-    const hammer = new Hammer(modalContent.value)
+    const hammer = new Hammer(movableBanner.value)
     hammer.get('pan').set({direction: Hammer.DIRECTION_VERTICAL})
     hammer.on('pan', evt => {
         if (!rawHeight) {
@@ -60,7 +65,10 @@ onMounted(() => {
             if (!props.onMoveUp) {
                 return
             }
-            const newHeight = rawHeight - evt.deltaY; // deltaY 为负，需减法
+            if (evt.center.x === 0) {
+                return;
+            }
+            const newHeight = rawHeight + Math.abs(evt.deltaY);
             modalContent.value.style.height = newHeight + 'px';
         } else {
             // move down
@@ -73,6 +81,7 @@ onMounted(() => {
             // move down
             if (Math.abs(movedHeight) > rawHeight * 0.25) {
                 // if movedHeight > 25% height of element then close
+                console.log('close', props.name)
                 emit('close')
             } else {
                 // otherwise recover to the origin position
@@ -81,17 +90,27 @@ onMounted(() => {
         } else {
             // move up
             if (Math.abs(movedHeight) > rawHeight * 0.5) {
-                // call function onMoveUp
                 if (props.onMoveUp) {
-                    props.onMoveUp()
+                    callOnMoveUp = true
+                    emit('close')
                 }
+            } else {
+                modalContent.value.style.height = rawHeight + 'px';
             }
         }
     })
 })
 
+
+//TODO tobe optimized
+const isTopModal = () => {
+    return showBg.value && !window.location.href.endsWith(`#${props.name}`);
+}
+
 const handleBack = () => {
-    emit('close')
+    if (isTopModal()) {
+        emit('close')
+    }
 }
 
 watch(() => props.display, (newValue, oldValue) => {
@@ -134,11 +153,18 @@ const closeModal = () => {
         overlayOpacity.value = overlayOpacity.value * 0.7
     }, 50);
     setTimeout(() => {
-        showBg.value = false // 等待动画完成后隐藏背景
+        showBg.value = false
         clearInterval(interval)
         modalContent.value.style.bottom = '0'
         if (typeof props.afterClose === "function") {
             props.afterClose()
+            if (props.onMoveUp && callOnMoveUp) {
+                props.onMoveUp()
+                callOnMoveUp = false
+            }
+        } else if (props.onMoveUp && callOnMoveUp) {
+            props.onMoveUp()
+            callOnMoveUp = false
         }
     }, 350)
 };

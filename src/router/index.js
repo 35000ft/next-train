@@ -28,7 +28,8 @@ const router = createRouter({
 // 在每次路由导航时设置 locale
 router.beforeEach((to, from, next) => {
     const store = useStore()
-    const lang = to.query.lang || getUserDefaultLanguage(); // 从路由查询参数获取语言
+    const lang = to.query.lang || getUserDefaultLanguage();
+    console.log('route change', from.fullPath, to.fullPath)
     store.dispatch('language/setLanguage', lang).then(() => {
     }).catch(error => {
         // 处理错误
