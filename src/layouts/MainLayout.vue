@@ -1,7 +1,7 @@
 <template>
 
     <q-layout view="lHh Lpr lFf" class="full-height">
-        <q-page-container class="full-height " style="padding-top: 0; ">
+        <q-page-container class="full-height" style="padding-top: 0; ">
             <q-tab-panels class="full-height page-background" swipeable animated v-model="tab"
                           @update:model-value="updateRoute">
                 <q-tab-panel name="home">
