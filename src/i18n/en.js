@@ -15,7 +15,8 @@ export default {
     direction: "Towards",
     directionShort: "To",
     trainDataUpdated: "Train data is update to date",
-    focusTrainSuccess: "Focus train success, train will depart in $remain",
+    focusTrainSuccess: "Successfully Focus train , train will depart in $remain",
+    favourStationOk: 'Successfully Favour station',
     headers: {
         search: {
             placeholder: 'Station, Line...'

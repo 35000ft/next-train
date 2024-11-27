@@ -1,15 +1,24 @@
-import {toRaw} from "vue";
+import {reactive, toRaw} from "vue";
 import {date2StringWithTimezone, isAfterNow} from "src/utils/time-utils";
-import {isNumber} from "lodash";
+import {arr2Map} from "src/utils/array-utils";
+import {isNumber} from "src/utils/string-utils";
 
+const LOCAL_STORAGE_KEYS = {
+    CURRENT_STATION: 'currentStation',
+    CURRENT_RAILSYSTEM: 'currentRailSystem',
+    HISTORY_STATION_LIST: 'historyStationList',
+    FOCUS_TRAINS: 'focusTrains',
+    FAVOURITE_STATIONS: 'favouriteStations',
+}
 const state = {
     currentLanguage: 'en',
-    historyStations: JSON.parse(localStorage.getItem('historyStationList')) || [],
+    historyStations: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST)) || [],
     //TODO
-    currentStation: JSON.parse(localStorage.getItem('currentStation')) || {},
-    focusTrains: JSON.parse(localStorage.getItem('focusTrains')) || [],
-    favouriteStations: JSON.parse(localStorage.getItem('favouriteStations'))
-};
+    currentStation: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)) || {},
+    focusTrains: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS)) || [],
+    favouriteStations: reactive(arr2Map((JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || [])))
+}
+
 
 const mutations = {
     SET_LANGUAGE(state, language) {
@@ -18,16 +27,15 @@ const mutations = {
     SET_CURRENT_STATION(state, station) {
         if (!station) return
         state.currentStation = station;
-        localStorage.setItem('currentStation', JSON.stringify(station))
+        localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_STATION, JSON.stringify(station))
     },
     SET_CURRENT_RAIL_SYSTEM(state, railsystem) {
         if (!railsystem) return
         state.currentRailSystem = railsystem;
-        localStorage.setItem('currentRailSystem', JSON.stringify(railsystem))
+        localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, JSON.stringify(railsystem))
     },
     ADD_HISTORY_STATION(state, station) {
-        const key = 'historyStationList'
-        let historyStations = JSON.parse(localStorage.getItem(key))
+        let historyStations = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST))
         if (historyStations == null) historyStations = []
         const maxHistoryAmount = 20
         if (historyStations.length >= maxHistoryAmount) {
@@ -39,37 +47,39 @@ const mutations = {
         }
         historyStations = [station, ...historyStations]
         state.historyStations = historyStations
-        localStorage.setItem(key, JSON.stringify(historyStations))
+        localStorage.setItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST, JSON.stringify(historyStations))
     },
     ADD_FOCUS_TRAIN(state, train) {
-        const key = 'focusTrains'
-        const focusTrains = JSON.parse(localStorage.getItem(key)) || []
+        const focusTrains = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS)) || []
         if (focusTrains.findIndex(it => it.id === train.id) !== -1) {
             return
         }
         focusTrains.push(train)
         state.focusTrains = focusTrains
-        localStorage.setItem(key, JSON.stringify(focusTrains))
+        localStorage.setItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS, JSON.stringify(focusTrains))
     },
-    FAVOUR_STATION(state, stationId) {
+    FAVOUR_STATION(state, {stationId}) {
         if (!isNumber(stationId)) {
             return
         }
-        const key = 'favouriteStations'
-        let favouriteStations = JSON.parse(localStorage.getItem(key)) || []
+        let favouriteStations = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || []
         const favouriteStationSet = new Set(favouriteStations)
+        let isFavourite
         if (favouriteStationSet.has(stationId)) {
             favouriteStationSet.delete(stationId)
+            isFavourite = false
         } else {
             favouriteStationSet.add(stationId)
+            isFavourite = true
         }
         favouriteStations = Array.from(favouriteStationSet.values())
-        localStorage.setItem(key, JSON.stringify(favouriteStations))
-        state.favouriteStations = favouriteStations
+        localStorage.setItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS, JSON.stringify(favouriteStations))
+        state.favouriteStations = arr2Map(favouriteStations)
+        return isFavourite
     },
     SET_FOCUS_TRAINS(state, trains) {
         state.focusTrains = trains
-        localStorage.setItem('focusTrains', JSON.stringify(trains))
+        localStorage.setItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS, JSON.stringify(trains))
     }
 
 };
@@ -103,10 +113,19 @@ const actions = {
         }
         mutations.ADD_FOCUS_TRAIN(state, _t)
     },
+    isFavouriteStation({commit}, {stationId}) {
+        if (!stationId) return false
+        return Boolean(state.favouriteStations.has(stationId))
+    },
+    async favourStation({commit}, stationId) {
+        commit('FAVOUR_STATION', {stationId});
+        return this.dispatch('preference/isFavouriteStation', {stationId})
+    }
 }
 
 const getters = {
     currentLanguage: (state) => state.currentLanguage,
+    favouriteStations: (state) => state.favouriteStations,
     historyStations: (state) => state.historyStations,
     currentStation: (state) => state.currentStation,
     focusTrains: (state) => {

@@ -10,11 +10,13 @@
     --q-grey: #5a5a5a;
     --q-grey-2: #dcdcdc;
     --q-grey-3: #888888;
+    --q-grey-4: #b8b8b8;
     --q-background: #ffffff;
     --q-background-grey: #dcdcdc;
     --q-background-grey-2: #f3f3f3;
     --q-arrived: #f3397a;
     --q-ontime: #009A44;
+    --q-favourite: #f3ec43;
 }
 
 .q-header {
@@ -102,4 +104,21 @@
 
 .right-in-right-out-leave-active {
     animation: scroll-from-right-view-transition .5s reverse;
+}
+
+.zoom-in-zoom-out-enter-active {
+    animation: zoom-in-out-transition .3s;
+}
+
+.zoom-in-zoom-out-leave-active {
+    animation: zoom-in-out-transition .3s reverse;
+}
+
+@keyframes zoom-in-out-transition {
+    0% {
+        transform: scale(0);
+    }
+    100% {
+        transform: scale(1);
+    }
 }

@@ -13,7 +13,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['showTrainDetail'])
 const handleShowDetail = () => {
-    // notify(props.trainData.id.toString())
     emit('showTrainDetail', props.trainData.id.toString())
 }
 

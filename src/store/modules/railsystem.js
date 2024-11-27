@@ -114,7 +114,7 @@ const state = {
 
 const mutations = {
 
-    SET_RAIL_SYSTEM_LINES(state, railsystemCode, lines) {
+    SET_RAIL_SYSTEM_LINES(state, {railsystemCode, lines}) {
         const railsystem = state.railSystems.get(railsystemCode)
         if (!railsystemCode) {
             console.warn(`Set railsystem lines err, railsystem:${railsystemCode} dones exist`)
@@ -127,7 +127,7 @@ const mutations = {
             console.log('Set railsystem lines OK, railsystem:', state.railSystems.get(railsystemCode))
         }
     },
-    SET_LINE(state, line) {
+    SET_LINE(state, {line}) {
         if (line && line.id) {
             state.lines.set(line.id, line)
         }
@@ -137,13 +137,13 @@ const mutations = {
             state.railSystems.set(railsystem.id, railsystem)
         }
     },
-    SET_LINE_STATIONS(state, lineId, stations) {
+    SET_LINE_STATIONS(state, {lineId, stations}) {
         if (state.lines.has(lineId)) {
             state.lines.get(lineId).stations = stations
             state.stations.batchSet(stations, (v) => v.id)
         }
     },
-    SET_STATION(state, station) {
+    SET_STATION(state, {station}) {
         if (station && station.id) {
             state.stations.set(station.id, station)
         }
@@ -152,28 +152,34 @@ const mutations = {
 
 const actions = {
     async getRailSystem({state, commit}, code) {
-        console.log('getRailSystem:', code)
         return state.railSystems.get(code)
     },
     async getStation({state, commit}, stationId) {
         // TODO
+        if (!stationId) {
+            return Promise.reject(`stationId is undefined:${stationId}`)
+        }
+        const isFavourite = await this.dispatch('preference/isFavouriteStation', {stationId})
+        console.log('is getStation', isFavourite, stationId)
         let station = state.stations.get(stationId)
         if (!station) {
             station = stations.find(it => it.id === stationId)
             if (station) {
-                mutations.SET_STATION(state, station)
+                commit('SET_STATION', {station})
             }
         }
+        station.isFavourite = isFavourite
         return station
     },
-    async getAllStations({state, commit}) {
+    async getAllStations({state, commit, getters}) {
         const currentRailSystem = state.currentRailSystem
         //TODO
+        const favouriteStations = getters['preference/favouriteStations']
         if (currentRailSystem.stations) {
             return toRaw(currentRailSystem.stations)
         } else {
             currentRailSystem.stations = stations
-            mutations.SET_RAILSYSTEM(state, currentRailSystem)
+            commit('SET_RAILSYSTEM', {currentRailSystem})
             return stations
         }
     },
@@ -181,14 +187,14 @@ const actions = {
         if (state.lines.has(lineId)) {
             const _line = state.lines.get(lineId)
             if (_line.stations instanceof Array) {
-                return toRaw(_line)
+                return _line
             } else {
                 _line.stations = await this.getStationsByLine({state, commit}, lineId)
                 return _line
             }
         } else {
             //TODO
-            mutations.SET_LINE(state, lines[2])
+            commit('SET_LINE', {line: lines[2]})
             return new Promise((resolve) => {
                 setTimeout(() => {
                     resolve(lines[2])
@@ -202,7 +208,7 @@ const actions = {
         }
         //TODO 从接口获取车站
         const _stations = stations
-        mutations.SET_LINE_STATIONS(state, lineId, _stations)
+        commit('SET_LINE_STATIONS', {lineId, stations: _stations})
         return _stations
     },
     async getRailSystems({state, commit, getters}) {
@@ -225,9 +231,8 @@ const actions = {
             return Promise.resolve(toRaw(railsystem.lines))
         } else {
             //TODO 从接口获取
-            mutations.SET_RAIL_SYSTEM_LINES(state, railsystem.code, lines)
+            commit('SET_RAIL_SYSTEM_LINES', {railsystemCode: railsystem.code, lines})
             return lines
-            // return Promise.resolve(toRaw(railsystem.lines))
         }
     },
     async getCurrentDefaultStation({commit}) {

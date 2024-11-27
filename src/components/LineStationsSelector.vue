@@ -1,76 +1,123 @@
 <template>
-  <q-popup-proxy v-model="display" no-parent-event>
-    <div class="content" v-if="line.stations">
-      <div class="row row-item" v-for="station in line.stations" :key="station.id">
-        <div class="col-5"
-             style="font-weight:bold;">
-          <span style="text-overflow: ellipsis;white-space: nowrap;">{{ station.name }}</span>
-          <span class="pill">当前</span>
-        </div>
-        <div class="col-3" v-show="station.id===currentStationId">
+    <div class="modal-overlay" @click.self="handleBack" v-show="showBg" @touchstart.stop>
+        <transition name="zoom-in-zoom-out">
+            <div class="wrapper" :style="{height:height+'px',top:positionY+'px'}" v-show="display">
+                <div class="full-height content-wrapper" v-if="line">
+                    <span style="display: inline-block;margin: auto 0"
+                          v-for="station in line.stations"
+                          :key="station.id">
+                          <span class="pill">
+                        {{ station.name }}
+                    </span>
+                    </span>
 
-        </div>
-        <div class="col-4 text-right">{{ station.code }}</div>
-      </div>
+                </div>
+            </div>
+        </transition>
     </div>
-  </q-popup-proxy>
+
 </template>
 
 <script>
-import {defineComponent, ref} from "vue";
+import {computed, defineComponent, ref} from "vue";
+
 
 export default defineComponent({
-  setup(_, {emit}) {
-    const display = ref(false)
-    const line = ref(null)
-    const currentStationId = ref(null)
-    const showSelector = (lineProp, currentStationIdProp) => {
-      console.log('show selector ', line, currentStationIdProp)
-      if (lineProp && lineProp.stations) {
-        line.value = lineProp
-        currentStationId.value = currentStationIdProp
-        display.value = true
-      }
+    props: {
+        height: {
+            type: Number,
+            default: 35
+        },
+    },
+    setup(props, {emit}) {
+        const display = ref(false)
+        const line = ref(null)
+        const currentStationId = ref(null)
+        const elementRect = ref(null)
+        const showBg = ref(false)
+        const handleClose = () => {
+            display.value = false
+            setTimeout(() => {
+                showBg.value = false
+            }, 300)
+        }
+        const positionY = computed(() => {
+            if (!elementRect.value) {
+                return Math.ceil(window.innerHeight / 2)
+            }
+            if (elementRect.value.y + elementRect.value.height + props.height >= window.innerHeight) {
+                return elementRect.value.y - props.height
+            } else {
+                return Math.ceil(elementRect.value.y + elementRect.value.height + 5)
+            }
+        })
+        const showSelector = ({lineProp, currentStationIdProp, position}) => {
+            if (lineProp && lineProp.stations) {
+                showBg.value = true
+                line.value = lineProp
+                elementRect.value = position
+                currentStationId.value = currentStationIdProp
+                display.value = true
+            }
+        }
+        const handleSelectStation = (station) => {
+            emit('selectStation')
+        }
+        return {
+            display,
+            line,
+            showBg,
+            showSelector,
+            handleSelectStation,
+            handleBack: handleClose,
+            currentStationId,
+            positionY
+        }
     }
-    const handleSelectStation = (station) => {
-      emit('selectStation')
-    }
-    return {display, line, showSelector, handleSelectStation, currentStationId}
-  }
 })
 
 
 </script>
 
 <style scoped>
-.content {
-  background-color: var(--q-background);
-  width: 70%;
-  max-width: 400px;
-  max-height: 50vh;
-  overflow-y: auto;
-  padding: 10px;
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 500;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
 }
 
-.row-item {
-  height: 30px;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid var(--q-normal);
-  transition: .3s;
+.wrapper {
+    position: fixed;
+    width: 90vw;
+    background-color: var(--q-grey-2);
+    border-bottom: 2px solid var(--q-primary);
+    border-radius: 10px;
+    z-index: 1500;
 }
 
-.row-item:active {
-  background-color: var(--q-primary);
-  color: #ffffff;
+.content-wrapper {
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
 }
 
 .pill {
-  background-color: var(--q-primary);
-  padding: 2px 5px;
-  border-radius: 5px;
-  color: #ffffff;
-  flex-shrink: 0;
-  margin-left: 2px;
+    display: inline-block;
+    margin-right: 2px;
+    background-color: var(--q-grey-4);
+    padding: 3px 6px;
+    border-radius: 5px;
+    color: white;
+    flex-shrink: 0;
+    white-space: nowrap;
+    margin-left: 2px;
 }
 </style>

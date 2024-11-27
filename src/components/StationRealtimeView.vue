@@ -20,14 +20,23 @@
                 </div>
                 <div class="col-6 station-name-row" style="display: flex;align-items: center;justify-content: center;">
                     <div class="tool-bar" style="z-index: 10">
-                        <q-icon name="star"></q-icon>
-                        <q-icon name="departure_board"></q-icon>
-                        <q-icon name="map"></q-icon>
+                        <div @click="handleFavourStation(currentStationId)">
+                            <q-icon :style="{color:currentStation.isFavourite?'var(--q-favourite)':'white'}"
+                                    name="star"/>
+                        </div>
+                        <div>
+                            <q-icon name="departure_board"/>
+                        </div>
+                        <div>
+                            <q-icon name="map"/>
+                        </div>
                     </div>
-                    <div style="margin-top: 5px;" @click="handleClickStationName">
+                    <div style="margin-top: 5px;max-width: 40%;" @click="handleClickStationName">
                         <div class="text-h6 station-name-text current-station"
-                             style="border-bottom: 1px solid var(--q-primary); margin-bottom: 5px;">
-                            {{ station.name }}
+                             style="border-bottom: 1px solid var(--q-primary); margin-bottom: 5px;width: auto">
+                            <span v-overflow-auto-scroll style="display: block;white-space: nowrap;">
+                                {{ station.name }}
+                            </span>
                         </div>
                         <div v-if="station.code" class="pill" style="margin: 0 auto">
                             {{ station.code }}
@@ -55,9 +64,9 @@
                 <LineIcon class="line-icon" v-show="currentStation.lines.length>1" :line="{
           name:t('all'),
           color:'#36598f'
-        }" @click="handleClickLineIcon('all')" :disabled="currentLineId!=='all'"/>
+        }" @click="(event)=> handleClickLineIcon(event,'all')" :disabled="currentLineId!=='all'"/>
                 <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id"
-                          @click="handleClickLineIcon(line)"
+                          @click="(event)=> handleClickLineIcon(event,line)"
                           :disabled="currentLineId==='all'||line.id!==currentLine.id" class="line-icon">
                 </LineIcon>
             </div>
@@ -126,7 +135,7 @@
             </div>
         </q-tab-panel>
     </q-tab-panels>
-    <line-stations-selector ref="lineStationsSelector"/>
+    <line-stations-selector :height="45" ref="lineStationsSelector"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
     <train-info-detail-view :train-info-id-prop="showTrainInfoId" @close="handleCloseShowTrainDetail"/>
 </template>
@@ -186,6 +195,17 @@ watch(props, () => {
 const showSkeleton = computed(() => {
     return isLoadingTrains.value && (currentTrains.value && currentTrains.value.length === 0)
 })
+const handleFavourStation = (_stationId) => {
+    if (!_stationId) return
+    store.dispatch('preference/favourStation', _stationId).then(_isFavouriteStation => {
+        if (currentStation.value && currentStation.value.id === _stationId) {
+            currentStation.value.isFavourite = _isFavouriteStation
+            if (_isFavouriteStation) {
+                $q.notify.ok(t('favourStationOk'))
+            }
+        }
+    })
+}
 
 const showTrainInfoDetailView = (trainInfoId) => {
     if (isNumber(trainInfoId)) {
@@ -471,14 +491,19 @@ function calcRelativeStation(offset) {
 const nextStation = computed(() => calcRelativeStation(1))
 const previousStation = computed(() => calcRelativeStation(-1))
 
-const handleClickLineIcon = (line) => {
+const handleClickLineIcon = (event, line) => {
     if (line === 'all') {
         currentLineId.value = 'all'
         return
     }
     if (line && line.id) {
         if (currentLineId.value === line.id) {
-            lineStationsSelector.value.showSelector(currentLine.value, currentStationId.value)
+            console.log('ve', event, event.target.getBoundingClientRect())
+            lineStationsSelector.value.showSelector({
+                position: event.target.getBoundingClientRect(),
+                lineProp: currentLine.value,
+                currentStationIdProp: currentStationId.value
+            })
         } else {
             currentLineId.value = line.id
         }
