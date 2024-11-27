@@ -57,9 +57,9 @@
                         </template>
                         <div
                             style="min-height: 100px;">
-                            <!-- located tool -->
+                            <!-- location tool -->
                             <transition name="tool-wrapper">
-                                <span class="tool-wrapper" v-show="showLocatedTool">
+                                <span class="tool-wrapper" v-show="showLocationToolIcon" @click="handleLocate">
                                     <i class="fa-solid fa-location-crosshairs"></i>
                                  </span>
                             </transition>
@@ -287,7 +287,7 @@ export default defineComponent({
             }
         }
         const scrollTop = ref(0)
-        const showLocatedTool = computed(() => {
+        const showLocationToolIcon = computed(() => {
             const dom = stopInfoListView.value
             const _currentIndex = currentIndex.value
             const _scrollTop = scrollTop.value
@@ -300,6 +300,9 @@ export default defineComponent({
             }
             return false
         })
+        const handleLocate = () => {
+            scrollToCurrent(false)
+        }
         const terminal = computed(() => {
             if (trainInfo.value && trainInfo.value.schedule.length > 0) {
                 return trainInfo.value.schedule.slice(-1)[0].stationName
@@ -400,10 +403,11 @@ export default defineComponent({
             handleCloseSelector,
             show,
             afterClose,
+            handleLocate,
             handleClickStationName,
             getStopStatus,
             t,
-            showLocatedTool,
+            showLocationToolIcon,
             display,
             stopInfoListView,
             primaryColor,

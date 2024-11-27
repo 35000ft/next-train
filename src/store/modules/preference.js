@@ -1,12 +1,14 @@
 import {toRaw} from "vue";
 import {date2StringWithTimezone, isAfterNow} from "src/utils/time-utils";
+import {isNumber} from "lodash";
 
 const state = {
     currentLanguage: 'en',
     historyStations: JSON.parse(localStorage.getItem('historyStationList')) || [],
     //TODO
     currentStation: JSON.parse(localStorage.getItem('currentStation')) || {},
-    focusTrains: JSON.parse(localStorage.getItem('focusTrains')) || []
+    focusTrains: JSON.parse(localStorage.getItem('focusTrains')) || [],
+    favouriteStations: JSON.parse(localStorage.getItem('favouriteStations'))
 };
 
 const mutations = {
@@ -48,6 +50,22 @@ const mutations = {
         focusTrains.push(train)
         state.focusTrains = focusTrains
         localStorage.setItem(key, JSON.stringify(focusTrains))
+    },
+    FAVOUR_STATION(state, stationId) {
+        if (!isNumber(stationId)) {
+            return
+        }
+        const key = 'favouriteStations'
+        let favouriteStations = JSON.parse(localStorage.getItem(key)) || []
+        const favouriteStationSet = new Set(favouriteStations)
+        if (favouriteStationSet.has(stationId)) {
+            favouriteStationSet.delete(stationId)
+        } else {
+            favouriteStationSet.add(stationId)
+        }
+        favouriteStations = Array.from(favouriteStationSet.values())
+        localStorage.setItem(key, JSON.stringify(favouriteStations))
+        state.favouriteStations = favouriteStations
     },
     SET_FOCUS_TRAINS(state, trains) {
         state.focusTrains = trains

@@ -193,6 +193,8 @@ const closeModal = () => {
 .modal-content {
     opacity: 90%;
     position: fixed;
+    display: flex;
+    flex-direction: column;
     bottom: 0;
     background-color: var(--q-background);
     color: var(--q-normal);
@@ -234,6 +236,11 @@ const closeModal = () => {
     margin: 12px auto;
     border-radius: 5px;
     background-color: #9b9b9b;
+}
+
+.main-content {
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
 </style>
