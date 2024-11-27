@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import RightInRightOutView from "components/RightInRightOutView.vue";
+import RightInRightOutView from "components/OverlayView.vue";
 import {computed, onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
 import {useStore} from "vuex";
@@ -35,9 +35,11 @@ const headerTitle = computed(() => {
 })
 
 async function init() {
+    console.log('route', route)
     let stationId = route.params.id
     loading.value = true
     let _station = await store.dispatch('railsystem/getStation', stationId)
+    console.log('station', _station)
     //TODO
     if (_station) {
         loading.value = false

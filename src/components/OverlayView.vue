@@ -23,14 +23,16 @@
 
 <script setup>
 import {useRouter} from "vue-router";
+import {useStore} from "vuex";
 
 const props = defineProps({
     onClose: Function,
-
 })
+const store = useStore()
 const router = useRouter()
 const handleClose = () => {
     router.back()
+    store.dispatch('application/popOverlay')
 }
 </script>
 

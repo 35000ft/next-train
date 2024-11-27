@@ -1,12 +1,12 @@
 <template>
-    <transition name="right-in-right-out">
-        <router-view/>
-    </transition>
+    <router-view/>
+    <OverlayContainer/>
 </template>
 
 <script setup>
 import {onMounted} from "vue";
 import {useQuasar} from "quasar";
+import OverlayContainer from "layouts/OverlayContainer.vue";
 
 defineOptions({
     name: 'App'

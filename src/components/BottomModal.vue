@@ -5,7 +5,7 @@
             <div class="modal-content" v-show="display" ref="modalContent"
                  :style="{height:contentHeight,width:contentWidth}">
                 <div class="movable-banner" ref="movableBanner"><span></span></div>
-                <div>
+                <div class="main-content">
                     <slot></slot>
                 </div>
             </div>
@@ -33,6 +33,10 @@ const props = defineProps({
     name: {
         type: String,
         default: "bottom-modal"
+    },
+    isUseRoute: {
+        type: Boolean,
+        default: false
     },
     afterClose: {
         type: Function
@@ -81,7 +85,6 @@ onMounted(() => {
             // move down
             if (Math.abs(movedHeight) > rawHeight * 0.25) {
                 // if movedHeight > 25% height of element then close
-                console.log('close', props.name)
                 emit('close')
             } else {
                 // otherwise recover to the origin position
@@ -124,12 +127,14 @@ watch(() => props.display, (newValue, oldValue) => {
 
 const showModel = () => {
     showBg.value = true
-    const hasName = window.location.href.endsWith(props.name)
-    if (hasName) {
-        return
+    if (!props.isUseRoute) {
+        const hasName = window.location.href.endsWith(props.name)
+        if (!hasName) {
+            const newPath = window.location.href + `#${props.name}`
+            window.history.pushState({}, '', newPath)
+        }
     }
-    const newPath = window.location.href + `#${props.name}`;
-    window.history.pushState({}, '', newPath);
+
     overlayOpacity.value = targetOverlayOpacity * 0.1
     const interval = setInterval(() => {
         const newOpacity = overlayOpacity.value * 1.3
@@ -175,7 +180,7 @@ const closeModal = () => {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 2500;
+    z-index: 500;
     right: 0;
     bottom: 0;
     display: flex;

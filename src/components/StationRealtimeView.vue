@@ -1,5 +1,5 @@
 <template>
-    <q-tab-panels v-cloak v-if="currentStationId&&currentLine" class="full-height" v-model="currentStationId"
+    <q-tab-panels v-cloak v-if="currentStation" class="full-height" v-model="currentStationId"
                   swipeable
                   animated
                   @touchstart.stop>
@@ -19,7 +19,7 @@
                     </div>
                 </div>
                 <div class="col-6 station-name-row" style="display: flex;align-items: center;justify-content: center;">
-                    <div class="tool-bar" style="z-index: 2000">
+                    <div class="tool-bar" style="z-index: 10">
                         <q-icon name="star"></q-icon>
                         <q-icon name="departure_board"></q-icon>
                         <q-icon name="map"></q-icon>
@@ -387,9 +387,11 @@ async function changeStation(stationId, lineId) {
         line = station.lines[0]
     }
     currentLineId.value = line.id
-    currentStation.value = station
-    currentStationId.value = station.id
-    isLoadingStation.value = false
+    setTimeout(() => {
+        currentStation.value = station
+        currentStationId.value = station.id
+        isLoadingStation.value = false
+    }, 0)
     return toRaw(station)
 }
 
@@ -405,7 +407,6 @@ watch(currentLineId, (lineId, oldValue) => {
     }
     store.dispatch('railsystem/getLine', lineId).then(_line => {
         if (_line && lineId === _line.id) {
-            console.log('newLine:', _line)
             currentLine.value = _line
             updateCurrentTrains()
         } else {

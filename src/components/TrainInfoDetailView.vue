@@ -1,7 +1,8 @@
 <template>
     <bottom-modal :display="display" @close="handleCloseSelector" content-height="95vh" content-width="100%"
                   :after-close="afterClose"
-                  @touchstart.stop name="train-info-detail-view">
+                  :is-use-route="isFromUrl"
+                  @touchstart.stop name="train-info-detail">
         <template v-slot:default>
             <div v-if="trainInfo">
                 <div class="wrapper">
@@ -104,8 +105,6 @@
                     </q-expansion-item>
                 </div>
             </div>
-
-
         </template>
     </bottom-modal>
 </template>
@@ -138,6 +137,7 @@ export default defineComponent({
         const primaryColor = computed(() => {
             return getComputedStyle(document.documentElement).getPropertyValue('--q-primary').trim()
         })
+        const isFromUrl = ref(false)
         let isUpdatingStopStatus = false
         const store = useStore()
         const loading = ref(false)
@@ -310,6 +310,7 @@ export default defineComponent({
         let prefix = null
         onMounted(() => {
             if (route.params.id) {
+                isFromUrl.value = true
                 trainInfoId.value = route.params.id
                 if (route.params.prefix === '') {
                     prefix = '/'
@@ -361,7 +362,9 @@ export default defineComponent({
                 show()
                 isFirst.value = true
                 loadTrainInfo(newVal).then(res => {
-                    trainInfo.value = res
+                    setTimeout(() => {
+                        trainInfo.value = res
+                    }, 0)
                 })
             }
         })
@@ -377,9 +380,15 @@ export default defineComponent({
         }
 
         function afterClose() {
-            if (prefix) {
-                router.push(prefix)
+            if (isFromUrl.value) {
+                console.log('afterClose', isFromUrl.value, prefix, route)
+                if (prefix) {
+                    router.push(prefix)
+                } else {
+                    router.push('/')
+                }
             }
+            isFromUrl.value = false
             emit('close')
         }
 
@@ -403,6 +412,7 @@ export default defineComponent({
             lineColorGetter,
             currentInterval,
             terminal,
+            isFromUrl,
             STOP_ROW_HEIGHT
         }
     }

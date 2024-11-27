@@ -33,6 +33,10 @@ const onMoveUp = () => {
     console.log('call on move up')
     handleClose()
     router.push({name: 'station-detail', params: {id: stationId.value}})
+    store.dispatch('application/pushOverlay', {
+        component: {componentName: 'StationDetailView', routeName: `station-detail`, params: {id: stationId.value}}
+    })
+    // router.push({name: 'station-detail', params: {id: stationId.value}})
 }
 
 

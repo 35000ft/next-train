@@ -1,35 +1,19 @@
 const routes = [
     {
         path: '/',
-        components: {
-            default: () => import('layouts/MainLayout.vue'),
-            // home:() => import('components/HomeNavView.vue'),
-            // 'metro-go': () => import('components/MetroGoNavView.vue'),
-            // lines:() => import('components/LinesNavView.vue'),
-        },
+        component: () => import('layouts/MainLayout.vue'),
         children: [
             {name: 'home', path: '', component: () => import('components/HomeNavView.vue')},
             {name: 'metro-go', path: 'metro-go', component: () => import('components/MetroGoNavView.vue')},
             {name: 'lines', path: 'lines', component: () => import('components/LinesNavView.vue')},
             {
                 name: 'train-info-detail',
-                path: '/:prefix*/train-info/:id*',
+                path: ':prefix*/train-info/:id',
                 component: () => import('components/TrainInfoDetailView.vue')
-            }
-        ]
-    },
-
-    {
-        path: '/detail',
-        name: 'detail',
-        components: {
-            default: () => import('layouts/RightInRightOutLayout.vue')
-        },
-        children: [
+            },
             {
                 name: 'station-detail',
-                path: 'station/:id',
-                component: () => import('components/StationDetailView.vue')
+                path: 'station/:id'
             }
         ]
     },
@@ -37,7 +21,7 @@ const routes = [
     // but you can also remove it
     {
         path: '/:catchAll(.*)*',
-        redirect: '/'  // 重定向到根路径
+        redirect: '/'
     },
 ]
 

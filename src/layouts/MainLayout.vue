@@ -15,7 +15,7 @@
                 </q-tab-panel>
             </q-tab-panels>
         </q-page-container>
-        <q-footer bordered class="bg-grey-3 text-primary">
+        <q-footer bordered class="bg-grey-3 text-primary" style="z-index: 100">
             <q-tabs no-caps
                     dense
                     active-color="white"
