@@ -8,13 +8,13 @@ const state = {
 };
 
 const mutations = {
-    SET_SHOWN_STATION_ID(state, stationId) {
+    SET_SHOWN_STATION_ID(state, {stationId}) {
         state.shownStationId = stationId
     },
-    PUSH_OVERLAY(state, component) {
+    PUSH_OVERLAY(state, {component}) {
         state.overlayStack.push(component)
     },
-    POP_OVERLAY(state, componentName) {
+    POP_OVERLAY(state, {componentName}) {
         if (state.overlayStack.length > 0) {
             if (componentName) {
                 if (state.overlayStack.slice(-1)[0].componentName !== componentName) {
@@ -28,19 +28,19 @@ const mutations = {
 
 const actions = {
     showStationRealtimeModal({commit, state}, {stationId}) {
-        mutations.SET_SHOWN_STATION_ID(state, stationId)
+        commit('SET_SHOWN_STATION_ID', {stationId})
     },
     closeStationRealtimeModal({commit, state}) {
-        mutations.SET_SHOWN_STATION_ID(state, null)
+        mutations.SET_SHOWN_STATION_ID(state, {stationId: null})
     },
     pushOverlay({commit, state}, {component}) {
         if (component) {
-            mutations.PUSH_OVERLAY(state, component)
+            commit('PUSH_OVERLAY', {component})
         }
     },
     popOverlay({commit, state}, payload) {
         const componentName = payload && payload.componentName || null
-        mutations.POP_OVERLAY(state, componentName)
+        mutations.POP_OVERLAY(state, {componentName: componentName})
     }
 
 };

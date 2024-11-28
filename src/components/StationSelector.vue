@@ -28,12 +28,17 @@
                             </span>
                         </div>
                         <div class="row station-result-wrapper" v-for="(station,index) in searchResults" :key="index">
-                            <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;"
+                            <div class="col-6 auto-scroll-container"
                                  @click="handleSelect(station)">
-                                <div v-overflow-auto-scroll>
+                                <div class="station-name" v-overflow-auto-scroll>
                                     <span v-if="station.highlighted" v-html="station.highlighted"></span>
                                     <span v-if="!station.highlighted">{{ station.name }}</span>
-                                    <span class="pill">{{ station.railsystem }}</span>
+                                    <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
+                                        {{ station.railsystemName }}
+                                    </span>
+                                    <span v-if="station.isFavourite">
+                                        <q-icon style="color:var(--q-favourite)" name="star"/>
+                                    </span>
                                 </div>
                             </div>
                             <div class="col-6"
@@ -56,7 +61,9 @@
                                  @click="handleSelect(station)">
                                 <div v-overflow-auto-scroll>
                                     <span>{{ station.name }}</span>
-                                    <span class="pill">{{ station.railsystem }}</span>
+                                    <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
+                                        {{ station.railsystemName }}
+                                    </span>
                                 </div>
                             </div>
                             <div class="col-6"
@@ -117,7 +124,6 @@ export default defineComponent({
             loading.value = true
             store.dispatch('railsystem/getRailSystemLines').then(r => {
                 lines.value = r
-                console.log('lines', r)
                 searchGroups.value = [ALL_STR, ...r.map(it => it.name)]
                 loading.value = false
             }).catch(err => {
@@ -127,8 +133,11 @@ export default defineComponent({
 
         async function loadStations(lineId) {
             if (lineId === ALL_STR) {
-                console.log('Loading all stations of current railsystem')
-                return await store.dispatch('railsystem/getAllStations')
+                const _result = await store.dispatch('railsystem/getAllStations')
+                loadFavouriteStations().then(_ => {
+                    console.log('load favourite stations ok', _)
+                })
+                return _result
             } else if (isNumber(lineId)) {
                 return await store.dispatch('railsystem/getStationsByLine', lineId)
             }
@@ -147,10 +156,8 @@ export default defineComponent({
         })
 
         const handleSearch = _.debounce((keyword) => {
-            console.log('search:', keyword)
             loadStations(currentSearchGroup.value).then(r => {
-                const _results = filterResult(r, keyword)
-                searchResults.value = _results
+                searchResults.value = filterResult(r, keyword)
             })
         }, 300)
 
@@ -200,7 +207,6 @@ export default defineComponent({
             emit('close')
         }
         const handleChangeSearchGroup = (searchGroup) => {
-            console.log('search group change', searchGroup)
             if (!searchGroup || searchGroup === ALL_STR) {
                 return
             }
@@ -211,11 +217,24 @@ export default defineComponent({
             loading.value = true
             loadStations(line.id).then(r => {
                 if (r && r instanceof Array) {
+                    console.log('stations', r)
                     searchResults.value = r
                 }
                 loading.value = false
             })
         }
+
+        async function loadFavouriteStations() {
+            store.dispatch('preference/getAllFavouriteStations').then(favouriteStations => {
+                searchResults.value.forEach(it => {
+                    if (favouriteStations.has(it.id)) {
+                        it.isFavourite = true
+                    }
+                })
+                return favouriteStations
+            })
+        }
+
         const handleSelect = (station, line) => {
             station = toRaw(station)
             if (line) {
@@ -249,6 +268,7 @@ export default defineComponent({
             ALL_STR,
             loading,
             isDark,
+            currentRailSystem,
             searchResults,
             currentSearchGroup,
             lines,
@@ -289,6 +309,10 @@ export default defineComponent({
     font-size: 18px;
 }
 
+.station-result-wrapper, .station-name > span {
+    margin-right: 3px;
+}
+
 .q-tab, .q-tab__content {
     min-height: 20px;
 }
@@ -309,7 +333,7 @@ export default defineComponent({
     border-radius: 5px;
     color: var(--q-grey);
     padding: 1px 5px;
-    margin-right: 8px;
+    margin-right: 4px;
     white-space: nowrap;
 }
 </style>

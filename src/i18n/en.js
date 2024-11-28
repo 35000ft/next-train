@@ -37,6 +37,12 @@ export default {
         terminal: 'TERM',
         special: 'SPL',
     },
+    other: 'Other',
+    get: 'Get',
+    load: 'Load',
+    trainInfo: "train info",
+    update: "update",
+    error: "error",
     trainStatus: {
         arrived: "ARRIVED",
         departed: "DEPARTED",

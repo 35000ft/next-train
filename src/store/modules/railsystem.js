@@ -2,6 +2,7 @@
 
 import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
+import _ from 'lodash'
 
 const railSystems = {
     'NJMTR': {
@@ -26,7 +27,8 @@ const stations = [{
     name: "南京站",
     code: "NJS",
     timezone: '+0800',
-    railsystem: '南京地铁',
+    railsystemName: '南京地铁',
+    railsystemCode: 'NJMTR',
     lines: [{
         id: '1',
         name: "1号线",
@@ -47,7 +49,8 @@ const stations = [{
     id: "9",
     name: "新模范马路",
     timezone: '+0800',
-    railsystem: '南京地铁',
+    railsystemName: '南京地铁',
+    railsystemCode: 'NJMTR',
     lines: [{
         id: '1',
         name: "1号线",
@@ -58,7 +61,8 @@ const stations = [{
     id: "10",
     name: "玄武门",
     timezone: '+0800',
-    railsystem: '南京地铁',
+    railsystemName: '南京地铁',
+    railsystemCode: 'NJMTR',
     lines: [{
         id: '1',
         name: "1号线",
@@ -69,7 +73,8 @@ const stations = [{
     id: "11",
     name: "鼓楼",
     timezone: '+0800',
-    railsystem: '南京地铁',
+    railsystemName: '南京地铁',
+    railsystemCode: 'NJMTR',
     lines: [{
         id: '1',
         name: "1号线",
@@ -160,7 +165,6 @@ const actions = {
             return Promise.reject(`stationId is undefined:${stationId}`)
         }
         const isFavourite = await this.dispatch('preference/isFavouriteStation', {stationId})
-        console.log('is getStation', isFavourite, stationId)
         let station = state.stations.get(stationId)
         if (!station) {
             station = stations.find(it => it.id === stationId)
@@ -171,12 +175,11 @@ const actions = {
         station.isFavourite = isFavourite
         return station
     },
-    async getAllStations({state, commit, getters}) {
+    async getAllStations({state, commit}) {
         const currentRailSystem = state.currentRailSystem
         //TODO
-        const favouriteStations = getters['preference/favouriteStations']
         if (currentRailSystem.stations) {
-            return toRaw(currentRailSystem.stations)
+            return _.cloneDeep(toRaw(currentRailSystem.stations))
         } else {
             currentRailSystem.stations = stations
             commit('SET_RAILSYSTEM', {currentRailSystem})

@@ -1,16 +1,16 @@
 <template>
-    <div class="modal-overlay" @click.self="handleBack" v-show="showBg" @touchstart.stop>
+    <div class="modal-overlay" @click.self="handleClose" v-show="showBg" @touchstart.stop>
         <transition name="zoom-in-zoom-out">
             <div class="wrapper" :style="{height:height+'px',top:positionY+'px'}" v-show="display">
                 <div class="full-height content-wrapper" v-if="line">
                     <span style="display: inline-block;margin: auto 0"
                           v-for="station in line.stations"
+                          @click="handleSelectStation(station)"
                           :key="station.id">
-                          <span class="pill">
-                        {{ station.name }}
+                          <span class="pill" :class="classGetter(station.id)">
+                            {{ station.name }}
+                         </span>
                     </span>
-                    </span>
-
                 </div>
             </div>
         </transition>
@@ -35,6 +35,9 @@ export default defineComponent({
         const currentStationId = ref(null)
         const elementRect = ref(null)
         const showBg = ref(false)
+        const classGetter = computed(() => (_stationId) => {
+            return _stationId === currentStationId.value ? 'current-station' : 'other-station'
+        })
         const handleClose = () => {
             display.value = false
             setTimeout(() => {
@@ -61,7 +64,11 @@ export default defineComponent({
             }
         }
         const handleSelectStation = (station) => {
-            emit('selectStation')
+            if (!station || station.id === currentStationId.value) {
+                return
+            }
+            emit('select', station.id, line.value.id)
+            handleClose()
         }
         return {
             display,
@@ -69,8 +76,9 @@ export default defineComponent({
             showBg,
             showSelector,
             handleSelectStation,
-            handleBack: handleClose,
+            handleClose,
             currentStationId,
+            classGetter,
             positionY
         }
     }
@@ -103,6 +111,18 @@ export default defineComponent({
     z-index: 1500;
 }
 
+.current-station {
+    background-color: var(--q-primary);
+    color: var(--q-grey-2);
+    font-weight: bold;
+}
+
+.other-station {
+    background-color: var(--q-grey-4);
+    color: var(--q-normal);
+
+}
+
 .content-wrapper {
     display: flex;
     align-items: center;
@@ -112,10 +132,8 @@ export default defineComponent({
 .pill {
     display: inline-block;
     margin-right: 2px;
-    background-color: var(--q-grey-4);
     padding: 3px 6px;
     border-radius: 5px;
-    color: white;
     flex-shrink: 0;
     white-space: nowrap;
     margin-left: 2px;

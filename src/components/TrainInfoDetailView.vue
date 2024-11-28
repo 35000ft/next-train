@@ -312,7 +312,7 @@ export default defineComponent({
         const $q = useQuasar()
         let prefix = null
         onMounted(() => {
-            if (route.params.id) {
+            if (route.params.id && route.params.prefix) {
                 isFromUrl.value = true
                 trainInfoId.value = route.params.id
                 if (route.params.prefix === '') {

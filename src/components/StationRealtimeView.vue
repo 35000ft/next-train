@@ -135,7 +135,7 @@
             </div>
         </q-tab-panel>
     </q-tab-panels>
-    <line-stations-selector :height="45" ref="lineStationsSelector"/>
+    <line-stations-selector :height="45" ref="lineStationsSelector" @select="handleSelectStation"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
     <train-info-detail-view :train-info-id-prop="showTrainInfoId" @close="handleCloseShowTrainDetail"/>
 </template>
@@ -221,6 +221,7 @@ async function calcCurrentTrains() {
         return []
     }
     let _t = trainInfoMap.value
+    const _stationId = currentStation.value.id
     const allLines = new Map(currentStation.value.lines.map(it => [it.id, it]))
     const currentTimezone = currentStation.value.timezone
     const _lineId = currentLineId.value
@@ -239,16 +240,7 @@ async function calcCurrentTrains() {
                         })
                         return []
                     }
-                    const lineTrains = _t.get(lineId).map(it => it.trains).flat()
-                    if (lineTrains === 0) {
-                        loadLineTrains(lineId).then(_ => {
-                            const newT = trainInfoMap.value.get(lineId);
-                            if (newT && newT.length > 0) {
-                                updateCurrentTrains()
-                            }
-                        })
-                        return []
-                    }
+                    const lineTrains = _t.get(lineId)
                     const now = getNowByTimezone(currentTimezone)
                     return lineTrains.filter(it => it.arr >= now || (now >= it.arr && now < it.dep))
                         .map(it => {
@@ -264,24 +256,26 @@ async function calcCurrentTrains() {
             await loadLineTrains(_lineId)
             _t = trainInfoMap.value
         }
-        if (_t.has(_lineId)) {
-            directionTrains = _t.get(_lineId) || []
-            if (directionTrains.length === 0) {
-                loadLineTrains(_lineId).then(_ => updateCurrentTrains())
-            } else {
-                const now = getNowByTimezone(currentTimezone)
-                directionTrains.forEach(it => {
-                    it.trains = it.trains.filter(it => it.arr >= now || (now >= it.arr && now < it.dep)).slice(0, EACH_DIRECTION_TRAIN_AMOUNT_LIMIT).sort((i1, i2) => i1.dep - i2.dep)
+        directionTrains = await store.dispatch('realtime/getStationDirectionTrains', {
+            stationId: _stationId,
+            lineId: _lineId
+        })
+        if (directionTrains.length === 0) {
+            loadLineTrains(_lineId).then(_ => updateCurrentTrains())
+        } else {
+            const now = getNowByTimezone(currentTimezone)
+            directionTrains.forEach(it => {
+                it.trains = it.trains.filter(it => it.arr >= now || (now >= it.arr && now < it.dep)).slice(0, EACH_DIRECTION_TRAIN_AMOUNT_LIMIT).sort((i1, i2) => i1.dep - i2.dep)
+            })
+            const trainCount = directionTrains.map(it => it.trains.length).reduce((acc, cur) => cur + acc, 0)
+            if (trainCount < directionTrains.length * (EACH_DIRECTION_TRAIN_AMOUNT_LIMIT - 1)) {
+                loadLineTrains(_lineId).then(() => {
+                    console.log(`Train info too less, load ${_lineId} train info ok.`, trainInfoMap.value.get(_lineId))
                 })
-                const trainCount = directionTrains.map(it => it.trains.length).reduce((acc, cur) => cur + acc, 0)
-                if (trainCount < directionTrains.length * (EACH_DIRECTION_TRAIN_AMOUNT_LIMIT - 1)) {
-                    loadLineTrains(_lineId).then(() => {
-                        console.log(`Train info too less, load ${_lineId} train info ok.`, trainInfoMap.value.get(_lineId))
-                    })
-                }
-                return directionTrains
             }
+            return directionTrains
         }
+
     }
     return []
 }
@@ -293,10 +287,12 @@ async function loadLineTrains(lineId) {
     }
     const currentStationId = currentStation.value.id
     if (lineId && currentStationId) {
-        return store.dispatch('realtime/loadStationTrains', {currentStationId, lineId}).then(r => {
+        return store.dispatch('realtime/getStationTrains', {stationId: currentStationId, lineId: lineId}).then(r => {
             if (r instanceof Array) {
                 trainInfoMap.value.set(lineId, r)
             }
+        }).catch(err => {
+            return Promise.reject(err)
         })
     } else {
         return Promise.reject(`lineId or currentStationId is illegal lineId:${lineId} currentStationId:${currentStationId}`)
@@ -319,10 +315,6 @@ async function updateCurrentTrains() {
             if (_currentLindId !== 'all') {
                 // Logic for single line
                 currentTrains.value = r
-                if (!checkIsChanged(_currentLindId, _stationId)) {
-                    isLoadingTrains.value = false
-                }
-                return
             } else {
                 // Logic for All Trains
                 let index = 0
@@ -354,11 +346,12 @@ async function updateCurrentTrains() {
                 }, 250)
             }
         } else {
-            if (!checkIsChanged(_currentLindId, _stationId)) {
-                isLoadingTrains.value = false
-            }
             currentTrains.value = []
         }
+    }).catch(err => {
+        $q.notify.error(`${t('update')} ${t('trainInfo')} ${t('error')}`)
+        currentTrains.value = []
+    }).finally(_ => {
         if (!checkIsChanged(_currentLindId, _stationId)) {
             isLoadingTrains.value = false
         }
@@ -366,7 +359,6 @@ async function updateCurrentTrains() {
 }
 
 const handleSelectStation = (stationId, lineId) => {
-    console.log('handleSelect Station')
     if (stationId) {
         changeStation(stationId, lineId)
     }
@@ -412,14 +404,13 @@ async function changeStation(stationId, lineId) {
         currentStationId.value = station.id
         isLoadingStation.value = false
     }, 0)
-    return toRaw(station)
+    return station
 }
 
 watch(currentLineId, (lineId, oldValue) => {
     if (!lineId || lineId === oldValue) {
         return
     }
-    console.log('Change line, new lineId', lineId)
     currentTrains.value = []
     if (lineId === 'all') {
         updateCurrentTrains()
@@ -498,7 +489,6 @@ const handleClickLineIcon = (event, line) => {
     }
     if (line && line.id) {
         if (currentLineId.value === line.id) {
-            console.log('ve', event, event.target.getBoundingClientRect())
             lineStationsSelector.value.showSelector({
                 position: event.target.getBoundingClientRect(),
                 lineProp: currentLine.value,

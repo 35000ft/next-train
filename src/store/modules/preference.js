@@ -34,7 +34,7 @@ const mutations = {
         state.currentRailSystem = railsystem;
         localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, JSON.stringify(railsystem))
     },
-    ADD_HISTORY_STATION(state, station) {
+    ADD_HISTORY_STATION(state, {station}) {
         let historyStations = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST))
         if (historyStations == null) historyStations = []
         const maxHistoryAmount = 20
@@ -49,7 +49,7 @@ const mutations = {
         state.historyStations = historyStations
         localStorage.setItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST, JSON.stringify(historyStations))
     },
-    ADD_FOCUS_TRAIN(state, train) {
+    ADD_FOCUS_TRAIN(state, {train}) {
         const focusTrains = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS)) || []
         if (focusTrains.findIndex(it => it.id === train.id) !== -1) {
             return
@@ -98,7 +98,7 @@ const actions = {
         if (!station || !station.id) {
             return Promise.reject('station or station.id can not be undefined!')
         }
-        mutations.ADD_HISTORY_STATION(state, station)
+        commit('ADD_HISTORY_STATION', {station})
         return Promise.resolve()
     },
     addFocusTrain({commit, state}, {train, station}) {
@@ -111,7 +111,7 @@ const actions = {
             terminal: train.terminal,
             station: toRaw(station)
         }
-        mutations.ADD_FOCUS_TRAIN(state, _t)
+        commit('ADD_FOCUS_TRAIN', {train: _t})
     },
     isFavouriteStation({commit}, {stationId}) {
         if (!stationId) return false
@@ -120,12 +120,15 @@ const actions = {
     async favourStation({commit}, stationId) {
         commit('FAVOUR_STATION', {stationId});
         return this.dispatch('preference/isFavouriteStation', {stationId})
+    },
+    async getAllFavouriteStations({commit, state}) {
+        return state.favouriteStations || new Map()
     }
 }
 
 const getters = {
     currentLanguage: (state) => state.currentLanguage,
-    favouriteStations: (state) => state.favouriteStations,
+    favouriteStations: (state) => state.favouriteStations || new Map(),
     historyStations: (state) => state.historyStations,
     currentStation: (state) => state.currentStation,
     focusTrains: (state) => {

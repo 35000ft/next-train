@@ -4,7 +4,8 @@ import {trainInfoParser} from "src/models/Train";
 import {reactive} from "vue";
 
 const state = {
-    trainInfoMap: reactive(new LRU(100))
+    trainInfoMap: reactive(new LRU(100)),
+    stationTrainInfoMap: reactive(new LRU(20)),
 }
 
 export const tempTrainInfo = {
@@ -211,111 +212,186 @@ export const tempTrainInfo = {
 }
 
 
-const line1Trains = [{
-    direction: "中国药科大学",
-    trains: [{
+const line1Trains = [
+    {
         id: "23",
         trainNo: "5101",
         arr: dayjs(new Date()).add(7, 'minute').toDate(),
         dep: dayjs(new Date()).add(10, 'minute').toDate(),
-        terminal: "中国药科大学ASDSADDSADA",
-        category: ["LOCAL",]
-    }, {
+        terminal: "中国药科大学·地铁大学城停车场",
+        category: ["LOCAL",],
+        direction: 0,
+    },
+    {
         id: "424",
         trainNo: "5103",
         arr: dayjs(new Date()).add(4, 'minute').toDate(),
         dep: dayjs(new Date()).add(5, 'minute').toDate(),
         terminal: "河定桥",
+        direction: 0,
         category: ["SHORT",]
-    }, {
+    },
+    {
         id: "78967",
         trainNo: "5107",
         arr: dayjs(new Date()).add(8, 'minute').toDate(),
         dep: dayjs(new Date()).add(9, 'minute').toDate(),
         terminal: "河定桥",
+        direction: 0,
         category: ["SHORT",]
-    }, {
+    },
+    {
         id: "746854",
         trainNo: "5203",
         arr: dayjs(new Date()).add(15, 'minute').toDate(),
         dep: dayjs(new Date()).add(17, 'minute').toDate(),
         terminal: "河定桥",
+        direction: 0,
         category: ["SHORT",]
-    }
-    ]
-}, {
-    direction: "八卦洲大桥南",
-    trains: [{
+    },
+    {
         id: "1474",
         trainNo: "5102",
         arr: dayjs(new Date()).add(1, 'minute').toDate(),
         dep: dayjs(new Date()).add(2, 'minute').toDate(),
         terminal: "迈皋桥",
+        direction: 1,
         category: ["SHORT",]
-    }, {
+    },
+    {
         id: "2752",
         trainNo: "5104",
         arr: dayjs(new Date()).add(2, 'minute').toDate(),
         dep: dayjs(new Date()).add(5, 'minute').toDate(),
         terminal: "八卦洲大桥南",
+        direction: 1,
         category: ["LOCAL",]
-    },]
-},
+    },
 ]
-const line3Trains = [{
-    direction: "林场",
-    trains: [{
+const line3Trains = [
+    {
         id: "78654",
         trainNo: "4101",
         arr: dayjs(new Date()).add(3, 'minute').toDate(),
         dep: dayjs(new Date()).add(4, 'minute').toDate(),
         terminal: "林场",
+        direction: 0,
         category: ["LOCAL",]
-    }, {
+    },
+    {
         id: "73245",
         trainNo: "4103",
         arr: dayjs(new Date()).add(7, 'minute').toDate(),
         dep: dayjs(new Date()).add(10, 'minute').toDate(),
         terminal: "林场",
+        direction: 0,
         category: ["LOCAL",]
-    }]
-}, {
-    direction: "秣周东路",
-    trains: [{
+    },
+    {
         id: "788",
         trainNo: "4102",
         arr: dayjs(new Date()).add(1, 'minute').toDate(),
         dep: dayjs(new Date()).add(2, 'minute').toDate(),
         terminal: "秣周东路",
+        direction: 1,
         category: ["LOCAL",]
-    }, {
+    },
+    {
         id: "6786",
         trainNo: "4104",
         arr: dayjs(new Date()).add(2, 'minute').toDate(),
         dep: dayjs(new Date()).add(5, 'minute').toDate(),
         terminal: "胜太西路",
+        direction: 1,
         category: ["SHORT",]
-    },]
-},
+    }
 ]
 const tm = {
     "1": line1Trains,
     "3": line3Trains
 }
 const mutations = {
-    SET_TRAININFO(trainInfoId, trainInfo) {
+    SET_TRAININFO(state, {trainInfoId, trainInfo}) {
         //TODO state.trainInfoMap.set(trainInfo.id, trainInfo)
         state.trainInfoMap.set(trainInfoId, trainInfo)
+    },
+    SET_STATION_TRAININFO(state, {trainInfoList, stationId, lineId}) {
+        if (stationId && lineId && trainInfoList) {
+            const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId, new Map());
+            stationTrainInfoMap.set(lineId, trainInfoList)
+            state.stationTrainInfoMap.set(stationId, stationTrainInfoMap)
+        }
     }
 }
 
 const actions = {
-    loadStationTrains({commit}, {stationId, lineId}) {
-        return new Promise((resolve) => {
+    getStationTrains({commit, state}, {stationId, lineId}) {
+        if (!(stationId && lineId)) {
+            return Promise.reject('stationId and lineId cannot be undefined')
+        }
+        const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
+        if (stationTrainInfoMap) {
+            const lineTrains = stationTrainInfoMap.get(lineId)
+            if (lineTrains) {
+                return lineTrains
+            }
+        }
+        //TODO fetch by api
+        return new Promise((resolve, reject) => {
             setTimeout(() => {
-                resolve(tm[lineId])
+                const trains = tm[lineId]
+                if (trains) {
+                    commit('SET_STATION_TRAININFO', {trainInfoList: trains, stationId, lineId})
+                    resolve(trains)
+                }
+                reject(`trains not found lineId:${lineId}`)
             }, 1200)
         })
+    },
+    async getStationDirectionTrains({commit}, {stationId, lineId}) {
+        let _trains = await this.dispatch('realtime/getStationTrains', {stationId, lineId})
+        let trainDirectionMap = _trains.reduce((acc, cur) => {
+            if (cur.direction == null) {
+                cur.direction = -1
+            }
+            if (!acc.has(cur.direction)) {
+                acc.set(cur.direction, [])
+            }
+            const _data = acc.get(cur.direction)
+            if (!_data.trains) {
+                _data.trains = []
+            }
+            if (!_data.directions) {
+                _data.directions = new Set()
+            }
+            _data.trains.push(cur)
+            if (!_data.directions.has(cur.terminal)) {
+                _data.directions.add(cur.terminal)
+            }
+            return acc
+        }, new Map())
+        let hasOther = false
+        let _result = [...trainDirectionMap]
+            .sort((a, b) => a[0] - b[0])
+            .map(item => {
+                const directionCode = item[0]
+                const _data = item[1]
+                let direction
+                if (directionCode === -1) {
+                    direction = 'OTHER'
+                    hasOther = true
+                } else {
+                    direction = Array.from(_data.directions.values()).join(' / ')
+                }
+                return {
+                    direction: direction,
+                    trains: _data.trains
+                }
+            })
+        if (hasOther) {
+            _result = [..._result.slice(1), _result[0]]
+        }
+        return _result
     },
     //TODO
     getTrainInfoById({commit, state}, {trainInfoId}) {
@@ -323,7 +399,7 @@ const actions = {
         if (!trainInfo) {
             //TODO 请求接口
             trainInfo = trainInfoParser(tempTrainInfo)
-            mutations.SET_TRAININFO(trainInfoId, trainInfo)
+            commit('SET_TRAININFO', {trainInfo, trainInfoId})
         }
         if (trainInfo) {
             return Promise.resolve(trainInfo)

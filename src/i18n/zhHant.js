@@ -37,6 +37,12 @@ export default {
         terminal: '終到',
         special: '特別',
     },
+    other: '其它',
+    get: '獲取',
+    load: '載入',
+    trainInfo: "列車資料",
+    update: "更新",
+    error: "失敗",
     trainStatus: {
         arrived: "列車到站",
         departed: "正在離開",

@@ -5,7 +5,11 @@
         </template>
         <template v-slot:default>
             <div class="full-height">
-                Station detail view
+                <div v-if="station">
+                    <div v-for="line in station.lines" :key="line.id">
+                        <StationLineRealtimeView :station="station" :line="line"/>
+                    </div>
+                </div>
             </div>
         </template>
     </RightInRightOutView>
@@ -17,6 +21,7 @@ import RightInRightOutView from "components/OverlayView.vue";
 import {computed, onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
 import {useStore} from "vuex";
+import StationLineRealtimeView from "components/StationLineRealtimeView.vue";
 
 const loading = ref(true)
 const route = useRoute()
