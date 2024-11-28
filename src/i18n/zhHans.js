@@ -43,6 +43,7 @@ export default {
     trainInfo: "列车信息",
     update: "更新",
     error: "失败",
+    success: "成功",
     trainStatus: {
         arrived: "列车到站",
         departed: "正在离开",

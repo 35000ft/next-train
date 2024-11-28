@@ -1,23 +1,24 @@
 <template>
-    <RightInRightOutView>
+    <OverlayView>
         <template v-slot:header-center>
             <div>{{ headerTitle }}</div>
         </template>
         <template v-slot:default>
-            <div class="full-height">
+            <div class="full-height content-wrapper">
                 <div v-if="station">
-                    <div v-for="line in station.lines" :key="line.id">
+                    <div v-for="line in station.lines" :key="line.id" class="line-train-info-wrapper2">
                         <StationLineRealtimeView :station="station" :line="line"/>
                     </div>
+                    <div style="height: 100px;"></div>
                 </div>
             </div>
         </template>
-    </RightInRightOutView>
+    </OverlayView>
 
 </template>
 
 <script setup>
-import RightInRightOutView from "components/OverlayView.vue";
+import OverlayView from "components/OverlayView.vue";
 import {computed, onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
 import {useStore} from "vuex";
@@ -43,7 +44,7 @@ async function init() {
     console.log('route', route)
     let stationId = route.params.id
     loading.value = true
-    let _station = await store.dispatch('railsystem/getStation', stationId)
+    let _station = await store.dispatch('railsystem/getStation', {stationId})
     console.log('station', _station)
     //TODO
     if (_station) {
@@ -54,5 +55,16 @@ async function init() {
 </script>
 
 <style scoped>
+.line-train-info-wrapper2 {
+    margin-bottom: 10px;
+}
 
+.content-wrapper {
+    width: 90%;
+    margin: 0 auto;
+}
+
+::v-deep .q-expansion-item--popup > .q-expansion-item__container {
+    border: none;
+}
 </style>

@@ -1,6 +1,6 @@
 <template>
     <transition name="right-in-right-out">
-        <div class="full-height full-width container" style=" z-index: 1000;" v-if="topComponent">
+        <div class="full-height full-width container" style=" z-index: 1000;overflow: hidden;" v-if="topComponent">
             <component :is="topComponent" :key="path"/>
         </div>
     </transition>

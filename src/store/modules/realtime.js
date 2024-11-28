@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import LRU from "src/utils/LRU";
 import {trainInfoParser} from "src/models/Train";
 import {reactive} from "vue";
+import {getNowByTimezone, isAfterNow} from "src/utils/time-utils";
 
 const state = {
     trainInfoMap: reactive(new LRU(100)),
@@ -325,15 +326,20 @@ const mutations = {
 }
 
 const actions = {
-    getStationTrains({commit, state}, {stationId, lineId}) {
+    async getStationTrains({commit, state}, {stationId, lineId}) {
         if (!(stationId && lineId)) {
             return Promise.reject('stationId and lineId cannot be undefined')
         }
+        console.log('sdsada', stationId)
         const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
+        const station = await this.dispatch('railsystem/getStation', {stationId})
         if (stationTrainInfoMap) {
             const lineTrains = stationTrainInfoMap.get(lineId)
             if (lineTrains) {
-                return lineTrains
+                console.log('adas', station.timezone)
+                let _c = lineTrains.filter(it => isAfterNow(it.dep, station.timezone))
+                console.log('tr', _c)
+                return _c
             }
         }
         //TODO fetch by api
@@ -342,7 +348,7 @@ const actions = {
                 const trains = tm[lineId]
                 if (trains) {
                     commit('SET_STATION_TRAININFO', {trainInfoList: trains, stationId, lineId})
-                    resolve(trains)
+                    resolve(trains.filter(it => isAfterNow(it.dep, station.timezone)))
                 }
                 reject(`trains not found lineId:${lineId}`)
             }, 1200)

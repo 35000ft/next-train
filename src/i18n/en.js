@@ -41,8 +41,9 @@ export default {
     get: 'Get',
     load: 'Load',
     trainInfo: "train info",
-    update: "update",
+    update: "Update",
     error: "error",
+    success: "successfully",
     trainStatus: {
         arrived: "ARRIVED",
         departed: "DEPARTED",

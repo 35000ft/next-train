@@ -52,8 +52,8 @@ export function getNowByTimezone(_timezone) {
     return dayjs().tz(_timezone)
 }
 
-export function isAfterNow(_date) {
-    const diff = diffFromNow(_date)
+export function isAfterNow(_date, timezone) {
+    const diff = diffFromNow(_date, 'second', timezone)
     return diff > 0
 }
 
@@ -93,8 +93,43 @@ export function diff(d1, d2, unit = 'second') {
     return d1UTC.diff(d2UTC, unit);
 }
 
-export function diffFromNow(d1, unit = 'second') {
-    const d1UTC = dayjs(d1).utc()
+function parseTimezoneOffset(offset) {
+    // 匹配时区偏移字符串（例如 +0800, -0500）
+    const match = offset.match(/^([+-])(\d{2})(\d{2})$/);
+
+    if (match) {
+        const sign = match[1]; // + 或 -
+        const hours = parseInt(match[2], 10); // 2位小时
+        const minutes = parseInt(match[3], 10); // 2位分钟
+
+        // 计算总偏移量，单位为分钟
+        let totalMinutes = hours * 60 + minutes;
+
+        // 如果是负偏移，转为负数
+        if (sign === '-') {
+            totalMinutes = -totalMinutes;
+        }
+        return totalMinutes
+    } else {
+        console.warn('Invalid timezone offset format. Use +hhmm or -hhmm');
+        return 0
+    }
+}
+
+export function diffFromNow(d1, unit = 'second', timezone = '+0000') {
+    let d1UTC
+    if (!timezone) {
+        d1UTC = dayjs(d1).utc()
+    } else {
+        d1UTC = dayjs(d1)
+        if (timezone) {
+            const off = parseTimezoneOffset(timezone)
+            d1UTC = d1UTC.utcOffset(off).utc()
+        }
+        if (d1UTC.utcOffset() !== 0) {
+            d1UTC = d1UTC.utc()
+        }
+    }
     const nowUTC = dayjs().utc()
     return diff(d1UTC, nowUTC, unit);
 }

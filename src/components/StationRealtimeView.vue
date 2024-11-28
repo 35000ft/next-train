@@ -288,6 +288,7 @@ async function loadLineTrains(lineId) {
     const currentStationId = currentStation.value.id
     if (lineId && currentStationId) {
         return store.dispatch('realtime/getStationTrains', {stationId: currentStationId, lineId: lineId}).then(r => {
+            console.log('load trains', r)
             if (r instanceof Array) {
                 trainInfoMap.value.set(lineId, r)
             }
@@ -385,7 +386,7 @@ async function changeStation(stationId, lineId) {
         return Promise.reject('stationId is undefined')
     }
     isLoadingStation.value = true
-    const station = await store.dispatch('railsystem/getStation', stationId)
+    const station = await store.dispatch('railsystem/getStation', {stationId})
     if (!station || !(station.lines instanceof Array)) {
         isLoadingStation.value = false
         console.warn(`Load station error, cannot get station info. stationId:${stationId}`)

@@ -1,42 +1,51 @@
 <template>
     <div>
-        <div v-if="station&&line">
-            <div>
-                <LineIcon :line="line"
-                          @click="(event)=> handleClickLineIcon(event)"
-                          :disabled="false" class="line-icon">
-                </LineIcon>
+        <div class="line-train-info-wrapper" v-if="station&&line" style="position: relative;">
+            <div class="line-header row"
+                 :style="{backgroundColor:line.color}">
+                <span class="col-6">{{ line.name }}</span>
+                <div class="col-6 tool-bar">
+                    <span @click="handleRefresh"><q-icon name="update"/></span>
+                    <span><q-icon name="departure_board"/></span>
+                </div>
             </div>
-            <div v-if="showSkeleton">
-                <q-skeleton height="40px" style="margin-bottom: 5px;"/>
-                <q-skeleton height="30px" style="margin-bottom: 2px;"/>
-                <q-skeleton height="30px" style="margin-bottom: 2px;"/>
-                <q-skeleton height="30px" style="margin-bottom: 2px;"/>
-            </div>
-            <div class="realtime-info-wrapper text-left" v-for="directionTrainInfo in directionTrains"
-                 :key="directionTrainInfo.direction">
-                <q-expansion-item expand-separator default-opened popup>
-                    <template v-slot:header>
-                        <div class="border-bottom" style="width: 100%;">
+            <div style="margin-top: 35px;">
+                <div v-if="showSkeleton">
+                    <q-skeleton height="40px" style="margin-bottom: 5px;"/>
+                    <q-skeleton height="30px" style="margin-bottom: 2px;"/>
+                    <q-skeleton height="30px" style="margin-bottom: 2px;"/>
+                    <q-skeleton height="30px" style="margin-bottom: 2px;"/>
+                </div>
+                <div class="row train-data border-bottom"
+                     v-if="!isLoadingTrains && (directionTrains&&directionTrains.length===0)"
+                     style="padding-left: 4px; color: var(--q-normal);height: 40px;justify-content: center">
+                    {{ t('noTrain') }}
+                </div>
+                <div class="realtime-info-wrapper text-left" v-for="directionTrainInfo in directionTrains"
+                     :key="directionTrainInfo.direction">
+                    <q-expansion-item expand-separator default-opened popup>
+                        <template v-slot:header>
+                            <div class="border-bottom" style="width: 100%;">
                         <span class="direction-text">
                             <i>{{ directionTrainInfo.direction }}</i>
                             <span style="color: var(--q-normal);margin-left: 3px;">
                                 {{ t('direction') }}
                             </span>
                         </span>
+                            </div>
+                        </template>
+                        <div class="row train-data border-bottom"
+                             v-if="!isLoadingTrains && (directionTrainInfo.trains&&directionTrainInfo.trains.length===0)"
+                             style="padding-left: 4px; color: var(--q-normal);height: 40px;justify-content: center">
+                            {{ t('noTrain') }}
                         </div>
-                    </template>
-                    <div class="row train-data border-bottom"
-                         v-if="!isLoadingTrains && (directionTrainInfo.trains&&directionTrainInfo.trains.length===0)"
-                         style="padding-left: 4px; color: var(--q-normal);height: 40px;justify-content: center">
-                        {{ t('noTrain') }}
-                    </div>
-                    <TrainDataItem v-for="_trainInfo in directionTrainInfo.trains"
-                                   :key="_trainInfo.id"
-                                   :station="station"
-                                   @show-train-detail="showTrainInfoDetailView"
-                                   :train-data="_trainInfo"/>
-                </q-expansion-item>
+                        <TrainDataItem v-for="_trainInfo in directionTrainInfo.trains"
+                                       :key="_trainInfo.id"
+                                       :station="station"
+                                       @show-train-detail="showTrainInfoDetailView"
+                                       :train-data="_trainInfo"/>
+                    </q-expansion-item>
+                </div>
             </div>
         </div>
         <train-info-detail-view :train-info-id-prop="showTrainInfoId" @close="handleCloseShowTrainDetail"/>
@@ -51,9 +60,9 @@ import {useI18n} from "vue-i18n";
 import {isNumber} from "src/utils/string-utils";
 import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import {useStore} from "vuex";
-import LineIcon from "components/LineIcon.vue";
 import LineStationsSelector from "components/LineStationsSelector.vue";
 import {useQuasar} from "quasar";
+import _ from 'lodash'
 
 const props = defineProps({
     station: {
@@ -85,6 +94,13 @@ onUnmounted(() => {
         clearInterval(updateTrainsTimer)
     }
 })
+
+const handleRefresh = _.debounce(() => {
+    loadLineTrains(props.line.id).then(_ => {
+        $q.notify.ok(`${t('load')} ${t('trainInfo')} ${t('success')}`)
+    })
+}, 5000, {leading: true, trailing: false})
+
 const handleClickLineIcon = (event) => {
     const _line = props.line
     if (_line && _line.id) {
@@ -122,6 +138,7 @@ async function loadLineTrains(lineId) {
             directionTrains.value = r
         }).catch(err => {
             console.warn(`load trains err stationId:${stationId} lineId:${lineId} err:${err}`)
+            directionTrains.value = []
             $q.notify.error(`${t('load')} ${t('trainInfo')} ${t('error')}`)
         }).finally(_ => {
             isLoadingTrains.value = false
@@ -134,6 +151,12 @@ async function loadLineTrains(lineId) {
 </script>
 
 <style scoped>
+.line-train-info-wrapper {
+    background-color: var(--q-background-grey-2);
+    border: 1px solid var(--q-grey-2);
+    border-radius: 10px;
+}
+
 .direction-text {
     font-weight: bold;
     font-size: 18px;
@@ -155,9 +178,35 @@ async function loadLineTrains(lineId) {
     margin-right: 2px;
 }
 
+.line-header {
+    position: absolute;
+    top: 0;
+    height: 40px;
+    width: 100%;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    display: flex;
+    align-items: center;
+    color: var(--q-white);
+    font-size: 18px;
+}
+
+.tool-bar {
+    display: flex;
+    overflow-x: auto;
+    justify-content: flex-end;
+}
+
+.tool-bar span {
+    margin-left: 6px;
+}
+
 .border-bottom {
     border-bottom: 1px solid #dcdcdc;
     display: flex;
     align-items: center;
 }
+
 </style>

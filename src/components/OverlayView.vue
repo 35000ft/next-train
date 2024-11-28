@@ -13,8 +13,8 @@
                 <slot name="header-right"></slot>
             </div>
         </q-header>
-        <q-page-container class="full-height">
-            <div class="main-content" style="height: 100vh;">
+        <q-page-container class="full-height scroll">
+            <div class="main-content">
                 <slot name="default"></slot>
             </div>
         </q-page-container>

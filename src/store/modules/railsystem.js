@@ -48,7 +48,7 @@ const stations = [{
 }, {
     id: "9",
     name: "新模范马路",
-    timezone: '+0800',
+    timezone: '+0900',
     railsystemName: '南京地铁',
     railsystemCode: 'NJMTR',
     lines: [{
@@ -159,7 +159,7 @@ const actions = {
     async getRailSystem({state, commit}, code) {
         return state.railSystems.get(code)
     },
-    async getStation({state, commit}, stationId) {
+    async getStation({state, commit}, {stationId}) {
         // TODO
         if (!stationId) {
             return Promise.reject(`stationId is undefined:${stationId}`)
