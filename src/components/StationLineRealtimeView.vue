@@ -3,7 +3,7 @@
         <div class="line-train-info-wrapper" v-if="station&&line" style="position: relative;">
             <div class="line-header row"
                  :style="{backgroundColor:line.color}">
-                <span class="col-6">{{ line.name }}</span>
+                <span class="col-6" @click="handleShowLineStationSelector">{{ line.name }}</span>
                 <div class="col-6 tool-bar">
                     <span @click="handleRefresh"><q-icon name="update"/></span>
                     <span><q-icon name="departure_board"/></span>
@@ -101,7 +101,7 @@ const handleRefresh = _.debounce(() => {
     })
 }, 5000, {leading: true, trailing: false})
 
-const handleClickLineIcon = (event) => {
+const handleShowLineStationSelector = (event) => {
     const _line = props.line
     if (_line && _line.id) {
         lineStationsSelector.value.showSelector({

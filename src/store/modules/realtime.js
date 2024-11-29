@@ -3,6 +3,7 @@ import LRU from "src/utils/LRU";
 import {trainInfoParser} from "src/models/Train";
 import {reactive} from "vue";
 import {getNowByTimezone, isAfterNow} from "src/utils/time-utils";
+import {fetchScheduledTrainInfo, fetchStationCurrentTrainInfo} from "src/apis/reailtime";
 
 const state = {
     trainInfoMap: reactive(new LRU(100)),
@@ -20,194 +21,194 @@ export const tempTrainInfo = {
         [
             "1",
             "八卦洲大桥南",
-            dayjs(new Date()).add(-49, 'minute').toDate(),
-            dayjs(new Date()).add(-48, 'minute').toDate()
+            dayjs(new Date()).add(-49, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-48, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "2",
             "笆斗山",
-            dayjs(new Date()).add(-46, 'minute').toDate(),
-            dayjs(new Date()).add(-45, 'minute').toDate()
+            dayjs(new Date()).add(-46, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-45, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "3",
             "燕子矶",
-            dayjs(new Date()).add(-43, 'minute').toDate(),
-            dayjs(new Date()).add(-42, 'minute').toDate()
+            dayjs(new Date()).add(-43, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-42, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "4",
             "吉祥庵",
-            dayjs(new Date()).add(-41, 'minute').toDate(),
-            dayjs(new Date()).add(-40, 'minute').toDate()
+            dayjs(new Date()).add(-41, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-40, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "5",
             "晓庄",
-            dayjs(new Date()).add(-39, 'minute').toDate(),
-            dayjs(new Date()).add(-38, 'minute').toDate()
+            dayjs(new Date()).add(-39, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-38, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "6",
             "迈皋桥",
-            dayjs(new Date()).add(-37, 'minute').toDate(),
-            dayjs(new Date()).add(-36, 'minute').toDate()
+            dayjs(new Date()).add(-37, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-36, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "7",
             "红山动物园",
-            dayjs(new Date()).add(-35, 'minute').toDate(),
-            dayjs(new Date()).add(-34, 'minute').toDate()
+            dayjs(new Date()).add(-35, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-34, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "8",
             "南京站",
-            dayjs(new Date()).add(-33, 'minute').toDate(),
-            dayjs(new Date()).add(-32, 'minute').toDate()
+            dayjs(new Date()).add(-33, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-32, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "9",
             "新模范马路",
-            dayjs(new Date()).add(-31, 'minute').toDate(),
-            dayjs(new Date()).add(-30, 'minute').toDate()
+            dayjs(new Date()).add(-31, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-30, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             '10',
             "玄武门",
-            dayjs(new Date()).add(-29, 'minute').toDate(),
-            dayjs(new Date()).add(-28, 'minute').toDate()
+            dayjs(new Date()).add(-29, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-28, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "11",
             "鼓楼",
-            dayjs(new Date()).add(-27, 'minute').toDate(),
-            dayjs(new Date()).add(-26, 'minute').toDate()
+            dayjs(new Date()).add(-27, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-26, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "12",
             "珠江路",
-            dayjs(new Date()).add(-25, 'minute').toDate(),
-            dayjs(new Date()).add(-24, 'minute').toDate()
+            dayjs(new Date()).add(-25, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-24, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "13",
             "新街口",
-            dayjs(new Date()).add(-23, 'minute').toDate(),
-            dayjs(new Date()).add(-22, 'minute').toDate()
+            dayjs(new Date()).add(-23, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-22, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "14",
             "张府园",
-            dayjs(new Date()).add(-19, 'minute').toDate(),
-            dayjs(new Date()).add(-20, 'minute').toDate()
+            dayjs(new Date()).add(-19, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-20, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "15",
             "三山街",
-            dayjs(new Date()).add(-18, 'minute').toDate(),
-            dayjs(new Date()).add(-17, 'minute').toDate()
+            dayjs(new Date()).add(-18, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-17, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "16",
             "中华门",
-            dayjs(new Date()).add(-15, 'minute').toDate(),
-            dayjs(new Date()).add(-14, 'minute').toDate()
+            dayjs(new Date()).add(-15, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-14, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "17",
             "安德门",
-            dayjs(new Date()).add(-12, 'minute').toDate(),
-            dayjs(new Date()).add(-11, 'minute').toDate()
+            dayjs(new Date()).add(-12, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-11, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "18",
             "天隆寺",
-            dayjs(new Date()).add(-9, 'minute').toDate(),
-            dayjs(new Date()).add(-8, 'minute').toDate()
+            dayjs(new Date()).add(-9, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-8, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "19",
             "软件大道",
-            dayjs(new Date()).add(-6, 'minute').toDate(),
-            dayjs(new Date()).add(-5, 'minute').toDate()
+            dayjs(new Date()).add(-6, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-5, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "20",
             "花神庙",
-            dayjs(new Date()).add(-3, 'minute').toDate(),
-            dayjs(new Date()).add(-2, 'minute').toDate()
+            dayjs(new Date()).add(-3, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(-2, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "21",
             "南京南站",
-            dayjs(new Date()).add(0, 'minute').toDate(),
-            dayjs(new Date()).add(2, 'minute').toDate()
+            dayjs(new Date()).add(0, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(2, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "22",
             "双龙大道",
-            dayjs(new Date()).add(4, 'minute').toDate(),
-            dayjs(new Date()).add(5, 'minute').toDate()
+            dayjs(new Date()).add(4, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(5, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "23",
             "河定桥",
-            dayjs(new Date()).add(6, 'minute').toDate(),
-            dayjs(new Date()).add(7, 'minute').toDate()
+            dayjs(new Date()).add(6, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(7, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "24",
             "胜太路",
-            dayjs(new Date()).add(9, 'minute').toDate(),
-            dayjs(new Date()).add(10, 'minute').toDate()
+            dayjs(new Date()).add(9, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(10, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "25",
             "百家湖",
-            dayjs(new Date()).add(12, 'minute').toDate(),
-            dayjs(new Date()).add(13, 'minute').toDate()
+            dayjs(new Date()).add(12, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(13, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "26",
             "小龙湾",
-            dayjs(new Date()).add(15, 'minute').toDate(),
-            dayjs(new Date()).add(16, 'minute').toDate()
+            dayjs(new Date()).add(15, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(16, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "27",
             "竹山路",
-            dayjs(new Date()).add(18, 'minute').toDate(),
-            dayjs(new Date()).add(19, 'minute').toDate()
+            dayjs(new Date()).add(18, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(19, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "28",
             "天印大道",
-            dayjs(new Date()).add(21, 'minute').toDate(),
-            dayjs(new Date()).add(22, 'minute').toDate()
+            dayjs(new Date()).add(21, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(22, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "29",
             "龙眠大道",
-            dayjs(new Date()).add(24, 'minute').toDate(),
-            dayjs(new Date()).add(25, 'minute').toDate()
+            dayjs(new Date()).add(24, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(25, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "30",
             "南医大·江苏经贸学院",
-            dayjs(new Date()).add(28, 'minute').toDate(),
-            dayjs(new Date()).add(30, 'minute').toDate()
+            dayjs(new Date()).add(28, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(30, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "31",
             "南京交院",
-            dayjs(new Date()).add(32, 'minute').toDate(),
-            dayjs(new Date()).add(33, 'minute').toDate()
+            dayjs(new Date()).add(32, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(33, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ],
         [
             "32",
             "中国药科大学",
-            dayjs(new Date()).add(35, 'minute').toDate(),
-            dayjs(new Date()).add(36, 'minute').toDate()
+            dayjs(new Date()).add(35, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs(new Date()).add(36, 'minute').format('YYYY-MM-DDTHH:mm:ss')
         ]
     ],
 }
@@ -217,8 +218,8 @@ const line1Trains = [
     {
         id: "23",
         trainNo: "5101",
-        arr: dayjs(new Date()).add(7, 'minute').toDate(),
-        dep: dayjs(new Date()).add(10, 'minute').toDate(),
+        arr: dayjs(new Date()).add(7, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(10, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "中国药科大学·地铁大学城停车场",
         category: ["LOCAL",],
         direction: 0,
@@ -226,8 +227,8 @@ const line1Trains = [
     {
         id: "424",
         trainNo: "5103",
-        arr: dayjs(new Date()).add(4, 'minute').toDate(),
-        dep: dayjs(new Date()).add(5, 'minute').toDate(),
+        arr: dayjs(new Date()).add(4, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(5, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "河定桥",
         direction: 0,
         category: ["SHORT",]
@@ -235,8 +236,8 @@ const line1Trains = [
     {
         id: "78967",
         trainNo: "5107",
-        arr: dayjs(new Date()).add(8, 'minute').toDate(),
-        dep: dayjs(new Date()).add(9, 'minute').toDate(),
+        arr: dayjs(new Date()).add(8, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(9, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "河定桥",
         direction: 0,
         category: ["SHORT",]
@@ -244,8 +245,8 @@ const line1Trains = [
     {
         id: "746854",
         trainNo: "5203",
-        arr: dayjs(new Date()).add(15, 'minute').toDate(),
-        dep: dayjs(new Date()).add(17, 'minute').toDate(),
+        arr: dayjs(new Date()).add(15, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(17, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "河定桥",
         direction: 0,
         category: ["SHORT",]
@@ -253,8 +254,8 @@ const line1Trains = [
     {
         id: "1474",
         trainNo: "5102",
-        arr: dayjs(new Date()).add(1, 'minute').toDate(),
-        dep: dayjs(new Date()).add(2, 'minute').toDate(),
+        arr: dayjs(new Date()).add(1, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(2, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "迈皋桥",
         direction: 1,
         category: ["SHORT",]
@@ -262,8 +263,8 @@ const line1Trains = [
     {
         id: "2752",
         trainNo: "5104",
-        arr: dayjs(new Date()).add(2, 'minute').toDate(),
-        dep: dayjs(new Date()).add(5, 'minute').toDate(),
+        arr: dayjs(new Date()).add(2, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(5, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "八卦洲大桥南",
         direction: 1,
         category: ["LOCAL",]
@@ -273,8 +274,8 @@ const line3Trains = [
     {
         id: "78654",
         trainNo: "4101",
-        arr: dayjs(new Date()).add(3, 'minute').toDate(),
-        dep: dayjs(new Date()).add(4, 'minute').toDate(),
+        arr: dayjs(new Date()).add(3, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(4, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "林场",
         direction: 0,
         category: ["LOCAL",]
@@ -282,8 +283,8 @@ const line3Trains = [
     {
         id: "73245",
         trainNo: "4103",
-        arr: dayjs(new Date()).add(7, 'minute').toDate(),
-        dep: dayjs(new Date()).add(10, 'minute').toDate(),
+        arr: dayjs(new Date()).add(7, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(10, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "林场",
         direction: 0,
         category: ["LOCAL",]
@@ -291,8 +292,8 @@ const line3Trains = [
     {
         id: "788",
         trainNo: "4102",
-        arr: dayjs(new Date()).add(1, 'minute').toDate(),
-        dep: dayjs(new Date()).add(2, 'minute').toDate(),
+        arr: dayjs(new Date()).add(1, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(2, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "秣周东路",
         direction: 1,
         category: ["LOCAL",]
@@ -300,8 +301,8 @@ const line3Trains = [
     {
         id: "6786",
         trainNo: "4104",
-        arr: dayjs(new Date()).add(2, 'minute').toDate(),
-        dep: dayjs(new Date()).add(5, 'minute').toDate(),
+        arr: dayjs(new Date()).add(2, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
+        dep: dayjs(new Date()).add(5, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
         terminal: "胜太西路",
         direction: 1,
         category: ["SHORT",]
@@ -326,35 +327,50 @@ const mutations = {
 }
 
 const actions = {
-    async getStationTrains({commit, state}, {stationId, lineId}) {
+    async fetchStationTrain({commit}, {stationId, lineId}) {
+        if (lineId && stationId) {
+            // const station = await this.dispatch('railsystem/getStation')
+            // if (!time) {
+            //     time = getNowByTimezone(station.timezone)
+            // }
+            return await fetchStationCurrentTrainInfo(stationId, lineId)
+        } else {
+            return Promise.reject('stationId and lineId cannot be undefined')
+        }
+    },
+    async getStationTrains({commit, state}, {stationId, lineId, isCurrent = true}) {
         if (!(stationId && lineId)) {
             return Promise.reject('stationId and lineId cannot be undefined')
         }
-        console.log('sdsada', stationId)
         const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
         const station = await this.dispatch('railsystem/getStation', {stationId})
         if (stationTrainInfoMap) {
             const lineTrains = stationTrainInfoMap.get(lineId)
             if (lineTrains) {
-                console.log('adas', station.timezone)
-                let _c = lineTrains.filter(it => isAfterNow(it.dep, station.timezone))
-                console.log('tr', _c)
-                return _c
+                if (isCurrent) {
+                    const currentTrains = lineTrains.filter(it => isAfterNow(it.dep, station.timezone))
+                    if (currentTrains.length < 10) {
+                        //TODO fetch train
+                    }
+                    return currentTrains
+                } else {
+                    return lineTrains
+                }
             }
         }
         //TODO fetch by api
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const trains = tm[lineId]
-                if (trains) {
-                    commit('SET_STATION_TRAININFO', {trainInfoList: trains, stationId, lineId})
-                    resolve(trains.filter(it => isAfterNow(it.dep, station.timezone)))
-                }
-                reject(`trains not found lineId:${lineId}`)
-            }, 1200)
+        return this.dispatch('realtime/fetchStationTrain', {stationId, lineId}).then(_trains => {
+            console.log('fetched tttrains', _trains)
+            // const trains = tm[lineId]
+            if (_trains) {
+                commit('SET_STATION_TRAININFO', {trainInfoList: _trains, stationId, lineId})
+                // resolve(trains.filter(it => isAfterNow(it.dep, station.timezone)))
+                return Promise.resolve(_trains)
+            }
+            return Promise.reject(`trains not found lineId:${lineId}`)
         })
     },
-    async getStationDirectionTrains({commit}, {stationId, lineId}) {
+    async getStationDirectionTrains({commit}, {stationId, lineId, eachDirectionLimit = 3}) {
         let _trains = await this.dispatch('realtime/getStationTrains', {stationId, lineId})
         let trainDirectionMap = _trains.reduce((acc, cur) => {
             if (cur.direction == null) {
@@ -389,9 +405,10 @@ const actions = {
                 } else {
                     direction = Array.from(_data.directions.values()).join(' / ')
                 }
+                const ___trains = _data.trains.slice(0, eachDirectionLimit).sort((i1, i2) => i1.dep.localeCompare(i2.dep))
                 return {
                     direction: direction,
-                    trains: _data.trains
+                    trains: ___trains
                 }
             })
         if (hasOther) {

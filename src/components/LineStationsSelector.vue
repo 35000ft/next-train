@@ -2,7 +2,10 @@
     <div class="modal-overlay" @click.self="handleClose" v-show="showBg" @touchstart.stop>
         <transition name="zoom-in-zoom-out">
             <div class="wrapper" :style="{height:height+'px',top:positionY+'px'}" v-show="display">
-                <div class="full-height content-wrapper" v-if="line">
+                <div v-if="loading">
+                    <q-skeleton :height="height+'px'"/>
+                </div>
+                <div class="full-height content-wrapper" v-if="line&&line.stations">
                     <span style="display: inline-block;margin: auto 0"
                           v-for="station in line.stations"
                           @click="handleSelectStation(station)"
@@ -19,7 +22,9 @@
 </template>
 
 <script>
-import {computed, defineComponent, ref} from "vue";
+import {computed, defineComponent, ref, toRaw} from "vue";
+import {useStore} from "vuex";
+import _ from "lodash";
 
 
 export default defineComponent({
@@ -30,7 +35,9 @@ export default defineComponent({
         },
     },
     setup(props, {emit}) {
+        const store = useStore()
         const display = ref(false)
+        const loading = ref(true)
         const line = ref(null)
         const currentStationId = ref(null)
         const elementRect = ref(null)
@@ -55,7 +62,18 @@ export default defineComponent({
             }
         })
         const showSelector = ({lineProp, currentStationIdProp, position}) => {
-            if (lineProp && lineProp.stations) {
+            if (lineProp) {
+                lineProp = _.cloneDeep(toRaw(lineProp))
+                if (!(lineProp.stations instanceof Array)) {
+                    loading.value = true
+                    store.dispatch('railsystem/getStationsByLine', {lineId: lineProp.id}).then(_stations => {
+                        lineProp.stations = _stations
+                    }).finally(_ => {
+                        loading.value = false
+                    })
+                } else {
+                    loading.value = false
+                }
                 showBg.value = true
                 line.value = lineProp
                 elementRect.value = position
@@ -79,7 +97,8 @@ export default defineComponent({
             handleClose,
             currentStationId,
             classGetter,
-            positionY
+            positionY,
+            loading
         }
     }
 })

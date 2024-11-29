@@ -13,7 +13,11 @@ const routes = [
             },
             {
                 name: 'station-detail',
-                path: 'station/:id'
+                path: 'station/:id',
+                component: () => import('layouts/OverlayContainer.vue'),
+                meta: {
+                    componentName: 'StationDetailView'
+                }
             }
         ]
     },

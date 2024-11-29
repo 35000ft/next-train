@@ -30,7 +30,6 @@ watch(shownStationId, (newVal, oldVal) => {
 })
 
 const onMoveUp = () => {
-    console.log('call on move up')
     handleClose()
     router.push({name: 'station-detail', params: {id: stationId.value}})
     store.dispatch('application/pushOverlay', {

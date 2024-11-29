@@ -43,6 +43,7 @@ const headerTitle = computed(() => {
 async function init() {
     console.log('route', route)
     let stationId = route.params.id
+    console.log('stationId', stationId)
     loading.value = true
     let _station = await store.dispatch('railsystem/getStation', {stationId})
     console.log('station', _station)

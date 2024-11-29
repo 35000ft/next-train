@@ -145,6 +145,7 @@ const mutations = {
     SET_LINE_STATIONS(state, {lineId, stations}) {
         if (state.lines.has(lineId)) {
             state.lines.get(lineId).stations = stations
+            console.log('SET_LINE_STATIONS', state.lines.get(lineId))
             state.stations.batchSet(stations, (v) => v.id)
         }
     },
@@ -192,7 +193,7 @@ const actions = {
             if (_line.stations instanceof Array) {
                 return _line
             } else {
-                _line.stations = await this.getStationsByLine({state, commit}, lineId)
+                _line.stations = await this.getStationsByLine({state, commit}, {lineId})
                 return _line
             }
         } else {
@@ -205,7 +206,7 @@ const actions = {
             })
         }
     },
-    async getStationsByLine({state, commit}, lineId) {
+    async getStationsByLine({state, commit}, {lineId}) {
         if (state.lines.has(lineId) && state.lines.get(lineId).stations) {
             return toRaw(state.lines.get(lineId).stations)
         }

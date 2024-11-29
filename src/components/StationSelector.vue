@@ -139,7 +139,7 @@ export default defineComponent({
                 })
                 return _result
             } else if (isNumber(lineId)) {
-                return await store.dispatch('railsystem/getStationsByLine', lineId)
+                return await store.dispatch('railsystem/getStationsByLine', {lineId})
             }
             return []
         }

@@ -45,11 +45,16 @@ export function getNowTime(_date) {
     }
 }
 
+/**
+ *
+ * @param {String}_timezone String like "+0800"
+ * @return {dayjs.Dayjs}
+ */
 export function getNowByTimezone(_timezone) {
     if (!_timezone) {
         return dayjs().utc()
     }
-    return dayjs().tz(_timezone)
+    return dayjs().utcOffset(parseTimezoneOffset(_timezone))
 }
 
 export function isAfterNow(_date, timezone) {
@@ -61,12 +66,14 @@ export function isBeforeNow(_date) {
     return !isAfterNow(_date)
 }
 
+/**
+ *
+ * @param {String} _date
+ * @return {boolean}
+ */
 export function hasTimezone(_date) {
-    const dateInstance = toDayjs(_date)
-    if (dateInstance == null) {
-        return false
-    }
-    return dateInstance.utcOffset() !== 0
+    const timezonePattern = /([+-]\d{4})$/;
+    return timezonePattern.test(_date)
 }
 
 /**
@@ -117,22 +124,19 @@ function parseTimezoneOffset(offset) {
 }
 
 export function diffFromNow(d1, unit = 'second', timezone = '+0000') {
-    let d1UTC
+    let now = dayjs().utc()
     if (!timezone) {
-        d1UTC = dayjs(d1).utc()
+        d1 = dayjs(d1).utc()
     } else {
-        d1UTC = dayjs(d1)
-        if (timezone) {
-            const off = parseTimezoneOffset(timezone)
-            d1UTC = d1UTC.utcOffset(off).utc()
-        }
-        if (d1UTC.utcOffset() !== 0) {
-            d1UTC = d1UTC.utc()
+        if (hasTimezone(d1)) {
+            d1 = dayjs(d1).utc(false)
+        } else {
+            d1 = dayjs(d1).utcOffset(parseTimezoneOffset(timezone))
         }
     }
-    const nowUTC = dayjs().utc()
-    return diff(d1UTC, nowUTC, unit);
+    return diff(d1, now, unit)
 }
+
 
 export function diffFromNowFormatted(d1) {
     const diffSeconds = Math.abs(diffFromNow(d1))
