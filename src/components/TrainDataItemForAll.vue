@@ -4,7 +4,7 @@
         <div class="col-1" style="display: flex;justify-content: center; align-items: center;text-align: left; ">
             <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
         </div>
-        <div class="col-5 text-left" style="color: var(--q-normal);overflow: hidden;">
+        <div class="col-6 text-left auto-scroll-container" style="color: var(--q-normal);overflow: hidden;">
             <div v-overflow-auto-scroll>
                  <span class="pill" style="display: inline-block;" :style="{backgroundColor:trainData.line.color}">
                      {{ trainData.line.name }}
@@ -13,7 +13,17 @@
             </div>
         </div>
         <div class="col-4" style="align-items: center;display: flex;justify-content: flex-end;">
-            <DepTrainTime :train-data="trainData" :station="station"/>
+            <div v-overflow-auto-scroll
+                 style="margin-left: auto;display: flex;align-items: center;justify-content: flex-end;">
+                <div style="flex-shrink: 0">
+                    <DepTrainTime :train-data="trainData" :station="station"/>
+                </div>
+                <span class="pill"
+                      v-for="(trainCategory,index) in trainCategories" :key="index"
+                      :style="{backgroundColor:trainCategory.bgColor}">
+                        {{ t(`trainCategory.${trainCategory.code}`) }}
+                </span>
+            </div>
         </div>
     </div>
 
@@ -36,6 +46,12 @@ const props = defineProps({
     station: {
         type: Object
     }
+})
+const trainCategories = computed(() => {
+    if (props.trainData && props.trainData.category) {
+        return props.trainData.category.map(it => TRAIN_CATEGORY[it])
+    }
+    return []
 })
 const arriveMins = computed(() => {
     let diffSeconds = diffFromNow(props.trainData.arr, 'second')

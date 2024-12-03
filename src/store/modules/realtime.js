@@ -8,6 +8,7 @@ import {fetchStationCurrentTrainInfo} from "src/apis/reailtime";
 const state = {
     trainInfoMap: reactive(new LRU(100)),
     stationTrainInfoMap: reactive(new LRU(20)),
+    LOCK: reactive(new Map())
 }
 
 export const tempTrainInfo = {
@@ -213,105 +214,6 @@ export const tempTrainInfo = {
     ],
 }
 
-
-const line1Trains = [
-    {
-        id: "23",
-        trainNo: "5101",
-        arr: dayjs(new Date()).add(7, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(10, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "中国药科大学·地铁大学城停车场",
-        category: ["LOCAL",],
-        direction: 0,
-    },
-    {
-        id: "424",
-        trainNo: "5103",
-        arr: dayjs(new Date()).add(4, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(5, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "河定桥",
-        direction: 0,
-        category: ["SHORT",]
-    },
-    {
-        id: "78967",
-        trainNo: "5107",
-        arr: dayjs(new Date()).add(8, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(9, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "河定桥",
-        direction: 0,
-        category: ["SHORT",]
-    },
-    {
-        id: "746854",
-        trainNo: "5203",
-        arr: dayjs(new Date()).add(15, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(17, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "河定桥",
-        direction: 0,
-        category: ["SHORT",]
-    },
-    {
-        id: "1474",
-        trainNo: "5102",
-        arr: dayjs(new Date()).add(1, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(2, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "迈皋桥",
-        direction: 1,
-        category: ["SHORT",]
-    },
-    {
-        id: "2752",
-        trainNo: "5104",
-        arr: dayjs(new Date()).add(2, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(5, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "八卦洲大桥南",
-        direction: 1,
-        category: ["LOCAL",]
-    },
-]
-const line3Trains = [
-    {
-        id: "78654",
-        trainNo: "4101",
-        arr: dayjs(new Date()).add(3, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(4, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "林场",
-        direction: 0,
-        category: ["LOCAL",]
-    },
-    {
-        id: "73245",
-        trainNo: "4103",
-        arr: dayjs(new Date()).add(7, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(10, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "林场",
-        direction: 0,
-        category: ["LOCAL",]
-    },
-    {
-        id: "788",
-        trainNo: "4102",
-        arr: dayjs(new Date()).add(1, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(2, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "秣周东路",
-        direction: 1,
-        category: ["LOCAL",]
-    },
-    {
-        id: "6786",
-        trainNo: "4104",
-        arr: dayjs(new Date()).add(2, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        dep: dayjs(new Date()).add(5, 'minute').format('YYYY-MM-DDTHH:mm:ss'),
-        terminal: "胜太西路",
-        direction: 1,
-        category: ["SHORT",]
-    }
-]
-const tm = {
-    "1": line1Trains,
-    "3": line3Trains
-}
 const mutations = {
     SET_TRAININFO(state, {trainInfoId, trainInfo}) {
         //TODO state.trainInfoMap.set(trainInfo.id, trainInfo)
@@ -323,17 +225,36 @@ const mutations = {
             stationTrainInfoMap.set(lineId, trainInfoList)
             state.stationTrainInfoMap.set(stationId, stationTrainInfoMap)
         }
-    }
+    },
+    SET_LOCK(state, {key}) {
+        state.LOCK.set(key, true)
+    },
+    UNLOCK(state, {key}) {
+        state.LOCK.delete(key)
+    },
 }
 
 const actions = {
-    async fetchStationTrain({commit}, {stationId, lineId}) {
+    async fetchStationTrain({state, commit}, {stationId, lineId}) {
         if (lineId && stationId) {
-            // const station = await this.dispatch('railsystem/getStation')
-            // if (!time) {
-            //     time = getNowByTimezone(station.timezone)
-            // }
-            return await fetchStationCurrentTrainInfo(stationId, lineId)
+            return new Promise((resolve, reject) => {
+                const lockKey = `fetchStationTrain:${stationId}-${lineId}`
+                if (state.LOCK.has(lockKey)) {
+                    const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
+                    const _oldTrains = stationTrainInfoMap && stationTrainInfoMap.get(lineId)
+                    resolve(_oldTrains || [])
+                    return
+                }
+                commit('SET_LOCK', {key: lockKey})
+                fetchStationCurrentTrainInfo(stationId, lineId).then(_trains => {
+                    commit('SET_STATION_TRAININFO', {trainInfoList: _trains, stationId, lineId})
+                    resolve(_trains)
+                }).catch(err => {
+                    reject(err)
+                }).finally(_ => {
+                    commit('UNLOCK', {key: lockKey})
+                })
+            })
         } else {
             return Promise.reject('stationId and lineId cannot be undefined')
         }
@@ -350,7 +271,7 @@ const actions = {
                 if (isCurrent) {
                     const currentTrains = lineTrains.filter(it => isAfterNow(it.dep, station.timezone))
                     if (currentTrains.length < 10) {
-                        //TODO fetch train
+                        this.dispatch('realtime/fetchStationTrain', {stationId, lineId})
                     }
                     return currentTrains
                 } else {
@@ -359,16 +280,7 @@ const actions = {
             }
         }
         //TODO fetch by api
-        return this.dispatch('realtime/fetchStationTrain', {stationId, lineId}).then(_trains => {
-            console.log('fetched tttrains', _trains)
-            // const trains = tm[lineId]
-            if (_trains) {
-                commit('SET_STATION_TRAININFO', {trainInfoList: _trains, stationId, lineId})
-                // resolve(trains.filter(it => isAfterNow(it.dep, station.timezone)))
-                return Promise.resolve(_trains)
-            }
-            return Promise.reject(`trains not found lineId:${lineId}`)
-        })
+        return this.dispatch('realtime/fetchStationTrain', {stationId, lineId})
     },
     async getStationDirectionTrains({commit}, {stationId, lineId, eachDirectionLimit = 3}) {
         let _trains = await this.dispatch('realtime/getStationTrains', {stationId, lineId})

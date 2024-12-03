@@ -17,7 +17,7 @@
                       v-for="(trainCategory,index) in trainCategories" :key="index"
                       :style="{backgroundColor:trainCategory.bgColor}">
                         {{ t(`trainCategory.${trainCategory.code}`) }}
-                    </span>
+                </span>
             </div>
         </div>
     </div>
@@ -35,7 +35,10 @@ import TrainTerminal from "components/TrainTerminal.vue";
 
 const {t} = useI18n()
 const trainCategories = computed(() => {
-    return ['LOCAL', 'INITIAL'].map(it => TRAIN_CATEGORY[it])
+    if (props.trainData && props.trainData.category) {
+        return props.trainData.category.map(it => TRAIN_CATEGORY[it])
+    }
+    return []
 })
 const props = defineProps({
     trainData: {

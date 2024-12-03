@@ -157,7 +157,7 @@ export default defineComponent({
                 if (_line) {
                     return _line.color
                 } else {
-                    store.dispatch('railsystem/getLine', lineId)
+                    store.dispatch('railsystem/getLine', {lineId})
                     return '#ffffff'
                 }
             }

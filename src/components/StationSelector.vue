@@ -54,8 +54,6 @@
                         </div>
                     </q-tab-panel>
                     <q-tab-panel :name="line.name" :key="line.id" v-for="line in lines">
-                        <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
-                        <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
                         <div class="row station-result-wrapper" v-for="(station,index) in searchResults" :key="index">
                             <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;"
                                  @click="handleSelect(station)">
@@ -82,6 +80,8 @@
                                 </div>
                             </div>
                         </div>
+                        <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
+                        <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
                     </q-tab-panel>
                 </q-tab-panels>
 
@@ -123,10 +123,12 @@ export default defineComponent({
             console.log('station selector init...')
             loading.value = true
             store.dispatch('railsystem/getRailSystemLines').then(r => {
+                console.log('sadsd', r)
                 lines.value = r
                 searchGroups.value = [ALL_STR, ...r.map(it => it.name)]
                 loading.value = false
             }).catch(err => {
+                console.warn('load lines error', err)
                 $q.notify.warn('load lines error')
             })
         }
@@ -244,6 +246,7 @@ export default defineComponent({
                 return
             }
             store.dispatch('preference/addHistoryStation', station)
+            store.commit('railsystem/SET_STATION', {station})
             emit('select', station.id, (line && line.id) || null)
             display.value = false
         }

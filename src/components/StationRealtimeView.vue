@@ -150,7 +150,6 @@ import StationSelector from "components/StationSelector.vue";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineStationsSelector from "components/LineStationsSelector.vue";
-import {getNowByTimezone} from "src/utils/time-utils";
 import {isNumber} from "src/utils/string-utils";
 import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import _ from "lodash";
@@ -222,12 +221,12 @@ const handleCloseShowTrainDetail = () => {
  */
 async function calcCurrentTrains(_lineId, _station) {
     if (!trainInfoMap.value || !currentStation.value) {
+        console.warn('trainInfoMap or currentStation is not inited')
         return []
     }
     let _t = trainInfoMap.value
     const _stationId = _station.id
     const allLines = new Map(currentStation.value.lines.map(it => [it.id, it]))
-    const currentTimezone = currentStation.value.timezone
     if (_t && allLines) {
         if (_lineId === 'all') {
             // All Trains
@@ -244,14 +243,12 @@ async function calcCurrentTrains(_lineId, _station) {
                         return []
                     }
                     const lineTrains = _t.get(lineId)
-                    const now = getNowByTimezone(currentTimezone)
-                    return lineTrains.filter(it => it.arr >= now || (now >= it.arr && now < it.dep))
-                        .map(it => {
-                            it.line = allLines.get(lineId)
-                            return it
-                        })
+                    return lineTrains.map(it => {
+                        it.line = allLines.get(lineId)
+                        return it
+                    })
                 }).flat()
-            return allTrains.sort((i1, i2) => i1.dep - i2.dep)
+            return allTrains.sort((i1, i2) => i1.dep.localeCompare(i2.dep))
         }
 
         let directionTrains
@@ -442,7 +439,7 @@ const handleChangeLine = (lineId) => {
 }
 
 async function loadLineInfo(lineId) {
-    return store.dispatch('railsystem/getLine', lineId).then(_line => {
+    return store.dispatch('railsystem/getLine', {lineId}).then(_line => {
         if (_line && lineId === _line.id) {
             const _result = _.cloneDeep(toRaw(_line))
             return Promise.resolve(_result)

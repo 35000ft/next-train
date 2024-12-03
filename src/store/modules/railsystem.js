@@ -2,15 +2,14 @@
 
 import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
-import _ from 'lodash'
-import {fetchStations} from "src/apis/railsystem";
+import {fetchLines, fetchStations} from "src/apis/railsystem";
 
 
 const railSystems = {
     'NJMTR': {
         name: '南京',
         code: 'NJMTR',
-        lang: 'cn',
+        lang: 'zh-hans',
         fullname: '南京地铁',
         timezone: '+0800',
         defaultStationId: "8"
@@ -18,7 +17,7 @@ const railSystems = {
     'GZMTR': {
         name: '广州',
         code: 'GZMTR',
-        lang: 'cn',
+        lang: 'zh-hans',
         fullname: '广州地铁',
         timezone: '+0800',
         defaultStationId: "10"
@@ -147,12 +146,12 @@ const mutations = {
     SET_LINE_STATIONS(state, {lineId, stations}) {
         if (state.lines.has(lineId)) {
             state.lines.get(lineId).stations = stations
-            console.log('SET_LINE_STATIONS', state.lines.get(lineId))
             state.stations.batchSet(stations, (v) => v.id)
         }
     },
     SET_STATION(state, {station}) {
         if (station && station.id) {
+            console.log('set station', station)
             state.stations.set(station.id, station)
         }
     },
@@ -168,6 +167,7 @@ const actions = {
             return Promise.reject(`stationId is undefined:${stationId}`)
         }
         const isFavourite = await this.dispatch('preference/isFavouriteStation', {stationId})
+
         let station = state.stations.get(stationId)
         if (!station) {
             station = stations.find(it => it.id === stationId)
@@ -194,7 +194,7 @@ const actions = {
             })
         }
     },
-    async getLine({state, commit}, lineId) {
+    async getLine({state, commit}, {lineId}) {
         if (state.lines.has(lineId)) {
             const _line = state.lines.get(lineId)
             if (_line.stations instanceof Array) {
@@ -205,7 +205,8 @@ const actions = {
             }
         } else {
             //TODO
-            commit('SET_LINE', {line: lines[2]})
+            console.log('sadasd', lines[0])
+            commit('SET_LINE', {line: lines[0]})
             return new Promise((resolve) => {
                 setTimeout(() => {
                     resolve(lines[2])
@@ -230,24 +231,31 @@ const actions = {
      * 获取线网的所有线路信息
      * @param {String} railsystemCode
      * @returns {Promise<Array[Object]>}
+     * @param payload
      */
-    async getRailSystemLines({state, commit, getters}, railsystemCode) {
+    async getRailSystemLines({state, commit, getters}, payload) {
         let railsystem
-        if (!railsystemCode || railsystemCode === getters.currentRailSystem.code) {
-            railsystem = getters.currentRailSystem
+        let railsystemCode = payload && payload.railsystemCode
+        if (!railsystemCode || railsystemCode === state.currentRailSystem.code) {
+            railsystem = state.currentRailSystem
         } else {
             railsystem = await this.dispatch('railsystem/getRailSystem', railsystemCode)
         }
         if (railsystem.lines) {
-            return Promise.resolve(toRaw(railsystem.lines))
+            return Promise.resolve(railsystem.lines)
         } else {
-            //TODO 从接口获取
-            commit('SET_RAIL_SYSTEM_LINES', {railsystemCode: railsystem.code, lines})
-            return lines
+            return new Promise((resolve, reject) => {
+                fetchLines(railsystem.code, railsystem.version).then(data => {
+                    const {lines} = data
+                    commit('SET_RAIL_SYSTEM_LINES', {railsystemCode: railsystem.code, lines})
+                    resolve(lines)
+                }).catch(err => {
+                    reject(err)
+                })
+            })
         }
     },
     async getCurrentDefaultStation({commit}) {
-        return
     }
 }
 
