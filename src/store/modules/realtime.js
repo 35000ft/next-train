@@ -3,7 +3,7 @@ import LRU from "src/utils/LRU";
 import {trainInfoParser} from "src/models/Train";
 import {reactive} from "vue";
 import {getNowByTimezone, isAfterNow} from "src/utils/time-utils";
-import {fetchScheduledTrainInfo, fetchStationCurrentTrainInfo} from "src/apis/reailtime";
+import {fetchStationCurrentTrainInfo} from "src/apis/reailtime";
 
 const state = {
     trainInfoMap: reactive(new LRU(100)),

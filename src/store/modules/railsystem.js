@@ -3,6 +3,8 @@
 import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
 import _ from 'lodash'
+import {fetchStations} from "src/apis/railsystem";
+
 
 const railSystems = {
     'NJMTR': {
@@ -180,11 +182,16 @@ const actions = {
         const currentRailSystem = state.currentRailSystem
         //TODO
         if (currentRailSystem.stations) {
-            return _.cloneDeep(toRaw(currentRailSystem.stations))
+            return currentRailSystem.stations
         } else {
-            currentRailSystem.stations = stations
-            commit('SET_RAILSYSTEM', {currentRailSystem})
-            return stations
+            return fetchStations(currentRailSystem.code, currentRailSystem.version || "").then(data => {
+                const {stations, version} = data
+                currentRailSystem.stations = stations
+                currentRailSystem.version = version
+                console.log('data', data)
+                commit('SET_RAILSYSTEM', {currentRailSystem})
+                return stations
+            })
         }
     },
     async getLine({state, commit}, lineId) {
