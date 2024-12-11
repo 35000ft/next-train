@@ -41,7 +41,7 @@ export async function fetchLines(railsystemCode, version) {
 }
 
 export async function fetchRailsystem(railsystemCode) {
-    const url = `${host}/metro-realtime/query/railsystem/${railsystemCode}`
+    const url = `${host}/metro-realtime/query/railsystem/id/${railsystemCode}`
     return await axios
         .get(url)
         .then(res => {
@@ -55,12 +55,23 @@ export async function fetchRailsystem(railsystemCode) {
 /**
  * Fetch line by id
  * @param {String} lineId Id of line
- * @param {String} version Version of Rail system like '1
  */
-export async function fetchLine(lineId, version = "") {
-    const url = `${host}/file/railsystem/lines/${lineId}`
+export async function fetchLine(lineId) {
+    const url = `${host}/file/railsystem/lines/id/${lineId}`
     return await axios
-        .get(url, {params: {v: version || ""}})
+        .get(url)
+        .then(res => {
+            return res.data.data
+        })
+        .catch(err => {
+            return Promise.reject(err)
+        })
+}
+
+export async function fetchStation(stationId) {
+    const url = `${host}/file/railsystem/stations/id/${stationId}`
+    return await axios
+        .get(url)
         .then(res => {
             return res.data.data
         })

@@ -2,7 +2,7 @@
 
 import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
-import {fetchLine, fetchLines, fetchStations} from "src/apis/railsystem";
+import {fetchLine, fetchLines, fetchStation, fetchStations} from "src/apis/railsystem";
 
 
 const railSystems = {
@@ -136,6 +136,7 @@ const mutations = {
     SET_LINE(state, {line}) {
         if (line && line.id) {
             state.lines.set(line.id, line)
+            localStorage.setItem("line:" + line.id, JSON.stringify(line))
         }
     },
     SET_RAILSYSTEM(state, railsystem) {
@@ -151,8 +152,8 @@ const mutations = {
     },
     SET_STATION(state, {station}) {
         if (station && station.id) {
-            console.log('set station', station)
             state.stations.set(station.id, station)
+            localStorage.setItem("station:" + station.id, JSON.stringify(station))
         }
     },
 }
@@ -170,12 +171,23 @@ const actions = {
         const currentRailSystem = state.currentRailSystem;
         let station = state.stations.get(stationId)
         if (!station) {
-            console.log('currentRailSystem', currentRailSystem)
             station = currentRailSystem.stations && currentRailSystem.stations.find(it => it.id === stationId)
             if (station) {
-                commit('SET_STATION', {station})
+                return station
             } else {
-                //TODO fetch
+                const _station = JSON.parse(localStorage.getItem('station:' + stationId))
+                if (_station) {
+                    commit('SET_STATION', {_station})
+                    return _station
+                }
+                return new Promise((resolve, reject) => {
+                    fetchStation(stationId).then(station => {
+                        commit('SET_STATION', {station})
+                        resolve(station)
+                    }).catch(err => {
+                        reject(err)
+                    })
+                })
             }
         }
         if (!station) {
@@ -210,9 +222,20 @@ const actions = {
                 return _line
             }
         } else {
-            fetchLine(lineId).then(line => {
-
+            const _line = JSON.parse(localStorage.getItem('line:' + lineId))
+            if (_line) {
+                commit('SET_LINE', {_line})
+                return _line
+            }
+            return new Promise((resolve, reject) => {
+                fetchLine(lineId).then(line => {
+                    commit('SET_LINE', {line})
+                    resolve(line)
+                }).catch(err => {
+                    reject(err)
+                })
             })
+
         }
     },
     async getStationsByLine({state, commit}, {lineId}) {

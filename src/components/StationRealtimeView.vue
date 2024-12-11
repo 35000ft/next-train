@@ -10,8 +10,15 @@
                         <div style="font-size: 25px;margin-bottom: 15px;overflow: hidden">
                             <i class="fa-solid fa-arrow-left"></i>
                         </div>
-                        <div class="direction-text">
-                            {{ t('directionShort') }} <b>{{ previousStation.direction }}</b>
+                        <div class="direction-text row">
+                            <span class="col-4">
+                                {{ t('directionShort') }}:
+                            </span>
+                            <span class="col-8 auto-scroll-container">
+                                <div v-overflow-auto-scroll>
+                                    <b>{{ previousStation.direction }}</b>
+                                </div>
+                            </span>
                         </div>
                         <div v-overflow-auto-scroll>
                             <span>{{ previousStation.name }}</span>
@@ -48,8 +55,15 @@
                         <div style="font-size: 25px;margin-bottom: 15px;overflow: hidden">
                             <i class="fa-solid fa-arrow-right"></i>
                         </div>
-                        <div class="direction-text">
-                            {{ t('directionShort') }} <b>{{ nextStation.direction }}</b>
+                        <div class="direction-text row">
+                            <span class="col-4 text-left">
+                                {{ t('directionShort') }}:
+                            </span>
+                            <span class="col-8 auto-scroll-container">
+                                <div v-overflow-auto-scroll>
+                                    <b>{{ nextStation.direction }}</b>
+                                </div>
+                            </span>
                         </div>
                         <div v-overflow-auto-scroll>
                             <span>{{ nextStation.name }}</span>
