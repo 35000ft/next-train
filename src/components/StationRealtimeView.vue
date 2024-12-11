@@ -374,6 +374,9 @@ function init() {
 }
 
 const handleChangeStation = (stationId, lineId) => {
+    console.log('Change station to stationId:', stationId)
+    trainInfoMap.value = new Map()
+    allTrains.value = []
     changeStation(stationId, lineId).then(station => {
         currentStation.value = station
         currentStationId.value = station.id
@@ -528,8 +531,6 @@ watch(currentStationId, (stationId, oldValue) => {
             return
         }
     }
-    trainInfoMap.value = new Map()
-    allTrains.value = []
     const _currentLineId = currentLine.value && currentLine.value.id || null
     handleChangeStation(stationId, _currentLineId)
 })

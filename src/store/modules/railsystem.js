@@ -2,7 +2,7 @@
 
 import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
-import {fetchLines, fetchStations} from "src/apis/railsystem";
+import {fetchLine, fetchLines, fetchStations} from "src/apis/railsystem";
 
 
 const railSystems = {
@@ -167,13 +167,19 @@ const actions = {
             return Promise.reject(`stationId is undefined:${stationId}`)
         }
         const isFavourite = await this.dispatch('preference/isFavouriteStation', {stationId})
-
+        const currentRailSystem = state.currentRailSystem;
         let station = state.stations.get(stationId)
         if (!station) {
-            station = stations.find(it => it.id === stationId)
+            console.log('currentRailSystem', currentRailSystem)
+            station = currentRailSystem.stations && currentRailSystem.stations.find(it => it.id === stationId)
             if (station) {
                 commit('SET_STATION', {station})
+            } else {
+                //TODO fetch
             }
+        }
+        if (!station) {
+            return Promise.reject('Get station err stationId:' + stationId)
         }
         station.isFavourite = isFavourite
         return station
@@ -204,13 +210,8 @@ const actions = {
                 return _line
             }
         } else {
-            //TODO
-            console.log('sadasd', lines[0])
-            commit('SET_LINE', {line: lines[0]})
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(lines[2])
-                }, 1500)
+            fetchLine(lineId).then(line => {
+
             })
         }
     },
@@ -248,6 +249,9 @@ const actions = {
                 fetchLines(railsystem.code, railsystem.version).then(data => {
                     const {lines} = data
                     commit('SET_RAIL_SYSTEM_LINES', {railsystemCode: railsystem.code, lines})
+                    lines.forEach(it => {
+                        commit('SET_LINE', {line: it})
+                    })
                     resolve(lines)
                 }).catch(err => {
                     reject(err)

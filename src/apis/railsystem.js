@@ -51,3 +51,20 @@ export async function fetchRailsystem(railsystemCode) {
             return Promise.reject(err)
         })
 }
+
+/**
+ * Fetch line by id
+ * @param {String} lineId Id of line
+ * @param {String} version Version of Rail system like '1
+ */
+export async function fetchLine(lineId, version = "") {
+    const url = `${host}/file/railsystem/lines/${lineId}`
+    return await axios
+        .get(url, {params: {v: version || ""}})
+        .then(res => {
+            return res.data.data
+        })
+        .catch(err => {
+            return Promise.reject(err)
+        })
+}
