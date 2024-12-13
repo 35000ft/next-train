@@ -304,6 +304,7 @@ function checkIsChanged(originLineId, originStationId) {
 }
 
 async function updateCurrentTrains() {
+    console.log('updateCurrentTrains')
     isLoadingTrains.value = true
     const _currentLindId = currentLineId.value
     if (!_currentLindId) {
@@ -426,11 +427,6 @@ async function changeStation(stationId, lineId) {
 watch(currentLineId, (lineId, oldValue) => {
     if (!lineId || lineId === oldValue) {
         return
-    }
-    if (currentLine.value) {
-        if (currentLine.value.id === lineId) {
-            return
-        }
     }
     currentTrains.value = []
     if (lineId === 'all') {

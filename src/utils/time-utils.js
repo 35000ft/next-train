@@ -194,6 +194,10 @@ function toDayjs(_date) {
  * @return {string}
  */
 export function date2StringWithTimezone(_date) {
+    if (typeof _date === "string") {
+        _date = dayjs(_date).toDate()
+        console.log('_date', _date)
+    }
     const offset = -_date.getTimezoneOffset()
     const sign = offset >= 0 ? '+' : '-'
     const hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0')

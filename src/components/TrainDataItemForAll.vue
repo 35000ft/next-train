@@ -4,7 +4,7 @@
         <div class="col-1" style="display: flex;justify-content: center; align-items: center;text-align: left; ">
             <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
         </div>
-        <div class="col-6 text-left auto-scroll-container" style="color: var(--q-normal);overflow: hidden;">
+        <div class="col-5 text-left auto-scroll-container" style="color: var(--q-normal);overflow: hidden;">
             <div v-overflow-auto-scroll>
                  <span class="pill" style="display: inline-block;" :style="{backgroundColor:trainData.line.color}">
                      {{ trainData.line.name }}
@@ -12,7 +12,7 @@
                 <span>{{ trainData.terminal }}</span>
             </div>
         </div>
-        <div class="col-4" style="align-items: center;display: flex;justify-content: flex-end;">
+        <div class="col-5">
             <div v-overflow-auto-scroll
                  style="margin-left: auto;display: flex;align-items: center;justify-content: flex-end;">
                 <div style="flex-shrink: 0">
