@@ -12,13 +12,21 @@ const routes = [
                 component: () => import('components/TrainInfoDetailView.vue')
             },
             {
+                name: 'station-schedule-detail',
+                path: 'station/schedule/:stationId/:lineId',
+                component: () => import('components/RouteDispatcher.vue'),
+                meta: {
+                    componentName: 'StationScheduleDetailView'
+                },
+            },
+            {
                 name: 'station-detail',
                 path: 'station/:id',
-                component: () => import('layouts/OverlayContainer.vue'),
+                component: () => import('components/RouteDispatcher.vue'),
                 meta: {
                     componentName: 'StationDetailView'
                 }
-            }
+            },
         ]
     },
     // Always leave this as last one,

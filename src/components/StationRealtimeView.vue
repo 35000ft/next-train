@@ -25,6 +25,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- tool bar -->
                 <div class="col-6 station-name-row" style="display: flex;align-items: center;justify-content: center;">
                     <div class="tool-bar" style="z-index: 10">
                         <div @click="handleFavourStation(currentStationId)">
@@ -32,7 +33,7 @@
                                     name="star"/>
                         </div>
                         <div>
-                            <q-icon name="departure_board"/>
+                            <q-icon name="departure_board" @click="handleShowSchedule"/>
                         </div>
                         <div>
                             <q-icon name="map"/>
@@ -167,7 +168,9 @@ import LineStationsSelector from "components/LineStationsSelector.vue";
 import {isNumber} from "src/utils/string-utils";
 import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import _ from "lodash";
+import {useRouter} from "vue-router";
 
+const router = useRouter()
 const $q = useQuasar()
 const {t} = useI18n()
 const emit = defineEmits(['changeStation'])
@@ -475,6 +478,14 @@ const handleRefreshTrainData = (done) => {
 const handleTouchTrainDataRegionStart = (event) => {
     if (currentStation.value.lines.length > 1) {
         event.stopPropagation()
+    }
+}
+const handleShowSchedule = () => {
+    const stationId = currentStation.value.id
+    const lineId = currentLine.value.id
+    if (stationId && lineId) {
+        const params = {stationId, lineId};
+        router.push({name: 'station-schedule-detail', params: params})
     }
 }
 

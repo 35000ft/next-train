@@ -31,3 +31,15 @@ export async function fetchStationCurrentTrainInfo(stationId, lineId) {
             return Promise.reject(err)
         })
 }
+
+export async function fetchStationSchedule(stationId, lineId) {
+    const url = `${host}/metro-realtime/station/schedule/v2/${stationId}/${lineId}`
+    return await axios
+        .post(url)
+        .then(res => {
+            return res.data.data
+        })
+        .catch(err => {
+            return Promise.reject(err)
+        })
+}

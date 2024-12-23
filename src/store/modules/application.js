@@ -1,10 +1,11 @@
-import {reactive} from "vue";
-import {useRouter} from "vue-router";
+import {reactive, toRaw} from "vue";
+import {isEqual} from "lodash";
 
 
 const state = {
     shownStationId: reactive(null),
-    overlayStack: reactive([])
+    overlayStack: reactive([]),
+    isOverlayRendered: false,
 };
 
 const mutations = {
@@ -12,7 +13,18 @@ const mutations = {
         state.shownStationId = stationId
     },
     PUSH_OVERLAY(state, {component}) {
-        state.overlayStack.push(component)
+        if (state.overlayStack.length > 0) {
+            const top = toRaw(state.overlayStack.slice(-1)[0])
+            if (top.componentName === component.componentName) {
+                if (!isEqual(top.params, component.params)) {
+                    state.overlayStack.push(component)
+                }
+            } else {
+                state.overlayStack.push(component)
+            }
+        } else {
+            state.overlayStack.push(component)
+        }
     },
     POP_OVERLAY(state, {componentName}) {
         if (state.overlayStack.length > 0) {
@@ -23,7 +35,10 @@ const mutations = {
             }
             state.overlayStack.splice(state.overlayStack.length - 1, 1)
         }
-    }
+    },
+    SET_OVERLAY_RENDERED(state, {isRendered}) {
+        state.isOverlayRendered = isRendered
+    },
 };
 
 const actions = {
@@ -39,15 +54,19 @@ const actions = {
         }
     },
     popOverlay({commit, state}, payload) {
+        console.log('popOverlay', payload)
         const componentName = payload && payload.componentName || null
-        mutations.POP_OVERLAY(state, {componentName: componentName})
+        commit('POP_OVERLAY', {componentName: componentName})
+    },
+    setIsOverlayRendered({commit, state}) {
+        commit('SET_OVERLAY_RENDERED', {isRendered: true})
     }
-
 };
 
 const getters = {
     shownStationId: state => state.shownStationId,
-    topOverlayComponent: state => state.overlayStack.slice(-1)[0]
+    topOverlayComponent: state => state.overlayStack.slice(-1)[0],
+    isOverlayRendered: state => state.isOverlayRendered,
 };
 
 export default {
