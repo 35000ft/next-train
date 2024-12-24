@@ -123,7 +123,6 @@ export default defineComponent({
             console.log('station selector init...')
             loading.value = true
             store.dispatch('railsystem/getRailSystemLines').then(r => {
-                console.log('sadsd', r)
                 lines.value = r
                 searchGroups.value = [ALL_STR, ...r.map(it => it.name)]
                 loading.value = false

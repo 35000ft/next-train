@@ -152,7 +152,8 @@
     </q-tab-panels>
     <line-stations-selector :height="45" ref="lineStationsSelector" @select="handleSelectStation"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
-    <train-info-detail-view :train-info-id-prop="showTrainInfoId" @close="handleCloseShowTrainDetail"/>
+    <train-info-detail-view v-if="showTrainInfo" :train-info-id-prop="showTrainInfo.id" :date="showTrainInfo.date"
+                            @close="handleCloseShowTrainDetail"/>
 </template>
 
 <script setup>
@@ -180,14 +181,14 @@ const trainInfoMap = ref(new Map())
 const lineIconRegion = ref(null)
 const trainInfoArea = ref(null)
 const isLoadingStation = ref(true)
-const isLoadingTrains = ref(true)
+const isLoadingTrains = ref(false)
 const currentLine = ref(null)
 const stationSelector = ref(null)
 const lineStationsSelector = ref(null)
 const currentStation = ref(null)
 const currentTrains = ref([])
 const allTrains = ref([])
-const showTrainInfoId = ref(null)
+const showTrainInfo = ref(null)
 
 
 const props = defineProps({
@@ -223,14 +224,17 @@ const handleFavourStation = (_stationId) => {
     })
 }
 
-const showTrainInfoDetailView = (trainInfoId) => {
-    if (isNumber(trainInfoId)) {
-        showTrainInfoId.value = trainInfoId
+const showTrainInfoDetailView = (trainInfo) => {
+    if (trainInfo) {
+        showTrainInfo.value = {
+            id: trainInfo.id,
+            date: trainInfo.trainDate
+        }
     }
 }
 
 const handleCloseShowTrainDetail = () => {
-    showTrainInfoId.value = null
+    showTrainInfo.value = null
 }
 
 /**
@@ -307,7 +311,10 @@ function checkIsChanged(originLineId, originStationId) {
 }
 
 async function updateCurrentTrains() {
-    console.log('updateCurrentTrains')
+    if (isLoadingTrains.value) {
+        return
+    }
+    console.log('Call updateCurrentTrains')
     isLoadingTrains.value = true
     const _currentLindId = currentLineId.value
     if (!_currentLindId) {

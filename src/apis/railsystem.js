@@ -1,7 +1,4 @@
-import axios from "axios";
-
-// const host = 'http://111.229.192.148'
-const host = 'http://localhost'
+import axios from "src/utils/axios"
 
 /**
  * Fetch all stations of a rail system
@@ -9,7 +6,7 @@ const host = 'http://localhost'
  * @param {String} version Version of Rail system like '240125
  */
 export async function fetchStations(railsystemCode, version) {
-    const url = `${host}/file/railsystem/stations/${railsystemCode}`
+    const url = `api/file/railsystem/stations/${railsystemCode}`
     return await axios
         .get(url, {params: {v: version || ""}})
         .then(res => {
@@ -25,7 +22,7 @@ export async function fetchStations(railsystemCode, version) {
 }
 
 export async function fetchLines(railsystemCode, version) {
-    const url = `${host}/file/railsystem/lines/${railsystemCode}`
+    const url = `api/file/railsystem/lines/${railsystemCode}`
     return await axios
         .get(url, {params: {v: version || ""}})
         .then(res => {
@@ -41,7 +38,7 @@ export async function fetchLines(railsystemCode, version) {
 }
 
 export async function fetchRailsystem(railsystemCode) {
-    const url = `${host}/metro-realtime/query/railsystem/id/${railsystemCode}`
+    const url = `api/metro-realtime/query/railsystem/id/${railsystemCode}`
     return await axios
         .get(url)
         .then(res => {
@@ -57,7 +54,7 @@ export async function fetchRailsystem(railsystemCode) {
  * @param {String} lineId Id of line
  */
 export async function fetchLine(lineId) {
-    const url = `${host}/file/railsystem/lines/id/${lineId}`
+    const url = `api/file/railsystem/lines/id/${lineId}`
     return await axios
         .get(url)
         .then(res => {
@@ -69,7 +66,7 @@ export async function fetchLine(lineId) {
 }
 
 export async function fetchStation(stationId) {
-    const url = `${host}/file/railsystem/stations/id/${stationId}`
+    const url = `api/file/railsystem/stations/id/${stationId}`
     return await axios
         .get(url)
         .then(res => {
@@ -79,3 +76,4 @@ export async function fetchStation(stationId) {
             return Promise.reject(err)
         })
 }
+

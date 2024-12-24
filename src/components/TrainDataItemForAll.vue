@@ -5,12 +5,7 @@
             <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
         </div>
         <div class="col-5 text-left auto-scroll-container" style="color: var(--q-normal);overflow: hidden;">
-            <div v-overflow-auto-scroll>
-                 <span class="pill" style="display: inline-block;" :style="{backgroundColor:trainData.line.color}">
-                     {{ trainData.line.name }}
-                 </span>
-                <span>{{ trainData.terminal }}</span>
-            </div>
+            <TrainTerminal :train-data="trainData" @show-train-detail="handleShowTrainDetail"/>
         </div>
         <div class="col-5">
             <div v-overflow-auto-scroll
@@ -37,6 +32,7 @@ import {computed} from "vue";
 import {diffFromNow, fixedMins, formatToHHMM} from "src/utils/time-utils";
 import {TRAIN_CATEGORY} from "src/models/Train";
 import DepTrainTime from "components/DepTrainTime.vue";
+import TrainTerminal from "components/TrainTerminal.vue";
 
 const {t} = useI18n()
 const props = defineProps({
@@ -48,8 +44,15 @@ const props = defineProps({
     }
 })
 const trainCategories = computed(() => {
-    if (props.trainData && props.trainData.category) {
-        return props.trainData.category.map(it => TRAIN_CATEGORY[it])
+    const _t = props.trainData
+    if (_t && _t.category) {
+        const categories = [TRAIN_CATEGORY[_t.category]]
+        if (_t.isFirstStop) {
+            categories.push(TRAIN_CATEGORY.INITIAL)
+        } else if (_t.isLastStop) {
+            categories.push(TRAIN_CATEGORY.TERMINAL)
+        }
+        return categories
     }
     return []
 })
@@ -57,6 +60,10 @@ const arriveMins = computed(() => {
     let diffSeconds = diffFromNow(props.trainData.arr, 'second')
     return fixedMins(diffSeconds)
 })
+const emit = defineEmits(['showTrainDetail'])
+const handleShowTrainDetail = () => {
+    emit('showTrainDetail', props.trainData)
+}
 </script>
 
 <style scoped>

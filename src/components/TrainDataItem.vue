@@ -34,12 +34,6 @@ import DepTrainTime from "components/DepTrainTime.vue";
 import TrainTerminal from "components/TrainTerminal.vue";
 
 const {t} = useI18n()
-const trainCategories = computed(() => {
-    if (props.trainData && props.trainData.category) {
-        return props.trainData.category.map(it => TRAIN_CATEGORY[it])
-    }
-    return []
-})
 const props = defineProps({
     trainData: {
         type: Object,
@@ -48,13 +42,26 @@ const props = defineProps({
         type: Object,
     }
 })
+const trainCategories = computed(() => {
+    const _t = props.trainData
+    if (_t && _t.category) {
+        const categories = [TRAIN_CATEGORY[_t.category]]
+        if (_t.isFirstStop) {
+            categories.push(TRAIN_CATEGORY.INITIAL)
+        } else if (_t.isLastStop) {
+            categories.push(TRAIN_CATEGORY.TERMINAL)
+        }
+        return categories
+    }
+    return []
+})
 const arriveMins = computed(() => {
     let diffSeconds = diffFromNow(props.trainData.arr, 'second')
     return fixedMins(diffSeconds)
 })
 const emit = defineEmits(['showTrainDetail'])
-const handleShowTrainDetail = (trainInfoId) => {
-    emit('showTrainDetail', trainInfoId)
+const handleShowTrainDetail = () => {
+    emit('showTrainDetail', props.trainData)
 }
 
 </script>

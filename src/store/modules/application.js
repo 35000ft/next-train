@@ -1,11 +1,13 @@
 import {reactive, toRaw} from "vue";
 import {isEqual} from "lodash";
+import {getNowByTimezone} from "src/utils/time-utils";
 
 
 const state = {
     shownStationId: reactive(null),
     overlayStack: reactive([]),
-    isOverlayRendered: false,
+    // 相对当前时间的偏移秒数
+    timeOffsetSeconds: 0
 };
 
 const mutations = {
@@ -58,15 +60,13 @@ const actions = {
         const componentName = payload && payload.componentName || null
         commit('POP_OVERLAY', {componentName: componentName})
     },
-    setIsOverlayRendered({commit, state}) {
-        commit('SET_OVERLAY_RENDERED', {isRendered: true})
-    }
+
 };
 
 const getters = {
     shownStationId: state => state.shownStationId,
     topOverlayComponent: state => state.overlayStack.slice(-1)[0],
-    isOverlayRendered: state => state.isOverlayRendered,
+    getNowTime: state => (timezone) => getNowByTimezone(timezone).add(state.timeOffsetSeconds, "seconds")
 };
 
 export default {

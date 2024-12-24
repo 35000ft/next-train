@@ -3,7 +3,7 @@ import LRU from "src/utils/LRU";
 import {trainInfoParser} from "src/models/Train";
 import {reactive} from "vue";
 import {getNowByTimezone, isAfterNow} from "src/utils/time-utils";
-import {fetchStationCurrentTrainInfo} from "src/apis/reailtime";
+import {fetchStationCurrentTrainInfo, fetchTrainInfoById} from "src/apis/reailtime";
 
 const state = {
     trainInfoMap: reactive(new LRU(100)),
@@ -15,8 +15,8 @@ export const tempTrainInfo = {
     id: "67023",
     trainNo: "7442",
     category: "LOCAL",
-    categoryNote: "1号线",
     direction: 0,
+    date: dayjs(new Date()).format("YYYY-MM-DD"),
     viaCode: "ALL@1",
     schedule: [
         [
@@ -239,6 +239,7 @@ const actions = {
         if (lineId && stationId) {
             return new Promise((resolve, reject) => {
                 const lockKey = `fetchStationTrain:${stationId}-${lineId}`
+                console.log('fetch by api', lockKey)
                 if (state.LOCK.has(lockKey)) {
                     const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
                     const _oldTrains = stationTrainInfoMap && stationTrainInfoMap.get(lineId)
@@ -263,23 +264,31 @@ const actions = {
         if (!(stationId && lineId)) {
             return Promise.reject('stationId and lineId cannot be undefined')
         }
+        console.log('call getStationTrains', stationId, lineId)
         const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
-        const station = await this.dispatch('railsystem/getStation', {stationId})
         if (stationTrainInfoMap) {
+            const station = await this.dispatch('railsystem/getStation', {stationId})
             const lineTrains = stationTrainInfoMap.get(lineId)
             if (lineTrains) {
                 if (isCurrent) {
                     const currentTrains = lineTrains.filter(it => isAfterNow(it.dep, station.timezone))
-                    if (currentTrains.length < 10) {
-                        this.dispatch('realtime/fetchStationTrain', {stationId, lineId})
+                    if (currentTrains.length < 5) {
+                        if (currentTrains.length === 0) {
+                            return this.dispatch('realtime/fetchStationTrain', {stationId, lineId})
+                        } else {
+                            this.dispatch('realtime/fetchStationTrain', {stationId, lineId})
+                            return currentTrains
+                        }
+                    } else {
+                        return currentTrains
                     }
-                    return currentTrains
                 } else {
                     return lineTrains
                 }
             }
         }
         //TODO fetch by api
+        console.log('fetch by api')
         return this.dispatch('realtime/fetchStationTrain', {stationId, lineId})
     },
     async getStationDirectionTrains({commit}, {stationId, lineId, eachDirectionLimit = 3}) {
@@ -328,11 +337,10 @@ const actions = {
         }
         return _result
     },
-    //TODO
-    getTrainInfoById({commit, state}, {trainInfoId}) {
+    async getTrainInfoById({commit, state}, {trainInfoId}) {
         let trainInfo = state.trainInfoMap.get(trainInfoId);
         if (!trainInfo) {
-            //TODO 请求接口
+            trainInfo = await fetchTrainInfoById(trainInfoId)
             trainInfo = trainInfoParser(tempTrainInfo)
             commit('SET_TRAININFO', {trainInfo, trainInfoId})
         }

@@ -30,5 +30,5 @@ yarn-error.log*
 *.sln
 
 .vscode
-# local .env files
+# local .env.development files
 .env.local*

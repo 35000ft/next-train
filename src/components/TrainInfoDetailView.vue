@@ -131,6 +131,9 @@ export default defineComponent({
         },
         trainInfoIdProp: {
             type: String
+        },
+        date: {
+            type: String
         }
     },
     setup(props, {emit}) {
@@ -146,13 +149,12 @@ export default defineComponent({
         const route = useRoute()
         const router = useRouter()
         const trainInfo = ref(null)
-
+        const trainDate = ref(null)
         const lineColorGetter = computed(() => {
             return (lineId, stationId) => {
                 if (getStopStatus(stationId) === TRAIN_STATUS.DEPARTED.code) {
                     return 'var(--q-grey-2)'
                 }
-
                 const _line = store.getters["railsystem/lines"].get(lineId)
                 if (_line) {
                     return _line.color
@@ -325,6 +327,11 @@ export default defineComponent({
                 trainInfo.value = props.trainInfoProp
             } else if (props.trainInfoIdProp) {
                 trainInfoId.value = props.trainInfoIdProp
+                if (props.date) {
+                    trainDate.value = props.date
+                } else {
+                    store.getters['application/getNowTime']()
+                }
             }
             setInterval(() => updateStopStatus(schedule.value), 5000)
         })
@@ -384,7 +391,6 @@ export default defineComponent({
 
         function afterClose() {
             if (isFromUrl.value) {
-                console.log('afterClose', isFromUrl.value, prefix, route)
                 if (prefix) {
                     router.push(prefix)
                 } else {

@@ -36,7 +36,7 @@ module.exports = configure(function (/* ctx */) {
         extras: [
             // 'ionicons-v4',
             // 'mdi-v7',
-            // 'fontawesome-v6',
+            'fontawesome-v6',
             // 'eva-icons',
             // 'themify',
             // 'line-awesome',
@@ -63,6 +63,9 @@ module.exports = configure(function (/* ctx */) {
             // publicPath: '/',
             // analyze: true,
             // env: {},
+            env: require('dotenv').config({
+                path: `.env.${process.env.NODE_ENV}`
+            }).parsed,
             // rawDefine: {}
             // ignorePublicFolder: true,
             // minify: false,
