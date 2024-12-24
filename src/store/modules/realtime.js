@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import LRU from "src/utils/LRU";
-import {trainInfoParser} from "src/models/Train";
+import {trainInfoParser, trainViaParser} from "src/models/Train";
 import {reactive} from "vue";
 import {getNowByTimezone, isAfterNow} from "src/utils/time-utils";
 import {fetchStationCurrentTrainInfo, fetchTrainInfoById} from "src/apis/reailtime";
@@ -337,17 +337,34 @@ const actions = {
         }
         return _result
     },
-    async getTrainInfoById({commit, state}, {trainInfoId}) {
+
+    /**
+     * 根据ID获取车次详情
+     * @param commit
+     * @param state
+     * @param getters
+     * @param {String|Number} trainInfoId
+     * @param {String} date
+     * @returns {Promise<Awaited<*>>}
+     */
+    async getTrainInfoById({commit, state, getters}, {trainInfoId, date}) {
         let trainInfo = state.trainInfoMap.get(trainInfoId);
         if (!trainInfo) {
             trainInfo = await fetchTrainInfoById(trainInfoId)
+            if (!trainInfo) {
+                return Promise.reject("No such trainInfo. id:" + trainInfoId)
+            }
             trainInfo = trainInfoParser(tempTrainInfo)
+            trainInfo.trainVia = trainViaParser(trainInfo)
+            const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
+            const nowTime = getters['application/getNowTime'](railsystem.timezone)
+            console.log('nmpwtt', nowTime)
             commit('SET_TRAININFO', {trainInfo, trainInfoId})
         }
         if (trainInfo) {
             return Promise.resolve(trainInfo)
         } else {
-            return Promise.reject('No such trainInfo. id:' + trainInfo)
+            return Promise.reject('No such trainInfo. id:' + trainInfoId)
         }
     },
 

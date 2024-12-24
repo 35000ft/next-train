@@ -118,7 +118,7 @@ const trainInfoParser = (trainInfo) => {
 /**
  *
  * @param {Object}trainInfo
- * @returns {[fromIndex,toIndex,lineId]}
+ * @returns {[{toIndex: number, lineId: string, fromIndex: number}]}
  */
 const trainViaParser = (trainInfo) => {
     const {viaCode, schedule} = trainInfo

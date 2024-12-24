@@ -111,7 +111,7 @@
 
 <script>
 import BottomModal from "components/BottomModal.vue";
-import {computed, defineComponent, onMounted, ref, watch} from "vue";
+import {computed, defineComponent, onMounted, onUnmounted, ref, watch} from "vue";
 import {useStore} from "vuex";
 import {useRoute, useRouter} from "vue-router";
 import {useQuasar} from "quasar";
@@ -189,7 +189,8 @@ export default defineComponent({
         const calcSchedule = (_trainInfo) => {
             if (_trainInfo) {
                 const _schedule = _trainInfo.schedule
-                const trainVia = trainViaParser(_trainInfo)
+                // const trainVia = trainViaParser(_trainInfo)
+                const trainVia = _trainInfo.trainVia
                 let reduce = trainVia.reduce((acc, cur) => {
                     for (let i = cur.fromIndex; i <= cur.toIndex; i++) {
                         acc.set(i, cur.lineId)
@@ -213,6 +214,7 @@ export default defineComponent({
         const nextIndex = ref(null)
         const currentIndex = ref(null)
         const stopInfoListView = ref(null)
+        const updateStatusInterval = ref(null)
         const getStopStatus = (stationId) => {
             if (!schedule.value) {
                 return TRAIN_STATUS.ONTIME.code
@@ -333,7 +335,12 @@ export default defineComponent({
                     store.getters['application/getNowTime']()
                 }
             }
-            setInterval(() => updateStopStatus(schedule.value), 5000)
+            updateStatusInterval.value = setInterval(() => updateStopStatus(schedule.value), 5000)
+        })
+        onUnmounted(() => {
+            if (updateStatusInterval.value) {
+                clearInterval(updateStatusInterval.value)
+            }
         })
         watch(stopInfoListView, (newVal, oldValue) => {
             if (newVal) {
@@ -354,7 +361,10 @@ export default defineComponent({
                 return
             }
             loading.value = true
-            return store.dispatch('realtime/getTrainInfoById', {trainInfoId: _trainInfoId}).then(_trainInfo => {
+            return store.dispatch('realtime/getTrainInfoById', {
+                trainInfoId: _trainInfoId,
+                date: props.date
+            }).then(_trainInfo => {
                 return _trainInfo
             }).catch(err => {
                 console.warn('loadTrainInfo err:', err)

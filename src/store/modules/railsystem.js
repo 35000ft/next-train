@@ -159,7 +159,7 @@ const mutations = {
 }
 
 const actions = {
-    async getRailSystem({state, commit}, code) {
+    async getRailSystem({state, commit}, {code}) {
         return state.railSystems.get(code)
     },
     async getStation({state, commit}, {stationId}) {
@@ -238,6 +238,13 @@ const actions = {
 
         }
     },
+    async getRailsystemByLineId({state, commit}, {lineId}) {
+        const line = await this.dispatch("railsystem/getLine", {lineId})
+        if (!line) {
+            return Promise.reject('Line not found, lineId:' + lineId)
+        }
+        return this.dispatch("railsystem/getRailSystem", {code: line.railsystemCode})
+    },
     async getStationsByLine({state, commit}, {lineId}) {
         if (state.lines.has(lineId) && state.lines.get(lineId).stations) {
             return toRaw(state.lines.get(lineId).stations)
@@ -263,7 +270,7 @@ const actions = {
         if (!railsystemCode || railsystemCode === state.currentRailSystem.code) {
             railsystem = state.currentRailSystem
         } else {
-            railsystem = await this.dispatch('railsystem/getRailSystem', railsystemCode)
+            railsystem = await this.dispatch('railsystem/getRailSystem', {code: railsystemCode})
         }
         if (railsystem.lines) {
             return Promise.resolve(railsystem.lines)
