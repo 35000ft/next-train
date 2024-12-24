@@ -4,7 +4,6 @@ import timezone from 'dayjs/plugin/timezone';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 export const TIME_FORMATS = {
     DEFAULT: "YYYY-MM-DD HH:mm:ss",
     HMS: "HH:mm:ss",
@@ -196,7 +195,6 @@ function toDayjs(_date) {
 export function date2StringWithTimezone(_date) {
     if (typeof _date === "string") {
         _date = dayjs(_date).toDate()
-        console.log('_date', _date)
     }
     const offset = -_date.getTimezoneOffset()
     const sign = offset >= 0 ? '+' : '-'

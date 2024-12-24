@@ -38,6 +38,7 @@ export async function fetchStationSchedule(stationId, lineId) {
         .post(url)
         .then(res => {
             return res.data.data
+
         })
         .catch(err => {
             return Promise.reject(err)

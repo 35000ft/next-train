@@ -174,4 +174,23 @@ function toHighlighted(obj, matchedData, sourcePropertyName, highlightedClass) {
     return _obj
 }
 
-export {isNumber, findMatches, containsChinese, findByAbbr, isAlphabet, toHighlighted}
+/**
+ * 生成名字缩写 支持中英文
+ * @param {String} name
+ * @param {Map} briefNameMap 用于检测冲突 冲突时再添加新的内容
+ */
+function genBriefName(name, briefNameMap) {
+    if (!name || name.length === 0) return name
+    let _newName = name.slice(0, 1)
+    const suffixes = ['*', '#', '.', '**']
+    for (let i = 0; i < suffixes.length; i++) {
+        if (!briefNameMap.has(_newName)) {
+            return _newName
+        }
+        _newName += suffixes[i]
+    }
+    console.warn('Too much brief name conflict')
+    return name
+}
+
+export {isNumber, findMatches, containsChinese, findByAbbr, isAlphabet, toHighlighted, genBriefName}

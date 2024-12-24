@@ -2,6 +2,8 @@ import {createRouter, createMemoryHistory, createWebHistory, createWebHashHistor
 import routes from './routes'
 import {getUserDefaultLanguage, i18n} from "boot/i18n";
 import {useStore} from "vuex";
+import dayjs from "dayjs";
+import axios from "axios";
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -28,7 +30,25 @@ const router = createRouter({
 // 在每次路由导航时设置 locale
 router.beforeEach((to, from, next) => {
     const store = useStore()
-    const lang = to.query.lang || getUserDefaultLanguage();
+    const lang = to.query.lang || getUserDefaultLanguage()
+    const dayjsLang = lang.split('-')[0]
+    if (dayjsLang && dayjsLang !== 'en') {
+        const scriptId = 'DAY_LOCALE_SCRIPT'
+        axios.get(`/dayjs/locale/${dayjsLang}.js`).then(res => {
+            const scriptElement = document.getElementById(scriptId)
+            if (scriptElement) scriptElement.remove()
+            const script = document.createElement('script')
+            script.type = 'text/javascript'
+            script.id = scriptId
+            script.textContent = res.data
+            document.head.appendChild(script)
+            dayjs.locale(DAY_LOCALE)
+        }).catch((error) => {
+            console.error('Failed to load dayjs locale:', error)
+            const scriptElement = document.getElementById(scriptId)
+            if (scriptElement) scriptElement.remove()
+        })
+    }
     console.log('route change', from.fullPath, to.fullPath)
     store.dispatch('language/setLanguage', lang).then(() => {
     }).catch(error => {
