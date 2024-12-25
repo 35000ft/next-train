@@ -1,5 +1,5 @@
 <template>
-    <q-layout view="lHh Lpr lFf" class="full-height" style="background-color: var(--q-background);">
+    <q-layout view="lHh Lpr lFf" class="full-height" style="background-color: var(--q-background);" v-back="handleBack">
         <q-header class="row header-wrapper">
             <div @click="handleClose" class="col-3 close-btn" style="font-size: 30px;">
                 <i class="fa-solid fa-arrow-left fa-lg"></i>
@@ -33,6 +33,9 @@ const router = useRouter()
 const handleClose = () => {
     router.back()
     store.dispatch('application/popOverlay')
+}
+const handleBack = () => {
+    handleClose()
 }
 </script>
 
