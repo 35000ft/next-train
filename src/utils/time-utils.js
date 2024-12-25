@@ -137,14 +137,29 @@ export function diffFromNow(d1, unit = 'second', timezone = '+0000') {
 }
 
 
-export function diffFromNowFormatted(d1) {
+export function diffFromNowFormatted(d1, {$hour, $minute, $second}, format = null) {
     const diffSeconds = Math.abs(diffFromNow(d1))
     const hours = Math.floor(diffSeconds / 3600)
     const minutes = Math.floor((diffSeconds / 60) % 60)
     const seconds = diffSeconds % 60
-    return {
-        hours, minutes, seconds
+    const remainTime = {
+        hours, minutes, seconds, totalSeconds: diffSeconds
     }
+    if (format) {
+        if (format === 'hm') {
+            let tempMin = minutes
+            if (seconds > 30 && minutes < 59) {
+                tempMin += 1
+            }
+            remainTime.str = (remainTime.hours > 0 ? `${remainTime.hours}${$hour} ` : '')
+                + `${tempMin}${$minute}`
+        }
+    } else {
+        remainTime.str = (remainTime.hours > 0 ? `${remainTime.hours}${$hour} ` : '')
+            + (remainTime.minutes > 0 ? `${remainTime.minutes}${$minute} ` : '')
+            + (remainTime.seconds > 0 ? `${remainTime.seconds}${$second}` : '')
+    }
+    return remainTime
 }
 
 

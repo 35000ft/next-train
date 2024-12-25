@@ -16,6 +16,10 @@ export default {
     directionShort: "To",
     trainDataUpdated: "Train data is update to date",
     focusTrainSuccess: "Successfully Focus train , train will depart in $remain",
+    departIn: "Depart in $remain",
+    arriveIn: "Arrive in $remain",
+    waitingForDeparture: 'Waiting for departure',
+    trainHasArrivedAtTerm: 'Train has arrived at terminal station',
     favourStationOk: 'Successfully Favour station',
     headers: {
         search: {

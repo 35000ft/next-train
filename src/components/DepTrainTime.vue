@@ -26,11 +26,12 @@ const props = defineProps({
 const addToFocusTrains = () => {
     store.dispatch('preference/addFocusTrain', {train: toRaw(props.trainData), station: props.station})
         .then(_ => {
-            const remainTime = diffFromNowFormatted(props.trainData.dep)
-            const remainTimeStr = (remainTime.hours > 0 ? `${remainTime.hours}${t('time.hour')} ` : '')
-                + (remainTime.minutes > 0 ? `${remainTime.minutes}${t('time.minute')} ` : '')
-                + (remainTime.seconds > 0 ? `${remainTime.seconds}${t('time.second')}` : '')
-            const message = t('focusTrainSuccess').replace('$remain', remainTimeStr)
+            const remainTime = diffFromNowFormatted(props.trainData.dep, {
+                $hour: t('time.hour'),
+                $minute: t('time.minute'),
+                $second: t('time.second'),
+            })
+            const message = t('focusTrainSuccess').replace('$remain', remainTime.str)
             $q.notify.ok(message)
         })
 }

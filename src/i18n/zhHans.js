@@ -16,6 +16,10 @@ export default {
     directionShort: "方向",
     trainDataUpdated: "列车数据已更新",
     focusTrainSuccess: "关注列车成功, 列车将于$remain后出发",
+    departIn: "$remain后发车",
+    arriveIn: "$remain后到站",
+    waitingForDeparture: '等待发车',
+    trainHasArrivedAtTerm: '列车已经到达终点站',
     favourStationOk: '收藏车站成功',
     headers: {
         search: {

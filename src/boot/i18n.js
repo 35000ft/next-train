@@ -18,14 +18,22 @@ const mapLanguage = (language) => {
     if (['zh-CN', 'zh-SG', 'zh-MY'].includes(language)) {
         return 'zh-Hans'
     }
-    if (['zh-TW', 'zh-HK', 'zh-MO'].includes(language)) {
+    if (['zh-TW', 'zh-HK', 'zh-MO', 'hk', 'tw'].includes(language)) {
         return 'zh-Hant'
     }
-    return 'en'
+    if (typeof language !== "string") {
+        language = navigator.language
+    }
+    const isSupportedLang = Object.keys(messages).findIndex(it => it.toLowerCase() === language.toLowerCase()) !== -1
+    if (isSupportedLang) {
+        return language
+    } else {
+        console.log(`Unsupported lang:${language}, use English`)
+        return 'en'
+    }
 }
 
 const defaultLanguage = mapLanguage(navigator.language)
-console.log("User Language:", navigator.language, 'Map Language:', defaultLanguage);
 
 const getUserDefaultLanguage = () => {
     return mapLanguage(navigator.language)
@@ -41,4 +49,4 @@ export default boot(({app}) => {
 });
 
 // 同时导出 i18n 实例
-export {i18n, getUserDefaultLanguage};
+export {i18n, getUserDefaultLanguage, mapLanguage};

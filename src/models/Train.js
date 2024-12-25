@@ -104,17 +104,23 @@ const categoryParser = (category) => {
 
 /**
  *
- * @param {Object} trainInfo
- * @returns {Object|null}
+ * @param {[]}schedule
+ * @param {String} date 2024-12-25
+ * @return {*|*[]}
  */
-const trainInfoParser = (trainInfo) => {
-    if (trainInfo) {
-        trainInfo.schedule = trainInfo.schedule.map(it => stopInfoParser(it))
-        return trainInfo
+const trainScheduleParser = (schedule, date) => {
+    if (schedule) {
+        return schedule.map(it => {
+            return {
+                stationId: it[0],
+                stationName: it[1],
+                arr: dayjs(date).startOf('day').add(it[2], 'seconds'),
+                dep: dayjs(date).startOf('day').add(it[3], 'seconds'),
+            }
+        })
     }
-    return null
+    return []
 }
-
 /**
  *
  * @param {Object}trainInfo
@@ -124,12 +130,12 @@ const trainViaParser = (trainInfo) => {
     const {viaCode, schedule} = trainInfo
     let segments = viaCode.split("_")
     if (segments.length > 0) {
-        const s0 = segments[0].split("@")
-        if (s0[0] === 'ALL') {
+        const [stationIndexCode, lineId] = segments[0].split("@")
+        if (stationIndexCode === 'ALL') {
             return [{
                 fromIndex: 0,
                 toIndex: schedule.length - 1,
-                lineId: s0[1]
+                lineId: lineId
             }]
         }
         const result = []
@@ -148,4 +154,11 @@ const trainViaParser = (trainInfo) => {
 }
 
 
-export {TRAIN_CATEGORY, TRAIN_STATUS, calcTrainStatus, trainInfoParser, categoryParser, trainViaParser}
+export {
+    TRAIN_CATEGORY,
+    TRAIN_STATUS,
+    calcTrainStatus,
+    categoryParser,
+    trainViaParser,
+    trainScheduleParser
+}

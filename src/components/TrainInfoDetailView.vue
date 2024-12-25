@@ -18,20 +18,20 @@
                                 </div>
                                 <div style="display: flex;align-items: baseline;">
                                     <div class="auto-scroll-container"
-                                         style="max-width: 75%;display: inline-block;margin-right: 4px;">
-                                 <span v-overflow-auto-scroll
-                                       style="font-weight:bold;color: var(--q-primary-d);font-size: 18px;">
-                                {{ terminal }}
-                                </span>
+                                         style="max-width: 95%;display: inline-block;margin-right: 4px;">
+                                        <span v-overflow-auto-scroll
+                                              style="font-weight:bold;color: var(--q-primary-d);font-size: 18px;">
+                                                {{ terminal }}
+                                        </span>
                                     </div>
-                                    <span>终到</span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-6" style="align-items: center;display: flex;">
                             <div style="margin: 0 auto;width: 90%;">
                                 <div style="color: var(--q-normal);">
-                                    {{ t('currentInterval') }}
+                                    <span v-if="nextIndex===0">{{ t('waitingForDeparture') }}</span>
+                                    <span v-else>{{ t('currentInterval') }}</span>
                                 </div>
                                 <div class="auto-scroll-container">
                                     <div v-overflow-auto-scroll>
@@ -116,8 +116,8 @@ import {useStore} from "vuex";
 import {useRoute, useRouter} from "vue-router";
 import {useQuasar} from "quasar";
 import TrainCategory from "components/TrainCategory.vue";
-import {TRAIN_STATUS, trainViaParser} from "src/models/Train";
-import {formatToHHMM, isAfterNow, isBeforeNow} from "src/utils/time-utils";
+import {TRAIN_STATUS} from "src/models/Train";
+import {diffFromNowFormatted, formatToHHMM, isAfterNow, isBeforeNow} from "src/utils/time-utils";
 import {smoothScroll} from "src/utils/dom-utils";
 import {useI18n} from "vue-i18n";
 import _ from 'lodash';
@@ -141,7 +141,7 @@ export default defineComponent({
             return getComputedStyle(document.documentElement).getPropertyValue('--q-primary').trim()
         })
         const isFromUrl = ref(false)
-        let isUpdatingStopStatus = false
+        const isUpdatingStopStatus = ref(false)
         const store = useStore()
         const loading = ref(false)
         const trainInfoId = ref(null)
@@ -166,16 +166,30 @@ export default defineComponent({
         })
         const currentInterval = computed(() => {
             const _schedule = schedule.value
-            const _currentIndex = currentIndex.value
             const _nextIndex = nextIndex.value
-            if (_schedule && _currentIndex && _nextIndex) {
-                const currentStop = _schedule[_currentIndex]
+            const _currentIndex = currentIndex.value
+            const _ = isUpdatingStopStatus.value
+            if (_currentIndex === _schedule.length - 1) {
+                return `<span style="color: var(--q-arrived)">${t('trainHasArrivedAtTerm')}</span>`
+            }
+            if (_schedule && _nextIndex && _nextIndex > 0) {
+                const currentStop = _schedule[_nextIndex - 1]
                 const nextStop = _schedule[_nextIndex]
                 if (isAfterNow(currentStop.dep)) {
                     return `<span style="color: var(--q-arrived)">${currentStop.stationName}</span> ~ <span style="color:var(--q-ontime);">${nextStop.stationName}</span>`
                 } else {
                     return `<span style="color: var(--q-grey-3)">${currentStop.stationName}</span> ~ <span style="color:var(--q-ontime);">${nextStop.stationName}</span>`
                 }
+            } else if (_schedule && _nextIndex === 0) {
+                const remainTime = diffFromNowFormatted(_schedule[0].arr, {
+                    $hour: t('time.hour'),
+                    $minute: t('time.minute'),
+                    $second: t('time.second'),
+                }, 'hm')
+                if (remainTime.totalSeconds <= 30) {
+                    return t('trainStatus.arriveSoon')
+                }
+                return t('arriveIn').replace('$remain', remainTime.str)
             } else {
                 return '--'
             }
@@ -189,7 +203,6 @@ export default defineComponent({
         const calcSchedule = (_trainInfo) => {
             if (_trainInfo) {
                 const _schedule = _trainInfo.schedule
-                // const trainVia = trainViaParser(_trainInfo)
                 const trainVia = _trainInfo.trainVia
                 let reduce = trainVia.reduce((acc, cur) => {
                     for (let i = cur.fromIndex; i <= cur.toIndex; i++) {
@@ -246,41 +259,49 @@ export default defineComponent({
             }
         }
         const updateStopStatus = (_schedule) => {
-            if (!_schedule || isUpdatingStopStatus) {
+            if (!_schedule || isUpdatingStopStatus.value) {
                 return
             }
-            isUpdatingStopStatus = true
+            isUpdatingStopStatus.value = true
             try {
-                let findNext = false
                 for (let index = 0; index < _schedule.length; index++) {
                     const _stopInfo = _schedule[index]
                     if (isBeforeNow(_stopInfo.arr)) {
                         if (isAfterNow(_stopInfo.dep)) {
                             currentIndex.value = index
-                            stopStatusMap.value[_stopInfo.stationId] = TRAIN_STATUS.ARRIVED
                             if (index < _schedule.length - 1) {
                                 nextIndex.value = index + 1
                             }
-                        } else {
-                            stopStatusMap.value[_stopInfo.stationId] = TRAIN_STATUS.DEPARTED
+                            break
                         }
                     } else {
-                        stopStatusMap.value[_stopInfo.stationId] = TRAIN_STATUS.ONTIME
+                        currentIndex.value = null
                         if (index === 0) {
-                            continue
+                            nextIndex.value = 0
+                            break
                         }
-                        if (!findNext) {
-                            const previousStop = _schedule[index - 1]
-                            if (isBeforeNow(previousStop.dep)) {
-                                currentIndex.value = index - 1
-                                nextIndex.value = index
-                                findNext = true
-                            }
+
+                        const previousStop = _schedule[index - 1]
+                        if (isBeforeNow(previousStop.dep)) {
+                            nextIndex.value = index
+                            break
                         }
                     }
                 }
+
+                if (nextIndex.value) {
+                    _schedule.slice(0, nextIndex.value).forEach(stopInfo => {
+                        stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.DEPARTED
+                    })
+                    _schedule.slice(nextIndex.value).forEach(stopInfo => {
+                        stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.ONTIME
+                    })
+                }
+                if (currentIndex.value) {
+                    stopStatusMap.value[_schedule[currentIndex.value].stationId] = TRAIN_STATUS.ARRIVED
+                }
             } finally {
-                isUpdatingStopStatus = false
+                isUpdatingStopStatus.value = false
             }
 
             if (isFirst.value) {
@@ -429,6 +450,7 @@ export default defineComponent({
             primaryColor,
             trainInfo,
             schedule,
+            nextIndex,
             lineColorGetter,
             currentInterval,
             terminal,

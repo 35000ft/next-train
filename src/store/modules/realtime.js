@@ -1,8 +1,8 @@
 import dayjs from "dayjs";
 import LRU from "src/utils/LRU";
-import {trainInfoParser, trainViaParser} from "src/models/Train";
+import {trainScheduleParser, trainViaParser} from "src/models/Train";
 import {reactive} from "vue";
-import {getNowByTimezone, isAfterNow} from "src/utils/time-utils";
+import {isAfterNow} from "src/utils/time-utils";
 import {fetchStationCurrentTrainInfo, fetchTrainInfoById} from "src/apis/reailtime";
 
 const state = {
@@ -347,18 +347,21 @@ const actions = {
      * @param {String} date
      * @returns {Promise<Awaited<*>>}
      */
-    async getTrainInfoById({commit, state, getters}, {trainInfoId, date}) {
+    async getTrainInfoById({commit, state,}, {trainInfoId, date}) {
         let trainInfo = state.trainInfoMap.get(trainInfoId);
         if (!trainInfo) {
             trainInfo = await fetchTrainInfoById(trainInfoId)
             if (!trainInfo) {
                 return Promise.reject("No such trainInfo. id:" + trainInfoId)
             }
-            trainInfo = trainInfoParser(tempTrainInfo)
+            //TODO 待实现根据车次时刻表设置默认date设置
             trainInfo.trainVia = trainViaParser(trainInfo)
-            const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
-            const nowTime = getters['application/getNowTime'](railsystem.timezone)
-            console.log('nmpwtt', nowTime)
+            if (!date) {
+                const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
+                const nowTime = this.getters['application/getNowTime'](railsystem.timezone) || dayjs()
+                date = nowTime.format('YYYY-MM-DD')
+            }
+            trainInfo.schedule = trainScheduleParser(trainInfo.schedule, date)
             commit('SET_TRAININFO', {trainInfo, trainInfoId})
         }
         if (trainInfo) {
