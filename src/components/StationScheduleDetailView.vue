@@ -24,34 +24,40 @@
             <div class="schedule-header-wrapper">
                 <div class="schedule-header-container row">
                     <div class="station-name-box col-12" v-if="station">{{ station.name }}</div>
-                    <div v-else>
+                    <div v-else style="width: 100%;">
                         <q-skeleton height="30px" width="30%" style="margin-bottom: 3px;"></q-skeleton>
                     </div>
-
-                    <div class="col-12">
+                    <div class="col-12" style="margin-bottom: 2px;">
                         <LineIcon style="margin-right: 3px;" v-if="line" :line="line" :font-size="'13px'"/>
-                        <div v-else>
+                        <div v-else style="width: 100%;">
                             <q-skeleton height="25px" width="50%"></q-skeleton>
                         </div>
-                        <b style="color: var(--q-primary-d);">列车时刻表</b>
+                        <b style="color: var(--q-primary-d);">{{ t('trainSchedule') }}</b>
                     </div>
 
-                    <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">日期:
-                        <b>{{ scheduleData.date.format('YYYY-MM-DD dddd') }}</b>
+                    <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
+                        日期:<b>{{ scheduleData.date.format('YYYY-MM-DD dddd') }}</b>
                     </div>
-                    <div v-else>
+                    <div v-else style="width: 100%;">
                         <q-skeleton height="18px" width="40%" style="margin-bottom: 4px;"></q-skeleton>
                     </div>
-                    <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">版本:
-                        <b>{{ scheduleData.version }}</b>
+                    <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
+                        版本:<b>{{ scheduleData.version }}</b>
                     </div>
-                    <div v-else>
+                    <div v-else style="width: 100%;">
                         <q-skeleton height="18px" width="35%" style="margin-bottom: 3px;"></q-skeleton>
                     </div>
                 </div>
             </div>
             <div class="schedule-area-wrapper">
-
+                <HorizontalScheduleLayout v-if="scheduleData" :schedule-data="scheduleData"/>
+                <div v-else style="width: 100%;">
+                    <q-skeleton height="30px"></q-skeleton>
+                    <q-skeleton height="30px"></q-skeleton>
+                    <q-skeleton height="30px"></q-skeleton>
+                    <q-skeleton height="30px"></q-skeleton>
+                    <q-skeleton height="30px"></q-skeleton>
+                </div>
             </div>
 
         </template>
@@ -69,12 +75,15 @@ import dayjs from "dayjs";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineIcon from "components/LineIcon.vue";
+import {useI18n} from "vue-i18n";
+import HorizontalScheduleLayout from "components/schedule-layouts/HorizontalScheduleLayout.vue";
 
 const loading = ref(true)
 const scheduleData = ref(null)
 const showVertical = ref(false)
 const station = ref(null)
 const line = ref(null)
+const {t} = useI18n()
 const saveAsImg = () => {
     console.log("saving schedule as image")
     const scale = 3
@@ -107,7 +116,9 @@ onMounted(() => {
     const lineId = route.params.lineId
     init(stationId, lineId).then(d => {
         $q.notify.ok('Load schedule ok')
-        scheduleData.value = d
+        setTimeout(() => {
+            scheduleData.value = d
+        }, 1000)
     }).catch(e => {
         //TODO
     })
@@ -149,8 +160,8 @@ async function init(stationId, lineId) {
         const briefNameMap = new Map()
         for (let stationId of shortTerminalStationIds) {
             const station = scheduleData.stationMap[stationId]
-            const briefName = genBriefName(station.name, briefNameMap)
-            briefNameMap.set(briefName, station)
+            station.briefName = genBriefName(station.name, briefNameMap)
+            briefNameMap.set(stationId, station)
         }
         scheduleData.schedules = rawSchedule.map(it => {
             for (let stationId of Object.keys(it)) {
@@ -158,6 +169,7 @@ async function init(stationId, lineId) {
                     return {
                         id: trainInfo[ID_INDEX],
                         depTime: scheduleData.date.add(trainInfo[DEP_TIME_INDEX], "seconds"),
+                        dayOffset: Math.floor(trainInfo[DEP_TIME_INDEX] / 86400),
                         categories: trainInfo[TRAIN_CATEGORY_INDEX],
                     }
                 })
@@ -165,6 +177,7 @@ async function init(stationId, lineId) {
             return it
         })
         scheduleData.briefNameMap = briefNameMap
+        console.log('scd', scheduleData)
         return scheduleData
     } catch (e) {
         console.error('Load schedule err:', e)

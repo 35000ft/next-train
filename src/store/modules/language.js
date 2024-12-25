@@ -1,11 +1,9 @@
 // store/modules/language.js
-import {getUserDefaultLanguage} from "boot/i18n";
 import axios from "axios";
 import dayjs from "dayjs";
 
 const state = {
-    currentLanguage: getUserDefaultLanguage() || 'en', // 默认语言，可以根据需求更改
-    mappedCurrentLanguage: getUserDefaultLanguage() || 'en', // 默认语言，可以根据需求更改
+    currentLanguage: null,
 };
 
 const mutations = {

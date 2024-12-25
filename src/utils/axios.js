@@ -8,7 +8,7 @@ function isAbsoluteURL(url) {
 }
 
 const axiosInstance = axios.create({
-    timeout: 10000,                      // 设置请求超时
+    // timeout: 10000,                      // 设置请求超时
     headers: {
         'Content-Type': 'application/json',
     }

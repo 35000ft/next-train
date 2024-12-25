@@ -32,30 +32,64 @@
 <script setup>
 import {computed, ref} from "vue";
 import {useI18n} from "vue-i18n";
+import {TRAIN_CATEGORY} from 'src/models/Train'
+import dayjs from "dayjs";
 
 const {t} = useI18n()
 const props = defineProps({
-    schedule: {
-        type: Map,
-        default: () => new Map()
+    scheduleData: {
+        type: Object,
     }
 })
 const horizontalSchedule = computed(() => {
-    let _schedule = props.schedule
-    if (!(_schedule instanceof Map)) {
+    const _scheduleData = props.scheduleData
+    if (!_scheduleData) {
         return []
     }
-    if (_schedule.size === 0) {
-        return []
-    }
-    Array.from(_schedule.entries())
-        .map(item => {
-            item[1].forEach(item => item.dataList.sort((o1, o2) => o1.depTime - o2.depTime))
-            return {
-                terminal: item[0],
-                schedule: item[1]
+    const _schedules = _scheduleData.schedules
+    console.log('_sc', _schedules)
+    const result = []
+    for (let directionSchedule of _schedules) {
+        const terminalStr = Object.keys(directionSchedule).map(it => _scheduleData.stationMap[it])
+            .filter(it => typeof it === "object")
+            .map(it => it.name)
+            .join("/")
+        let tempSchedules = []
+        for (let stationId of Object.keys(directionSchedule)) {
+            const briefName = _scheduleData.briefNameMap.has(stationId) ? _scheduleData.briefNameMap.get(stationId).briefName : null
+            const t = directionSchedule[stationId].map(it => {
+                const category = it.categories.findLast(c => c !== TRAIN_CATEGORY.INITIAL.code.toUpperCase()) || TRAIN_CATEGORY.LOCAL.code.toUpperCase
+                const isFirst = it.categories.findIndex(c => c === TRAIN_CATEGORY.INITIAL.code.toUpperCase()) !== -1
+                return {
+                    id: it.id,
+                    briefName,
+                    category,
+                    isFirst,
+                    depTime: it.depTime,
+                    dayOffset: it.dayOffset
+                }
+            })
+            tempSchedules.push(t)
+        }
+        // tempSchedules = tempSchedules.flat()
+        tempSchedules = tempSchedules.flat().sort((o1, o2) => o1.depTime - o2.depTime)
+        tempSchedules = tempSchedules.reduce((acc, cur) => {
+            const hour = cur.depTime.hour() + cur.dayOffset * 24;
+            if (acc.has(hour)) {
+                acc.get(hour).push(cur)
+            } else {
+                acc.set(hour, [cur])
             }
+            return acc
+        }, new Map())
+
+        console.log('temps', tempSchedules)
+        result.push({
+            terminal: terminalStr,
+            schedule: tempSchedules
         })
+    }
+
     return []
 })
 const otherTerminals = ref([])

@@ -22,7 +22,7 @@ const mapLanguage = (language) => {
         return 'zh-Hant'
     }
     if (typeof language !== "string") {
-        language = navigator.language
+        return mapLanguage(navigator.language)
     }
     const isSupportedLang = Object.keys(messages).findIndex(it => it.toLowerCase() === language.toLowerCase()) !== -1
     if (isSupportedLang) {
