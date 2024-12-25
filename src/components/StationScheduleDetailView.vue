@@ -4,8 +4,9 @@
             <div>线路时刻表</div>
         </template>
         <template v-slot:default>
-            <div class="toolbar-area-wrapper">
-                <div style="width: 50%;">
+            <div style="position: relative;">
+                <div class="toolbar-area-wrapper">
+                    <div style="width: 50%;">
                     <span class="switch-schedule-format-wrapper">
                         <span class="vertical-icon layout-icon" :class="{'showing-icon':showVertical}">
                             <i class="fa fa-bars"></i>
@@ -14,49 +15,54 @@
                             <i class="fa fa-bars"></i>
                          </span>
                      </span>
-                </div>
-                <div style="text-align: right;width: 50%;">
-                     <span class="download-icon-wrapper" style="color: var(--q-primary);font-size: 20px;">
+                    </div>
+                    <div style="text-align: right;width: 50%;">
+                     <span class="download-icon-wrapper" style="color: var(--q-primary);font-size: 20px;"
+                           @click="saveAsImg">
                         <i aria-hidden="true" class="fa fa-download"></i>
                     </span>
+                    </div>
                 </div>
-            </div>
-            <div class="schedule-header-wrapper">
-                <div class="schedule-header-container row">
-                    <div class="station-name-box col-12" v-if="station">{{ station.name }}</div>
-                    <div v-else style="width: 100%;">
-                        <q-skeleton height="30px" width="30%" style="margin-bottom: 3px;"></q-skeleton>
-                    </div>
-                    <div class="col-12" style="margin-bottom: 2px;">
-                        <LineIcon style="margin-right: 3px;" v-if="line" :line="line" :font-size="'13px'"/>
-                        <div v-else style="width: 100%;">
-                            <q-skeleton height="25px" width="50%"></q-skeleton>
-                        </div>
-                        <b style="color: var(--q-primary-d);">{{ t('trainSchedule') }}</b>
-                    </div>
+                <div class="schedule-area-parent" ref="scheduleRef">
+                    <div class="schedule-header-wrapper">
+                        <div class="schedule-header-container row">
+                            <div class="station-name-box col-12" v-if="station">{{ station.name }}</div>
+                            <div v-else style="width: 100%;">
+                                <q-skeleton height="30px" width="30%" style="margin-bottom: 3px;"></q-skeleton>
+                            </div>
+                            <div class="col-12" style="margin-bottom: 2px;">
+                                <LineIcon style="margin-right: 3px;" v-if="line" :line="line" :font-size="'13px'"/>
+                                <div v-else style="width: 100%;">
+                                    <q-skeleton height="25px" width="50%"></q-skeleton>
+                                </div>
+                                <b style="color: var(--q-primary-d);">{{ t('trainSchedule') }}</b>
+                            </div>
 
-                    <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
-                        日期:<b>{{ scheduleData.date.format('YYYY-MM-DD dddd') }}</b>
+                            <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
+                                日期:<b>{{ scheduleData.date.format('YYYY-MM-DD dddd') }}</b>
+                            </div>
+                            <div v-else style="width: 100%;">
+                                <q-skeleton height="18px" width="40%" style="margin-bottom: 4px;"></q-skeleton>
+                            </div>
+                            <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
+                                版本:<b>{{ scheduleData.version }}</b>
+                            </div>
+                            <div v-else style="width: 100%;">
+                                <q-skeleton height="18px" width="35%" style="margin-bottom: 3px;"></q-skeleton>
+                            </div>
+                        </div>
                     </div>
-                    <div v-else style="width: 100%;">
-                        <q-skeleton height="18px" width="40%" style="margin-bottom: 4px;"></q-skeleton>
+                    <div class="schedule-area-wrapper">
+                        <HorizontalScheduleLayout v-if="scheduleData" :schedule-data="scheduleData"/>
+                        <div v-else style="width: 100%;">
+                            <q-skeleton height="60px" type="text"></q-skeleton>
+                            <q-skeleton height="60px" type="text"></q-skeleton>
+                            <q-skeleton height="60px" type="text"></q-skeleton>
+                            <q-skeleton height="60px" type="text"></q-skeleton>
+                            <q-skeleton height="60px" type="text"></q-skeleton>
+                            <q-skeleton height="60px" type="text"></q-skeleton>
+                        </div>
                     </div>
-                    <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
-                        版本:<b>{{ scheduleData.version }}</b>
-                    </div>
-                    <div v-else style="width: 100%;">
-                        <q-skeleton height="18px" width="35%" style="margin-bottom: 3px;"></q-skeleton>
-                    </div>
-                </div>
-            </div>
-            <div class="schedule-area-wrapper">
-                <HorizontalScheduleLayout v-if="scheduleData" :schedule-data="scheduleData"/>
-                <div v-else style="width: 100%;">
-                    <q-skeleton height="30px"></q-skeleton>
-                    <q-skeleton height="30px"></q-skeleton>
-                    <q-skeleton height="30px"></q-skeleton>
-                    <q-skeleton height="30px"></q-skeleton>
-                    <q-skeleton height="30px"></q-skeleton>
                 </div>
             </div>
 
@@ -70,13 +76,13 @@ import {onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {fetchStationSchedule} from "src/apis/reailtime";
 import {genBriefName} from "src/utils/string-utils";
-import {TRAIN_CATEGORY} from "src/models/Train";
 import dayjs from "dayjs";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineIcon from "components/LineIcon.vue";
 import {useI18n} from "vue-i18n";
 import HorizontalScheduleLayout from "components/schedule-layouts/HorizontalScheduleLayout.vue";
+import domtoimage from 'dom-to-image';
 
 const loading = ref(true)
 const scheduleData = ref(null)
@@ -84,27 +90,32 @@ const showVertical = ref(false)
 const station = ref(null)
 const line = ref(null)
 const {t} = useI18n()
+const scheduleRef = ref(null)
 const saveAsImg = () => {
+    if (!scheduleData.value) {
+        $q.notify.info('时刻表未加载完成')
+        return
+    }
     console.log("saving schedule as image")
     const scale = 3
-    // const domNode = this.$refs['station-schedule-wrapper']
-    // domtoimage.toPng(domNode, {
-    //     width: domNode.clientWidth * scale,
-    //     height: domNode.clientHeight * scale,
-    //     style: {
-    //         transform: `scale(${scale})`,
-    //         transformOrigin: 'top left'
-    //     }
-    // })
-    //     .then(dataUrl => {
-    //         let a = document.createElement('a')
-    //         a.href = dataUrl
-    //         a.download = `${this.station.name}-${this.line.name}时刻表`
-    //         a.click()
-    //     })
-    //     .catch(error => {
-    //         console.error(error)
-    //     })
+    const domNode = scheduleRef.value
+    domtoimage.toPng(domNode, {
+        width: domNode.clientWidth * scale,
+        height: domNode.clientHeight * scale,
+        style: {
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left'
+        }
+    })
+        .then(dataUrl => {
+            let a = document.createElement('a')
+            a.href = dataUrl
+            a.download = `${station.value.name}-${line.value.name}_schedule`
+            a.click()
+        })
+        .catch(error => {
+            console.error(error)
+        })
 }
 const route = useRoute()
 const router = useRouter()
@@ -137,8 +148,9 @@ async function init(stationId, lineId) {
             $q.notify.error('No such station!')
             router.push('/')
         })
-        store.dispatch('railsystem/getLine', {lineId}).then(_line => {
+        const _line = await store.dispatch('railsystem/getLine', {lineId}).then(_line => {
             line.value = _line
+            return _line
         }).catch(err => {
             $q.notify.error('No such line!')
             router.push('/')
@@ -151,12 +163,11 @@ async function init(stationId, lineId) {
         const TRAIN_CATEGORY_INDEX = 2
         const shortTerminalStationIds = new Set()
 
+        const lineTerminalStationIds = new Set([_line.stations[0].id, _line.stations.slice(-1)[0].id])
         rawSchedule.flat().flatMap(it => Object.entries(it)).map(it => {
             it[1] = it[1][0];
-            return it
-        }).filter(it => it[1][TRAIN_CATEGORY_INDEX].find(it2 => it2 !== TRAIN_CATEGORY.LOCAL.code.toUpperCase())
-        ).map(it => it[0]).forEach(it => shortTerminalStationIds.add(it))
-
+            return it[0]
+        }).filter(it => !lineTerminalStationIds.has(it)).forEach(it => shortTerminalStationIds.add(it))
         const briefNameMap = new Map()
         for (let stationId of shortTerminalStationIds) {
             const station = scheduleData.stationMap[stationId]
@@ -177,7 +188,6 @@ async function init(stationId, lineId) {
             return it
         })
         scheduleData.briefNameMap = briefNameMap
-        console.log('scd', scheduleData)
         return scheduleData
     } catch (e) {
         console.error('Load schedule err:', e)
@@ -190,6 +200,17 @@ async function init(stationId, lineId) {
 </script>
 
 <style scoped>
+.schedule-area-parent {
+
+}
+
+.schedule-area-wrapper {
+}
+
+.schedule-header-container {
+    background-color: var(--q-background);
+}
+
 .toolbar-area-wrapper {
     height: 40px;
     padding-left: 10px;

@@ -15,14 +15,15 @@ const languages = Object.keys(messages)
 
 //TODO
 const mapLanguage = (language) => {
-    if (['zh-CN', 'zh-SG', 'zh-MY'].includes(language)) {
-        return 'zh-Hans'
-    }
-    if (['zh-TW', 'zh-HK', 'zh-MO', 'hk', 'tw'].includes(language)) {
-        return 'zh-Hant'
-    }
     if (typeof language !== "string") {
         return mapLanguage(navigator.language)
+    }
+    language = language.toLowerCase()
+    if (['zh-cn', 'zh-sg', 'zh-my', 'zh', 'zh-hans'].includes(language)) {
+        return 'zh-Hans'
+    }
+    if (['zh-tw', 'zh-hk', 'zh-mo', 'hk', 'tw'].includes(language)) {
+        return 'zh-Hant'
     }
     const isSupportedLang = Object.keys(messages).findIndex(it => it.toLowerCase() === language.toLowerCase()) !== -1
     if (isSupportedLang) {
