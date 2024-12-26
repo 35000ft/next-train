@@ -8,10 +8,12 @@
     <q-tab-panels v-if="focusTrains.length>0" v-model="currentTrainId" @touchstart.stop swipeable animated>
         <q-tab-panel :name="train.id" v-for="(train,index) in focusTrains" :key="train.id">
             <div class="row">
-                <div v-overflow-auto-scroll class="col-4 auto-scroll-container">
-                    <i style="color: var(--q-primary)"> {{ train.station.name }}</i>
+                <div class="col-8 auto-scroll-container">
+                    <div v-overflow-auto-scroll>
+                        <i style="color: var(--q-primary)"> {{ train.station.name }}</i>
+                    </div>
                 </div>
-                <div class="col-8">
+                <div class="col-4">
                     {{ formatToHHMM(train.dep) }}
                 </div>
                 <div class="col-8" style="display: flex;align-items: center;justify-content: center;">

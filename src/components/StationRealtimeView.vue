@@ -36,7 +36,9 @@
                             <q-icon name="departure_board" @click="handleShowSchedule"/>
                         </div>
                         <div>
-                            <q-icon name="map"/>
+                            <a :href="locationUrl" target="_blank">
+                                <q-icon name="map"/>
+                            </a>
                         </div>
                     </div>
                     <div style="margin-top: 5px;max-width: 40%;" @click="handleClickStationName">
@@ -190,6 +192,20 @@ const currentTrains = ref([])
 const allTrains = ref([])
 const showTrainInfo = ref(null)
 
+//TODO 国际化 多地图服务商 根据坐标查询
+const locationUrl = computed(() => {
+    const _station = currentStation.value
+    if (!_station) {
+        return "/"
+    }
+    const base = "https://www.amap.com/search?query="
+    const railsystem = store.getters['railsystem/railsystemGetter'](_station.railsystemCode)
+    let url = `${base}${_station.name}地铁站`
+    if (railsystem) {
+        url += " " + railsystem.city
+    }
+    return url
+})
 
 const props = defineProps({
     currentStationIdProp: {
@@ -314,7 +330,6 @@ async function updateCurrentTrains() {
     if (isLoadingTrains.value) {
         return
     }
-    console.log('Call updateCurrentTrains')
     isLoadingTrains.value = true
     const _currentLindId = currentLineId.value
     if (!_currentLindId) {
@@ -370,9 +385,10 @@ async function updateCurrentTrains() {
         $q.notify.error(`${t('update')} ${t('trainInfo')} ${t('error')}`)
         currentTrains.value = []
     }).finally(_ => {
-        if (!checkIsChanged(_currentLindId, _stationId)) {
-            isLoadingTrains.value = false
-        }
+        console.log('Check isChange', checkIsChanged(_currentLindId, _stationId))
+        // if (!checkIsChanged(_currentLindId, _stationId)) {
+        isLoadingTrains.value = false
+        // }
     })
 }
 

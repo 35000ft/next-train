@@ -1,16 +1,17 @@
 <template>
     <transition name="right-in-right-out">
         <div class="full-height full-width container" style=" z-index: 1000;overflow: hidden;"
-             v-if="topComponent||secondTopComponent">
+             v-if="firstComponent||secondComponent">
             <transition name="right-in-right-out">
                 <div class="full-height full-width container" style=" z-index: 1000;overflow: hidden;"
-                     v-if="topComponent">
-                    <component :is="topComponent" :key="path"/>
+                     v-if="firstComponent&&showComponentKey===0">
+                    <component :is="firstComponent" :key="path"/>
                 </div>
             </transition>
             <transition name="right-in">
-                <div class="full-height full-width container" style=" z-index: 950;" v-if="secondTopComponent">
-                    <component :is="secondTopComponent" :key="path"/>
+                <div class="full-height full-width container" style=" z-index: 1000;"
+                     v-if="secondComponent&&showComponentKey===1">
+                    <component :is="secondComponent" :key="path"/>
                 </div>
             </transition>
         </div>
@@ -23,35 +24,46 @@
 import {computed, defineAsyncComponent, onMounted, ref, shallowRef, watch} from "vue";
 import {useStore} from "vuex";
 
-const topComponent = shallowRef(null)
-const secondTopComponent = shallowRef(null)
+const showComponentKey = ref(null)
+const firstComponent = shallowRef(null)
+const secondComponent = shallowRef(null)
 const path = ref(null)
 const store = useStore()
 const overlayComponentStack = computed(() => store.getters['application/overlayComponentStack'])
 const shownComponent = computed(() => store.getters["application/topOverlayComponent"])
 watch(shownComponent, (newVal, oldVal) => {
     if (newVal && newVal.componentName) {
-        console.log('set shown component', newVal)
         try {
             const stackSize = overlayComponentStack.value.length;
             if (stackSize > 1) {
                 const lastComponentName = overlayComponentStack.value[stackSize - 2].componentName
                 if (lastComponentName) {
-                    secondTopComponent.value = defineAsyncComponent(() => import(`../components/${lastComponentName}.vue`))
+                    if (showComponentKey.value === 0) {
+                        // Now component1 is shown, change to component2
+                        showComponentKey.value = 1
+                        setTimeout(() => {
+                            secondComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
+                            firstComponent.value = defineAsyncComponent(() => import(`../components/${lastComponentName}.vue`))
+                        }, 0)
+                    } else if (showComponentKey.value === 1) {
+                        // Now component2 is shown, change to component1
+                        showComponentKey.value = 0
+                        setTimeout(() => {
+                            firstComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
+                            secondComponent.value = defineAsyncComponent(() => import(`../components/${lastComponentName}.vue`))
+                        }, 0)
+                    }
                 }
-                topComponent.value = null
-                setTimeout(() => {
-                    topComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
-                }, 0)
             } else {
-                topComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
-                secondTopComponent.value = null
+                showComponentKey.value = 0
+                firstComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
+                secondComponent.value = null
             }
         } catch {
             console.warn(`component not found:${newVal.componentName}`)
         }
     } else {
-        topComponent.value = null
+        firstComponent.value = null
     }
 })
 

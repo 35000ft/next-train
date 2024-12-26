@@ -336,14 +336,20 @@ export default defineComponent({
         const scrollTop = ref(0)
         const showLocationToolIcon = computed(() => {
             const dom = stopInfoListView.value
-            const _currentIndex = currentIndex.value
+            const _currentIndex = currentIndex.value || (nextIndex.value - 1)
             const _scrollTop = scrollTop.value
             if (dom && _currentIndex) {
                 if (dom.scrollHeight <= dom.clientHeight) {
                     return false
                 }
                 const currentStopHeight = _currentIndex * STOP_ROW_HEIGHT
-                return !(currentStopHeight >= _scrollTop && currentStopHeight <= _scrollTop + dom.clientHeight);
+                if (currentStopHeight > _scrollTop + dom.clientHeight) {
+                    return true
+                }
+                if (_scrollTop > currentStopHeight + STOP_ROW_HEIGHT) {
+                    return true
+                }
+                return false
             }
             return false
         })

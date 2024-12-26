@@ -32,7 +32,7 @@
                                  @click="handleSelect(station)">
                                 <div class="station-name" v-overflow-auto-scroll>
                                     <span v-if="station.highlighted" v-html="station.highlighted"></span>
-                                    <span v-if="!station.highlighted">{{ station.name }}</span>
+                                    <span v-else>{{ station.name }}</span>
                                     <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
                                         {{ station.railsystemName }}
                                     </span>
@@ -58,7 +58,8 @@
                             <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;"
                                  @click="handleSelect(station)">
                                 <div v-overflow-auto-scroll>
-                                    <span>{{ station.name }}</span>
+                                    <span v-if="station.highlighted" v-html="station.highlighted"></span>
+                                    <span v-else>{{ station.name }}</span>
                                     <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
                                         {{ station.railsystemName }}
                                     </span>
@@ -117,10 +118,10 @@ export default defineComponent({
         const lines = ref([])
         const $q = useQuasar()
         const isDark = computed(() => $q.dark.isActive)
-        const historyStations = computed(() => store.getters["preference/historyStations"])
+        const historyStations = computed(() => store.getters["preference/historyStations"].slice(0, 12))
 
         function init() {
-            console.log('station selector init...')
+            console.log('StationSelector init...')
             loading.value = true
             store.dispatch('railsystem/getRailSystemLines').then(r => {
                 lines.value = r
@@ -128,7 +129,7 @@ export default defineComponent({
                 loading.value = false
             }).catch(err => {
                 console.warn('load lines error', err)
-                $q.notify.warn('load lines error')
+                $q.notify.warn('Load lines error')
             })
         }
 
@@ -156,8 +157,17 @@ export default defineComponent({
             init()
         })
 
-        const handleSearch = _.debounce((keyword) => {
-            loadStations(currentSearchGroup.value).then(r => {
+        const handleSearch = _.debounce(keyword => {
+            let lineId
+            if (currentSearchGroup.value === ALL_STR) {
+                lineId = ALL_STR
+            } else {
+                const line = lines.value.find(it => it.name === currentSearchGroup.value)
+                if (line) {
+                    lineId = line.id
+                }
+            }
+            loadStations(lineId).then(r => {
                 searchResults.value = filterResult(r, keyword)
             })
         }, 300)
@@ -165,6 +175,7 @@ export default defineComponent({
         const filterResult = (r, _keyword) => {
             if (typeof _keyword === "string") {
                 _keyword = _keyword.toString().replace(' ', '')
+                console.log('_keyword', _keyword, r)
                 if (_keyword.length === 0 || r.length === 0) {
                     return r
                 }

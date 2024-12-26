@@ -88,7 +88,7 @@ const horizontalSchedule = computed(() => {
                     isFirst,
                     depTime,
                     dayOffset,
-                    showStr: depTime.minute().toString().padStart(2, '0')
+                    showStr: depTime.minute().toString().padStart(2, '0') + (briefName || "")
                 }
             })
             tempSchedules.push(t)

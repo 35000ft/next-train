@@ -6,6 +6,7 @@ import {fetchLine, fetchLines, fetchStation, fetchStations} from "src/apis/rails
 const railSystems = {
     'NJMTR': {
         name: '南京',
+        city: '南京',
         code: 'NJMTR',
         lang: 'zh-hans',
         fullname: '南京地铁',
@@ -189,7 +190,8 @@ const actions = {
 
 const getters = {
     currentRailSystem: state => state.currentRailSystem,
-    lines: state => state.lines
+    lines: state => state.lines,
+    railsystemGetter: state => (code) => state.railSystems.get(code)
 }
 
 export default {

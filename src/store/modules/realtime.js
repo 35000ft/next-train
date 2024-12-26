@@ -42,6 +42,7 @@ const actions = {
                     return
                 }
                 commit('SET_LOCK', {key: lockKey})
+                console.log('FetchStationTrain', 'stationId:' + stationId, 'lineId:' + lineId)
                 fetchStationCurrentTrainInfo(stationId, lineId).then(_trains => {
                     commit('SET_STATION_TRAININFO', {trainInfoList: _trains, stationId, lineId})
                     resolve(_trains)
