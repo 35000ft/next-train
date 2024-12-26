@@ -1,5 +1,5 @@
 <template>
-    <OverlayView>
+    <OverlayView name="stationDetailView">
         <template v-slot:header-center>
             <div>{{ headerTitle }}</div>
         </template>
@@ -43,8 +43,8 @@ const headerTitle = computed(() => {
 
 async function init() {
     console.log('route', route)
+    console.log('stationId', route.params, route.fullPath)
     const stationId = route.params.id
-    console.log('stationId', stationId)
     loading.value = true
     let _station = await store.dispatch('railsystem/getStation', {stationId})
     console.log('station', _station)

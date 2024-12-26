@@ -100,6 +100,14 @@
     }
 }
 
+.right-in-enter-active {
+    animation: scroll-from-right-view-transition .5s;
+}
+
+.right-out-leave-active {
+    animation: scroll-from-right-view-transition .5s reverse;
+}
+
 .right-in-right-out-enter-active {
     animation: scroll-from-right-view-transition .5s;
 }

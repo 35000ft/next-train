@@ -1,6 +1,7 @@
 import {reactive, toRaw} from "vue";
 import {isEqual} from "lodash";
 import {getNowByTimezone} from "src/utils/time-utils";
+import {useRouter} from "vue-router";
 
 
 const state = {
@@ -9,7 +10,6 @@ const state = {
     // 相对当前时间的偏移秒数
     timeOffsetSeconds: 0
 };
-
 const mutations = {
     SET_SHOWN_STATION_ID(state, {stationId}) {
         state.shownStationId = stationId
@@ -28,13 +28,8 @@ const mutations = {
             state.overlayStack.push(component)
         }
     },
-    POP_OVERLAY(state, {componentName}) {
+    POP_OVERLAY(state) {
         if (state.overlayStack.length > 0) {
-            if (componentName) {
-                if (state.overlayStack.slice(-1)[0].componentName !== componentName) {
-                    return
-                }
-            }
             state.overlayStack.splice(state.overlayStack.length - 1, 1)
         }
     },
@@ -55,10 +50,9 @@ const actions = {
             commit('PUSH_OVERLAY', {component})
         }
     },
-    popOverlay({commit, state}, payload) {
-        console.log('popOverlay', payload)
-        const componentName = payload && payload.componentName || null
-        commit('POP_OVERLAY', {componentName: componentName})
+    popOverlay({commit, state}) {
+        console.log('pop overlay')
+        commit('POP_OVERLAY')
     },
 
 };
@@ -66,6 +60,7 @@ const actions = {
 const getters = {
     shownStationId: state => state.shownStationId,
     topOverlayComponent: state => state.overlayStack.slice(-1)[0],
+    overlayComponentStack: state => state.overlayStack,
     getNowTime: state => (timezone) => getNowByTimezone(timezone).add(state.timeOffsetSeconds, "seconds")
 };
 

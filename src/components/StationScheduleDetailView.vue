@@ -1,5 +1,5 @@
 <template>
-    <OverlayView>
+    <OverlayView name="StationScheduleDetail">
         <template v-slot:header-center>
             <div>线路时刻表</div>
         </template>

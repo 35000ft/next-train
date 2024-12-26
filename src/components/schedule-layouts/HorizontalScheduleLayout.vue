@@ -60,7 +60,6 @@ const horizontalSchedule = computed(() => {
         return []
     }
     const _schedules = _scheduleData.schedules
-    console.log('_sc', _schedules)
     const result = []
     for (let directionSchedule of _schedules) {
         const terminalStr = Object.keys(directionSchedule).map(it => _scheduleData.stationMap[it])
@@ -152,7 +151,7 @@ const calcStyleClass = (trainInfo) => {
     }
     return classes.join(' ')
 }
-const otherTerminals = ref([])
+
 </script>
 <style scoped>
 .first-stop {

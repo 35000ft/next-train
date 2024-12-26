@@ -1,5 +1,6 @@
 <template>
-    <q-layout view="lHh Lpr lFf" class="full-height" style="background-color: var(--q-background);" v-back="handleBack">
+    <q-layout view="lHh Lpr lFf" class="full-height" style="background-color: var(--q-background);"
+              v-back="handleBack">
         <q-header class="row header-wrapper">
             <div @click="handleClose" class="col-3 close-btn" style="font-size: 30px;">
                 <i class="fa-solid fa-arrow-left fa-lg"></i>
@@ -27,15 +28,24 @@ import {useStore} from "vuex";
 
 const props = defineProps({
     onClose: Function,
+    name: {
+        type: String,
+        default: "OverlayView"
+    }
 })
 const store = useStore()
 const router = useRouter()
-const handleClose = () => {
+const handleClose = (event) => {
+    if (!event) {
+        return
+    }
+    console.log('close', props.name, event)
     router.back()
     store.dispatch('application/popOverlay')
 }
+//TODO 返回
 const handleBack = () => {
-    handleClose()
+    // handleClose("back")
 }
 </script>
 

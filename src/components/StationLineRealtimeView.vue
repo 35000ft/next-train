@@ -6,7 +6,7 @@
                 <span class="col-6" @click="handleShowLineStationSelector">{{ line.name }}</span>
                 <div class="col-6 tool-bar">
                     <span @click="handleRefresh"><q-icon name="update"/></span>
-                    <span><q-icon name="departure_board"/></span>
+                    <span @click="handleShowSchedule"><q-icon name="departure_board"/></span>
                 </div>
             </div>
             <div style="margin-top: 35px;">
@@ -63,6 +63,7 @@ import {useStore} from "vuex";
 import LineStationsSelector from "components/LineStationsSelector.vue";
 import {useQuasar} from "quasar";
 import _ from 'lodash'
+import {useRouter} from "vue-router";
 
 const props = defineProps({
     station: {
@@ -94,6 +95,7 @@ onUnmounted(() => {
         clearInterval(updateTrainsTimer)
     }
 })
+const router = useRouter()
 
 const handleRefresh = _.debounce(() => {
     loadLineTrains(props.line.id).then(_ => {
@@ -145,6 +147,16 @@ async function loadLineTrains(lineId) {
         })
     } else {
         return Promise.reject(`lineId or stationId is illegal lineId:${lineId} stationId:${stationId}`)
+    }
+}
+
+const handleShowSchedule = () => {
+    if (props.line && props.station) {
+        const params = {lineId: props.line.id, stationId: props.station.id};
+        router.push({name: 'station-schedule-detail', params: params})
+        store.dispatch('application/pushOverlay', {
+            component: {componentName: "StationScheduleDetailView", params}
+        })
     }
 }
 
