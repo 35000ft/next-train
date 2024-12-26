@@ -9,7 +9,7 @@
         </div>
         <div class="col-5">
             <div v-overflow-auto-scroll
-                 style="margin-left: auto;display: flex;align-items: center;justify-content: flex-end;">
+                 style="margin-left: auto;display: flex;align-items: center;justify-content: flex-end;width: 100%;">
                 <div style="flex-shrink: 0">
                     <DepTrainTime :train-data="trainData" :station="station"/>
                 </div>

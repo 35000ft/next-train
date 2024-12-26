@@ -109,4 +109,5 @@ onBeforeUnmount(() => {
 .train-status {
     color: var(--q-normal);
 }
+
 </style>

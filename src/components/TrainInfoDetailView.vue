@@ -4,31 +4,34 @@
                   :is-use-route="isFromUrl"
                   @touchstart.stop name="train-info-detail">
         <template v-slot:default>
-            <div v-if="trainInfo">
+            <div>
                 <div class="wrapper">
                     <div class="header" :style="{backgroundColor:primaryColor}">
-                        <span style="color: #ffffff;padding-left: 20px;font-size: 15px;font-weight: bold;">1号线</span>
+                        <!-- TODO 标题-->
+                        <span style="color: #ffffff;padding-left: 20px;font-size: 15px;font-weight: bold;"></span>
                     </div>
                     <div class="row" style="height: 100px;">
                         <div class="col-6"
                              style="border-right: 2px solid var(--q-primary-d);height: 100%;align-items: center;display: flex;">
                             <div style="margin: 0 auto;width: 90%;">
                                 <div>
-                                    <TrainCategory :category="trainInfo.category"/>
+                                    <TrainCategory v-if="trainInfo" :category="trainInfo.category"/>
+                                    <q-skeleton v-else width="40px" height="20px"/>
                                 </div>
                                 <div style="display: flex;align-items: baseline;">
                                     <div class="auto-scroll-container"
                                          style="max-width: 95%;display: inline-block;margin-right: 4px;">
-                                        <span v-overflow-auto-scroll
+                                        <span v-overflow-auto-scroll v-if="trainInfo"
                                               style="font-weight:bold;color: var(--q-primary-d);font-size: 18px;">
                                                 {{ terminal }}
                                         </span>
+                                        <q-skeleton v-else type="text" width="120px" height="30px"/>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-6" style="align-items: center;display: flex;">
-                            <div style="margin: 0 auto;width: 90%;">
+                            <div style="margin: 0 auto;width: 90%;" v-if="trainInfo">
                                 <div style="color: var(--q-normal);">
                                     <span v-if="nextIndex===0">{{ t('waitingForDeparture') }}</span>
                                     <span v-else>{{ t('currentInterval') }}</span>
@@ -41,6 +44,9 @@
                                     </span>
                                     </div>
                                 </div>
+                            </div>
+                            <div v-else style="margin: 0 auto;width: 90%;">
+                                <q-skeleton width="100%" height="50px"/>
                             </div>
                         </div>
                     </div>
@@ -59,7 +65,8 @@
                             style="min-height: 100px;">
                             <!-- location tool -->
                             <transition name="tool-wrapper">
-                                <span class="tool-wrapper" v-show="showLocationToolIcon" @click="handleLocate">
+                                <span class="tool-wrapper" v-show="showLocationToolIcon"
+                                      @click="handleLocate">
                                     <i class="fa-solid fa-location-crosshairs"></i>
                                  </span>
                             </transition>
@@ -71,7 +78,7 @@
                                 <div class="col-3">{{ t('arrTime') }}</div>
                                 <div class="col-3">{{ t('depTime') }}</div>
                             </div>
-                            <div class="scroll" style="max-height: 50vh;" ref="stopInfoListView">
+                            <div class="scroll" style="max-height: 50vh;" ref="stopInfoListView" v-if="trainInfo">
                                 <div class="stop-info-wrapper row" v-for="stop in schedule"
                                      style="font-size: 18px;font-weight:bold;"
                                      :style="{height:STOP_ROW_HEIGHT+'px'}"
@@ -100,6 +107,12 @@
                                         {{ stop.depStr }}
                                     </div>
                                 </div>
+                            </div>
+                            <div v-else class="scroll" style="max-height: 50vh;">
+                                <q-skeleton height="100px" width="100%" type="text"/>
+                                <q-skeleton height="100px" width="100%" type="text"/>
+                                <q-skeleton height="100px" width="100%" type="text"/>
+                                <q-skeleton height="100px" width="100%" type="text"/>
                             </div>
                         </div>
                     </q-expansion-item>
@@ -178,7 +191,7 @@ export default defineComponent({
                 if (isAfterNow(currentStop.dep)) {
                     return `<span style="color: var(--q-arrived)">${currentStop.stationName}</span> ~ <span style="color:var(--q-ontime);">${nextStop.stationName}</span>`
                 } else {
-                    return `<span style="color: var(--q-grey-3)">${currentStop.stationName}</span> ~ <span style="color:var(--q-ontime);">${nextStop.stationName}</span>`
+                    return `<span style="color: var(--q-grey-3)">${currentStop.stationName}</span> ~ <span style="color:var(--q-next-station);">${nextStop.stationName}</span>`
                 }
             } else if (_schedule && _nextIndex === 0) {
                 const remainTime = diffFromNowFormatted(_schedule[0].arr, {
@@ -232,10 +245,11 @@ export default defineComponent({
             if (!schedule.value) {
                 return TRAIN_STATUS.ONTIME.code
             }
-            const _temp = stopStatusMap.value[stationId]
-            if (_temp) {
-                return _temp.code
+            const className = stopStatusMap.value[stationId]
+            if (className) {
+                return className
             }
+
             return TRAIN_STATUS.ONTIME.code
         }
         watch(schedule, (newValue, oldValue) => {
@@ -248,10 +262,15 @@ export default defineComponent({
             if (!dom) {
                 return
             }
+            let index = currentIndex.value || (nextIndex.value && nextIndex.value - 1)
+            if (index < 0) index = 0
+            if (!index) {
+                return
+            }
             if (dom.scrollHeight <= dom.clientHeight) {
                 return
             }
-            const target = (currentIndex.value * STOP_ROW_HEIGHT)
+            const target = (nextIndex.value * STOP_ROW_HEIGHT)
             if (instantly) {
                 stopInfoListView.value.scrollTop = target
             } else {
@@ -291,14 +310,17 @@ export default defineComponent({
 
                 if (nextIndex.value) {
                     _schedule.slice(0, nextIndex.value).forEach(stopInfo => {
-                        stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.DEPARTED
+                        stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.DEPARTED.code
                     })
                     _schedule.slice(nextIndex.value).forEach(stopInfo => {
-                        stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.ONTIME
+                        stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.ONTIME.code
                     })
                 }
                 if (currentIndex.value) {
-                    stopStatusMap.value[_schedule[currentIndex.value].stationId] = TRAIN_STATUS.ARRIVED
+                    stopStatusMap.value[_schedule[currentIndex.value].stationId] = TRAIN_STATUS.ARRIVED.code
+                }
+                if (nextIndex.value) {
+                    stopStatusMap.value[_schedule[nextIndex.value].stationId] = 'next-station'
                 }
             } finally {
                 isUpdatingStopStatus.value = false
@@ -405,7 +427,7 @@ export default defineComponent({
                 loadTrainInfo(newVal).then(res => {
                     setTimeout(() => {
                         trainInfo.value = res
-                    }, 0)
+                    }, 100)
                 })
             }
         })
@@ -491,6 +513,14 @@ export default defineComponent({
 
 .ontime {
     color: #009A44;
+}
+
+.next-station {
+    color: var(--q-next-station);
+
+    .station-name {
+        color: var(--q-next-station);
+    }
 }
 
 .header {

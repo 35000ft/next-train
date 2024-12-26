@@ -5,6 +5,7 @@
         </template>
         <template v-slot:default>
             <div class="full-height content-wrapper">
+                <div style="height: 10px;"></div>
                 <div v-if="station">
                     <div v-for="line in station.lines" :key="line.id" class="line-train-info-wrapper2">
                         <StationLineRealtimeView :station="station" :line="line"/>

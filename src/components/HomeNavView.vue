@@ -28,7 +28,7 @@
             <div class="middle-card">
                 <q-card class="my-card">
                     <q-card-section>
-                        HOME
+                        <FavouredStationListCard/>
                     </q-card-section>
                 </q-card>
             </div>
@@ -53,6 +53,7 @@ import {computed, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";
+import FavouredStationListCard from "components/FavouredStationListCard.vue";
 
 defineOptions({
     name: 'HomeView'
@@ -91,8 +92,18 @@ const handleChangeStation = (station) => {
     height: 100px;
 }
 
+.my-card {
+    height: 100%;
+}
+
 .q-tab-panel {
     background-color: darkseagreen;
     padding: 5px 10px;
+}
+
+.q-card__section--vert {
+    height: 100%;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 </style>

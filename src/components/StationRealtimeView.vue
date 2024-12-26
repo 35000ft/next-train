@@ -28,7 +28,7 @@
                 <!-- tool bar -->
                 <div class="col-6 station-name-row" style="display: flex;align-items: center;justify-content: center;">
                     <div class="tool-bar" style="z-index: 10">
-                        <div @click="handleFavourStation(currentStationId)">
+                        <div @click="handleFavourStation(currentStation)">
                             <q-icon :style="{color:currentStation.isFavourite?'var(--q-favourite)':'white'}"
                                     name="star"/>
                         </div>
@@ -212,10 +212,10 @@ onMounted(() => {
 const showSkeleton = computed(() => {
     return isLoadingTrains.value && (currentTrains.value && currentTrains.value.length === 0)
 })
-const handleFavourStation = (_stationId) => {
-    if (!_stationId) return
-    store.dispatch('preference/favourStation', _stationId).then(_isFavouriteStation => {
-        if (currentStation.value && currentStation.value.id === _stationId) {
+const handleFavourStation = (_station) => {
+    if (!_station) return
+    store.dispatch('preference/favourStation', {station: _station}).then(_isFavouriteStation => {
+        if (currentStation.value && currentStation.value.id === _station.id) {
             currentStation.value.isFavourite = _isFavouriteStation
             if (_isFavouriteStation) {
                 $q.notify.ok(t('favourStationOk'))

@@ -15,9 +15,8 @@ const state = {
     historyStations: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST)) || [],
     currentStation: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)) || null,
     focusTrains: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS)) || [],
-    favouriteStations: reactive(arr2Map((JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || [])))
+    favouriteStations: reactive(arr2Map((JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || []), 'id'))
 }
-
 
 const mutations = {
     SET_LANGUAGE(state, language) {
@@ -58,23 +57,23 @@ const mutations = {
         state.focusTrains = focusTrains
         localStorage.setItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS, JSON.stringify(focusTrains))
     },
-    FAVOUR_STATION(state, {stationId}) {
-        if (!isNumber(stationId)) {
+    FAVOUR_STATION(state, {station}) {
+        if (!isNumber(station.id)) {
             return
         }
         let favouriteStations = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || []
-        const favouriteStationSet = new Set(favouriteStations)
+        const favouriteStationMap = arr2Map(favouriteStations, 'id')
         let isFavourite
-        if (favouriteStationSet.has(stationId)) {
-            favouriteStationSet.delete(stationId)
+        if (favouriteStationMap.has(station.id)) {
+            favouriteStationMap.delete(station.id)
             isFavourite = false
         } else {
-            favouriteStationSet.add(stationId)
+            favouriteStationMap.set(station.id, station)
             isFavourite = true
         }
-        favouriteStations = Array.from(favouriteStationSet.values())
+        favouriteStations = Array.from(favouriteStationMap.values())
         localStorage.setItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS, JSON.stringify(favouriteStations))
-        state.favouriteStations = arr2Map(favouriteStations)
+        state.favouriteStations = favouriteStationMap
         return isFavourite
     },
     SET_FOCUS_TRAINS(state, trains) {
@@ -113,13 +112,13 @@ const actions = {
         }
         commit('ADD_FOCUS_TRAIN', {train: _t})
     },
-    isFavouriteStation({commit}, {stationId}) {
+    isFavouriteStation({commit, state}, {stationId}) {
         if (!stationId) return false
         return Boolean(state.favouriteStations.has(stationId))
     },
-    async favourStation({commit}, stationId) {
-        commit('FAVOUR_STATION', {stationId});
-        return this.dispatch('preference/isFavouriteStation', {stationId})
+    async favourStation({commit}, {station}) {
+        commit('FAVOUR_STATION', {station});
+        return this.dispatch('preference/isFavouriteStation', {stationId: station.id})
     },
     async getAllFavouriteStations({commit, state}) {
         return state.favouriteStations || new Map()

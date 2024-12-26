@@ -4,6 +4,7 @@ export default {
         // 检查元素是否超出容器
         const checkOverflow = () => {
             const containerWidth = el.offsetWidth; // 容器宽度
+            if (containerWidth === 0) return
             let contentWidth = el.scrollWidth;  // 内容实际宽度
             if (el.style.display === 'flex') {
                 const childNodes = el.children;
@@ -17,7 +18,7 @@ export default {
                 el.style.width = contentWidth + 'px'
             }
             if (contentWidth > containerWidth) {
-                el.classList.add("auto-scroll-content"); // 添加类名
+                el.classList.add("auto-scroll-content");
             }
         };
 
