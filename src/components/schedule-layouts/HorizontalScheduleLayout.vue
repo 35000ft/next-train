@@ -45,7 +45,6 @@ import {computed, ref} from "vue";
 import {useI18n} from "vue-i18n";
 import {TRAIN_CATEGORY} from 'src/models/Train'
 import {useStore} from "vuex";
-import dayjs from "dayjs";
 
 const {t} = useI18n()
 const store = useStore()

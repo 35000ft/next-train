@@ -13,8 +13,7 @@ const LOCAL_STORAGE_KEYS = {
 const state = {
     currentLanguage: 'en',
     historyStations: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST)) || [],
-    //TODO
-    currentStation: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)) || {},
+    currentStation: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)) || null,
     focusTrains: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS)) || [],
     favouriteStations: reactive(arr2Map((JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || [])))
 }
@@ -26,6 +25,7 @@ const mutations = {
     },
     SET_CURRENT_STATION(state, station) {
         if (!station) return
+        console.log('SET_CURRENT_STATION', station)
         state.currentStation = station;
         localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_STATION, JSON.stringify(station))
     },

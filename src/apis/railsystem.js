@@ -3,17 +3,13 @@ import axios from "src/utils/axios"
 /**
  * Fetch all stations of a rail system
  * @param {String} railsystemCode Code of Rail system, like "NJMTR"
- * @param {String} version Version of Rail system like '240125
  */
-export async function fetchStations(railsystemCode, version) {
+export async function fetchStations(railsystemCode) {
     const url = `api/file/railsystem/stations/${railsystemCode}`
     return await axios
-        .get(url, {params: {v: version || ""}})
+        .get(url,)
         .then(res => {
-            return {
-                stations: res.data.data,
-                version: res.headers['version'] || version
-            }
+            return res.data.data || res.data
         })
         .catch(err => {
             console.log('err', err)
@@ -21,15 +17,12 @@ export async function fetchStations(railsystemCode, version) {
         })
 }
 
-export async function fetchLines(railsystemCode, version) {
+export async function fetchLines(railsystemCode) {
     const url = `api/file/railsystem/lines/${railsystemCode}`
     return await axios
-        .get(url, {params: {v: version || ""}})
+        .get(url,)
         .then(res => {
-            return {
-                lines: res.data.data,
-                version: res.headers['version'] || version
-            }
+            return res.data.data || res.data
         })
         .catch(err => {
             console.log('err', err)

@@ -43,6 +43,8 @@ export default {
         special: 'SPL',
     },
     train: "Train",
+    date: "Date",
+    version: "Version",
     other: 'Other',
     get: 'Get',
     load: 'Load',

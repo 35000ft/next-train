@@ -2,7 +2,7 @@
     <SearchHeader/>
     <q-page-container style=" max-height: 85vh; overflow-y: auto">
         <div class="row" style="gap:20px;justify-content: space-between;">
-            <div class="col-12 row-card">
+            <div class="col-12 row-card" v-if="false">
                 <q-card class="my-card">
                     <q-card-section class="full-height" style="padding: 0">
                         <q-tab-panels class="full-height" v-model="topBanner" swipeable animated @touchstart.stop>
@@ -36,7 +36,8 @@
             <div class="col-12" style="height: 300px;">
                 <q-card class="my-card full-height">
                     <q-card-section class="full-height" style="padding: 0;">
-                        <StationRealtimeView current-station-id-prop="9" @change-station="handleChangeStation"/>
+                        <StationRealtimeView :current-station-id-prop="currentStationId"
+                                             @change-station="handleChangeStation"/>
                     </q-card-section>
                 </q-card>
             </div>
@@ -48,7 +49,7 @@
 
 <script setup>
 import SearchHeader from "components/SearchHeader.vue";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";
@@ -57,23 +58,22 @@ defineOptions({
     name: 'HomeView'
 })
 
+const store = useStore()
 const props = defineProps({})
 const topBanner = ref('home2')
+const currentStationId = computed(() => {
+    const currentStation = store.getters['preference/currentStation'];
+    if (currentStation) {
+        return currentStation.id
+    } else {
+        const railsystem = store.getters['railsystem/currentRailSystem'];
+        return railsystem.defaultStationId
+    }
+})
 
-const displayRailSystemSelector = ref(true)
-const displayStationSelector = ref(true)
-const store = useStore()
 const handleChangeStation = (station) => {
-    console.log('change station', station)
     store.dispatch('preference/setCurrentStation', station)
 }
-const handleCloseRailSystemSelector = () => {
-    displayRailSystemSelector.value = false
-}
-const handleCloseStationSelector = () => {
-    displayStationSelector.value = false
-}
-
 
 </script>
 

@@ -39,13 +39,13 @@
                             </div>
 
                             <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
-                                日期:<b>{{ scheduleData.date.format('YYYY-MM-DD dddd') }}</b>
+                                {{ t('date') }}:<b>{{ scheduleData.date.format('YYYY-MM-DD dddd') }}</b>
                             </div>
                             <div v-else style="width: 100%;">
                                 <q-skeleton height="18px" width="40%" style="margin-bottom: 4px;"></q-skeleton>
                             </div>
                             <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
-                                版本:<b>{{ scheduleData.version }}</b>
+                                {{ t('version') }}:<b>{{ scheduleData.version }}</b>
                             </div>
                             <div v-else style="width: 100%;">
                                 <q-skeleton height="18px" width="35%" style="margin-bottom: 3px;"></q-skeleton>

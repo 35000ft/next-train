@@ -35,7 +35,6 @@ const actions = {
         if (lineId && stationId) {
             return new Promise((resolve, reject) => {
                 const lockKey = `fetchStationTrain:${stationId}-${lineId}`
-                console.log('fetch by api', lockKey)
                 if (state.LOCK.has(lockKey)) {
                     const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
                     const _oldTrains = stationTrainInfoMap && stationTrainInfoMap.get(lineId)
@@ -60,7 +59,6 @@ const actions = {
         if (!(stationId && lineId)) {
             return Promise.reject('stationId and lineId cannot be undefined')
         }
-        console.log('call getStationTrains', stationId, lineId)
         const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
         if (stationTrainInfoMap) {
             const station = await this.dispatch('railsystem/getStation', {stationId})
@@ -83,8 +81,6 @@ const actions = {
                 }
             }
         }
-        //TODO fetch by api
-        console.log('fetch by api')
         return this.dispatch('realtime/fetchStationTrain', {stationId, lineId})
     },
     async getStationDirectionTrains({commit}, {stationId, lineId, eachDirectionLimit = 3}) {

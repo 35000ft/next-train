@@ -1,5 +1,3 @@
-//线网，线路，车站数据
-
 import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
 import {fetchLine, fetchLines, fetchStation, fetchStations} from "src/apis/railsystem";
@@ -12,114 +10,18 @@ const railSystems = {
         lang: 'zh-hans',
         fullname: '南京地铁',
         timezone: '+0800',
-        defaultStationId: "8"
+        defaultStationId: "13"
     },
-    'GZMTR': {
-        name: '广州',
-        code: 'GZMTR',
-        lang: 'zh-hans',
-        fullname: '广州地铁',
-        timezone: '+0800',
-        defaultStationId: "10"
-    }
 }
-const stations = [{
-    id: "8",
-    name: "南京站",
-    code: "NJS",
-    timezone: '+0800',
-    railsystemName: '南京地铁',
-    railsystemCode: 'NJMTR',
-    lines: [{
-        id: '1',
-        name: "1号线",
-        code: "L1",
-        color: "#009ACE"
-    }, {
-        id: '3',
-        name: "3号线",
-        code: "L3",
-        color: "#009A44"
-    }, {
-        id: '4',
-        name: "4号线",
-        code: "L4",
-        color: "#7D55C7"
-    }]
-}, {
-    id: "9",
-    name: "新模范马路",
-    timezone: '+0900',
-    railsystemName: '南京地铁',
-    railsystemCode: 'NJMTR',
-    lines: [{
-        id: '1',
-        name: "1号线",
-        code: "L1",
-        color: "#009ACE"
-    }]
-}, {
-    id: "10",
-    name: "玄武门",
-    timezone: '+0800',
-    railsystemName: '南京地铁',
-    railsystemCode: 'NJMTR',
-    lines: [{
-        id: '1',
-        name: "1号线",
-        code: "L1",
-        color: "#009ACE"
-    }]
-}, {
-    id: "11",
-    name: "鼓楼",
-    timezone: '+0800',
-    railsystemName: '南京地铁',
-    railsystemCode: 'NJMTR',
-    lines: [{
-        id: '1',
-        name: "1号线",
-        code: "L1",
-        color: "#009ACE"
-    }, {
-        id: '4',
-        name: "4号线",
-        code: "L4",
-        color: "#7D55C7"
-    }
-    ]
-}
-]
-const lines = [{
-    id: "1",
-    name: "1号线",
-    code: "L1",
-    color: "#009ACE",
-    stations
-}, {
-    id: "3",
-    name: "3号线",
-    code: "L3",
-    color: "#009A44",
-    stations
-}, {
-    id: "4",
-    name: "4号线",
-    code: "L4",
-    color: "#7D55C7",
-    stations
-},]
-
 
 const state = {
     currentRailSystem: railSystems['NJMTR'],
     railSystems: reactive(new Map(Object.entries(railSystems))),
-    stations: reactive(new LRUCache(200)),
-    lines: reactive(new LRUCache(100)),
+    stations: reactive(new LRUCache(100)),
+    lines: reactive(new LRUCache(50)),
 }
 
 const mutations = {
-
     SET_RAIL_SYSTEM_LINES(state, {railsystemCode, lines}) {
         const railsystem = state.railSystems.get(railsystemCode)
         if (!railsystemCode) {
@@ -198,15 +100,11 @@ const actions = {
     },
     async getAllStations({state, commit}) {
         const currentRailSystem = state.currentRailSystem
-        //TODO
         if (currentRailSystem.stations) {
             return currentRailSystem.stations
         } else {
-            return fetchStations(currentRailSystem.code, currentRailSystem.version || "").then(data => {
-                const {stations, version} = data
+            return fetchStations(currentRailSystem.code).then(stations => {
                 currentRailSystem.stations = stations
-                currentRailSystem.version = version
-                console.log('data', data)
                 commit('SET_RAILSYSTEM', {currentRailSystem})
                 return stations
             })
@@ -250,12 +148,11 @@ const actions = {
             return toRaw(state.lines.get(lineId).stations)
         }
         //TODO 从接口获取车站
-        const _stations = stations
+        const _stations = []
         commit('SET_LINE_STATIONS', {lineId, stations: _stations})
         return _stations
     },
     async getRailSystems({state, commit, getters}) {
-        const lang = getters['language/currentLanguage']
         return Array.from(toRaw(state.railSystems).values())
     },
     /**
@@ -276,8 +173,7 @@ const actions = {
             return Promise.resolve(railsystem.lines)
         } else {
             return new Promise((resolve, reject) => {
-                fetchLines(railsystem.code, railsystem.version).then(data => {
-                    const {lines} = data
+                fetchLines(railsystem.code).then(lines => {
                     commit('SET_RAIL_SYSTEM_LINES', {railsystemCode: railsystem.code, lines})
                     lines.forEach(it => {
                         commit('SET_LINE', {line: it})
@@ -289,8 +185,6 @@ const actions = {
             })
         }
     },
-    async getCurrentDefaultStation({commit}) {
-    }
 }
 
 const getters = {

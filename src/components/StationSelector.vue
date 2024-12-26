@@ -136,7 +136,7 @@ export default defineComponent({
             if (lineId === ALL_STR) {
                 const _result = await store.dispatch('railsystem/getAllStations')
                 loadFavouriteStations().then(_ => {
-                    console.log('load favourite stations ok', _)
+                    console.log('load favourite stations ok')
                 })
                 return _result
             } else if (isNumber(lineId)) {
@@ -208,17 +208,22 @@ export default defineComponent({
             emit('close')
         }
         const handleChangeSearchGroup = (searchGroup) => {
-            if (!searchGroup || searchGroup === ALL_STR) {
-                return
-            }
-            const line = lines.value.find(it => it.name === searchGroup);
-            if (!line) {
+            if (!searchGroup) {
                 return
             }
             loading.value = true
-            loadStations(line.id).then(r => {
+            let lineId;
+            if (searchGroup === ALL_STR) {
+                lineId = ALL_STR
+            } else {
+                const line = lines.value.find(it => it.name === searchGroup);
+                if (!line) {
+                    return
+                }
+                lineId = line.id
+            }
+            loadStations(lineId).then(r => {
                 if (r && r instanceof Array) {
-                    console.log('stations', r)
                     searchResults.value = r
                 }
                 loading.value = false
@@ -232,7 +237,6 @@ export default defineComponent({
                         it.isFavourite = true
                     }
                 })
-                return favouriteStations
             })
         }
 

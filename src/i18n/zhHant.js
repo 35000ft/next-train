@@ -43,6 +43,8 @@ export default {
         special: '特別',
     },
     train: "車",
+    date: "日期",
+    version: "版本",
     other: '其它',
     get: '獲取',
     load: '載入',
