@@ -57,11 +57,13 @@ export function getNowByTimezone(_timezone) {
 }
 
 export function isAfterNow(_date, timezone) {
+    console.log('Call isAfterNow')
     const diff = diffFromNow(_date, 'second', timezone)
     return diff > 0
 }
 
 export function isBeforeNow(_date) {
+    console.log('Call isBeforeNow')
     return !isAfterNow(_date)
 }
 

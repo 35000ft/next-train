@@ -391,7 +391,7 @@ async function updateCurrentTrains() {
         // }
     })
 }
-
+    
 const handleSelectStation = (stationId, lineId) => {
     if (stationId) {
         handleChangeStation(stationId, lineId)

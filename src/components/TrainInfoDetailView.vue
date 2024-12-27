@@ -164,6 +164,7 @@ export default defineComponent({
         const trainInfo = ref(null)
         const trainDate = ref(null)
         const lineColorGetter = computed(() => {
+            console.log('lineColorGetter')
             return (lineId, stationId) => {
                 if (getStopStatus(stationId) === TRAIN_STATUS.DEPARTED.code) {
                     return 'var(--q-grey-2)'
@@ -178,10 +179,10 @@ export default defineComponent({
             }
         })
         const currentInterval = computed(() => {
+            console.log('currentInterval')
             const _schedule = schedule.value
             const _nextIndex = nextIndex.value
             const _currentIndex = currentIndex.value
-            const _ = isUpdatingStopStatus.value
             if (_currentIndex === _schedule.length - 1) {
                 return `<span style="color: var(--q-arrived)">${t('trainHasArrivedAtTerm')}</span>`
             }
@@ -214,6 +215,7 @@ export default defineComponent({
             return []
         })
         const calcSchedule = (_trainInfo) => {
+            console.log('calcSchedule', _trainInfo)
             if (_trainInfo) {
                 const _schedule = _trainInfo.schedule
                 const trainVia = _trainInfo.trainVia
@@ -253,11 +255,13 @@ export default defineComponent({
             return TRAIN_STATUS.ONTIME.code
         }
         watch(schedule, (newValue, oldValue) => {
+            console.log('schedule change', newValue)
             if (newValue) {
                 updateStopStatus(newValue)
             }
         })
         const scrollToCurrent = (instantly = true) => {
+            console.log('scrollToCurrent')
             const dom = stopInfoListView.value
             if (!dom) {
                 return
@@ -278,50 +282,65 @@ export default defineComponent({
             }
         }
         const updateStopStatus = (_schedule) => {
+            console.log('updateStopStatus', _schedule)
             if (!_schedule || isUpdatingStopStatus.value) {
                 return
             }
+            let nextIndexValue = null
+            let currentIndexValue = null
             isUpdatingStopStatus.value = true
             try {
                 for (let index = 0; index < _schedule.length; index++) {
                     const _stopInfo = _schedule[index]
                     if (isBeforeNow(_stopInfo.arr)) {
                         if (isAfterNow(_stopInfo.dep)) {
-                            currentIndex.value = index
+                            currentIndexValue = index
                             if (index < _schedule.length - 1) {
-                                nextIndex.value = index + 1
+                                nextIndexValue = index + 1
                             }
                             break
                         }
                     } else {
-                        currentIndex.value = null
+                        currentIndexValue = null
                         if (index === 0) {
-                            nextIndex.value = 0
+                            nextIndexValue = 0
                             break
                         }
 
                         const previousStop = _schedule[index - 1]
                         if (isBeforeNow(previousStop.dep)) {
-                            nextIndex.value = index
+                            nextIndexValue = index
                             break
                         }
                     }
                 }
 
-                if (nextIndex.value) {
-                    _schedule.slice(0, nextIndex.value).forEach(stopInfo => {
-                        stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.DEPARTED.code
+
+                if (nextIndexValue) {
+                    _schedule.slice(0, nextIndexValue - 1).forEach(stopInfo => {
+                        const _stationTrainStatus = stopStatusMap.value[stopInfo.stationId]
+                        if (_stationTrainStatus !== TRAIN_STATUS.DEPARTED.code) {
+                            stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.DEPARTED.code
+                        }
                     })
-                    _schedule.slice(nextIndex.value).forEach(stopInfo => {
-                        stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.ONTIME.code
+                    _schedule.slice(nextIndexValue + 1).forEach(stopInfo => {
+                        const _stationTrainStatus = stopStatusMap.value[stopInfo.stationId]
+                        if (_stationTrainStatus !== TRAIN_STATUS.ONTIME.code) {
+                            stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.ONTIME.code
+                        }
                     })
                 }
-                if (currentIndex.value) {
-                    stopStatusMap.value[_schedule[currentIndex.value].stationId] = TRAIN_STATUS.ARRIVED.code
+                if (currentIndexValue) {
+                    stopStatusMap.value[_schedule[currentIndexValue].stationId] = TRAIN_STATUS.ARRIVED.code
                 }
-                if (nextIndex.value) {
-                    stopStatusMap.value[_schedule[nextIndex.value].stationId] = 'next-station'
+                if (nextIndexValue) {
+                    stopStatusMap.value[_schedule[nextIndexValue].stationId] = 'next-station'
+                    if (!currentIndexValue) {
+                        stopStatusMap.value[_schedule[nextIndexValue - 1].stationId] = TRAIN_STATUS.DEPARTED.code
+                    }
                 }
+                currentIndex.value = currentIndexValue
+                nextIndex.value = nextIndexValue
             } finally {
                 isUpdatingStopStatus.value = false
             }
@@ -354,9 +373,11 @@ export default defineComponent({
             return false
         })
         const handleLocate = () => {
+            console.log('handleLocate')
             scrollToCurrent(false)
         }
         const terminal = computed(() => {
+            console.log('Calc terminal')
             if (trainInfo.value && trainInfo.value.schedule.length > 0) {
                 return trainInfo.value.schedule.slice(-1)[0].stationName
             }
@@ -365,6 +386,7 @@ export default defineComponent({
         const $q = useQuasar()
         let prefix = null
         onMounted(() => {
+            console.log('TDV onMounted')
             if (route.params.id && route.params.prefix) {
                 isFromUrl.value = true
                 trainInfoId.value = route.params.id
@@ -392,6 +414,7 @@ export default defineComponent({
             }
         })
         watch(stopInfoListView, (newVal, oldValue) => {
+            console.log('stopInfoListView change')
             if (newVal) {
                 stopInfoListView.value.addEventListener('scroll', _.debounce(() => {
                     scrollTop.value = stopInfoListView.value.scrollTop
@@ -400,12 +423,14 @@ export default defineComponent({
         })
 
         watch(() => props.trainInfoIdProp, (newVal, oldValue) => {
+            console.log('props.trainInfoIdProp change')
             if (newVal !== trainInfoId.value) {
                 trainInfoId.value = newVal;
             }
         })
 
         async function loadTrainInfo(_trainInfoId) {
+            console.log('TDV loadTrainInfo')
             if (loading.value || !_trainInfoId) {
                 return
             }
@@ -427,6 +452,7 @@ export default defineComponent({
         }
 
         watch(trainInfoId, (newVal, oldValue) => {
+            console.log('TDV trainInfoId change')
             if (newVal) {
                 show()
                 isFirst.value = true
@@ -439,6 +465,7 @@ export default defineComponent({
         })
 
         const handleClickStationName = (_stationId) => {
+            console.log('handleClickStationName')
             if (_stationId) {
                 store.dispatch('application/showStationRealtimeModal', {stationId: _stationId})
             }
