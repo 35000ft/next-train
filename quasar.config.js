@@ -60,7 +60,7 @@ module.exports = configure(function (/* ctx */) {
 
             // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-            // publicPath: '/',
+            publicPath: '/next-train/',
             // analyze: true,
             // env: {},
             env: require('dotenv').config({

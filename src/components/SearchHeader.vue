@@ -8,6 +8,7 @@
                 </div>
                 <div class="col" style="display: flex;justify-content: center;align-items: center;">
                     <input
+                        v-if="false"
                         class="q-field__control"
                         :placeholder="t('headers.search.placeholder')"
                         v-model="searchText"

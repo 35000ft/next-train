@@ -21,7 +21,7 @@ const actions = {
         const dayjsLang = lang.split('-')[0]
         if (dayjsLang && dayjsLang !== 'en') {
             const scriptId = 'DAY_LOCALE_SCRIPT'
-            axios.get(`/dayjs/locale/${dayjsLang}.js`).then(res => {
+            axios.get(`dayjs/locale/${dayjsLang}.js`).then(res => {
                 const scriptElement = document.getElementById(scriptId)
                 if (scriptElement) scriptElement.remove()
                 const script = document.createElement('script')

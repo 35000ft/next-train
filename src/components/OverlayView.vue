@@ -38,9 +38,7 @@ const props = defineProps({
 const store = useStore()
 const router = useRouter()
 const handleClose = (event) => {
-    if (event !== "back") {
-        router.back()
-    }
+    router.back()
     store.dispatch('application/popOverlay', {id: props.componentId})
 }
 

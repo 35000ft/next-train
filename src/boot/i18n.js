@@ -19,7 +19,7 @@ const mapLanguage = (language) => {
         return mapLanguage(navigator.language)
     }
     language = language.toLowerCase()
-    if (['zh-cn', 'zh-sg', 'zh-my', 'zh', 'zh-hans'].includes(language)) {
+    if (['zh-cn', 'zh-sg', 'zh-my', 'zh', 'zh-hans', 'cn', 'sg', 'my'].includes(language)) {
         return 'zh-Hans'
     }
     if (['zh-tw', 'zh-hk', 'zh-mo', 'hk', 'tw'].includes(language)) {

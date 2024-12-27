@@ -1,5 +1,5 @@
 <template>
-    <bottom-modal :display="display" @close="handleCloseSelector" content-height="95vh" content-width="100%"
+    <bottom-modal :display="display" @close="handleCloseSelector" content-height="90vh" content-width="100%"
                   :after-close="afterClose"
                   :is-use-route="isFromUrl"
                   @touchstart.stop name="train-info-detail">

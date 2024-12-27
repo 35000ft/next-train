@@ -1,6 +1,7 @@
 import {reactive, toRaw} from "vue";
 import {isEqual} from "lodash";
 import {getNowByTimezone} from "src/utils/time-utils";
+import {generateUUID} from "src/utils/crypto_utils";
 
 
 const state = {
@@ -15,8 +16,7 @@ const mutations = {
     },
     PUSH_OVERLAY(state, {component}) {
         if (!component) return
-        component.id = component.componentName + '-' + crypto.randomUUID()
-        console.log('copm', component)
+        component.id = component.componentName + '-' + generateUUID()
         if (state.overlayStack.length > 0) {
             const top = toRaw(state.overlayStack.slice(-1)[0])
             if (top.componentName === component.componentName) {
