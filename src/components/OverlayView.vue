@@ -1,6 +1,5 @@
 <template>
-    <q-layout view="lHh Lpr lFf" class="full-height" style="background-color: var(--q-background);"
-              v-back="handleBack">
+    <q-layout view="lHh Lpr lFf" class="full-height" style="background-color: var(--q-background);">
         <q-header class="row header-wrapper">
             <div @click="handleClose" class="col-3 close-btn" style="font-size: 30px;">
                 <i class="fa-solid fa-arrow-left fa-lg"></i>
@@ -31,22 +30,20 @@ const props = defineProps({
     name: {
         type: String,
         default: "OverlayView"
+    },
+    componentId: {
+        type: String
     }
 })
 const store = useStore()
 const router = useRouter()
 const handleClose = (event) => {
-    if (!event) {
-        return
+    if (event !== "back") {
+        router.back()
     }
-    console.log('close', props.name, event)
-    router.back()
-    store.dispatch('application/popOverlay')
+    store.dispatch('application/popOverlay', {id: props.componentId})
 }
-//TODO 返回
-const handleBack = () => {
-    // handleClose("back")
-}
+
 </script>
 
 <style scoped>

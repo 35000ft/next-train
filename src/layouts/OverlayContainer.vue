@@ -1,17 +1,18 @@
 <template>
     <transition name="right-in-right-out">
         <div class="full-height full-width container" style=" z-index: 1000;overflow: hidden;"
+             v-back="handleBack"
              v-if="firstComponent||secondComponent">
             <transition name="right-in-right-out">
                 <div class="full-height full-width container" style=" z-index: 1000;overflow: hidden;"
                      v-if="firstComponent&&showComponentKey===0">
-                    <component :is="firstComponent" :key="path"/>
+                    <component :is="firstComponent" :key="firstComponentId"/>
                 </div>
             </transition>
             <transition name="right-in">
                 <div class="full-height full-width container" style=" z-index: 1000;"
                      v-if="secondComponent&&showComponentKey===1">
-                    <component :is="secondComponent" :key="path"/>
+                    <component :is="secondComponent" :key="secondComponentId"/>
                 </div>
             </transition>
         </div>
@@ -27,7 +28,8 @@ import {useStore} from "vuex";
 const showComponentKey = ref(null)
 const firstComponent = shallowRef(null)
 const secondComponent = shallowRef(null)
-const path = ref(null)
+const firstComponentId = shallowRef(null)
+const secondComponentId = shallowRef(null)
 const store = useStore()
 const overlayComponentStack = computed(() => store.getters['application/overlayComponentStack'])
 const shownComponent = computed(() => store.getters["application/topOverlayComponent"])
@@ -36,26 +38,31 @@ watch(shownComponent, (newVal, oldVal) => {
         try {
             const stackSize = overlayComponentStack.value.length;
             if (stackSize > 1) {
-                const lastComponentName = overlayComponentStack.value[stackSize - 2].componentName
-                if (lastComponentName) {
+                const lastComponent = overlayComponentStack.value[stackSize - 2]
+                if (lastComponent) {
                     if (showComponentKey.value === 0) {
                         // Now component1 is shown, change to component2
                         showComponentKey.value = 1
                         setTimeout(() => {
+                            secondComponentId.value = newVal.id
+                            firstComponentId.value = lastComponent.id
                             secondComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
-                            firstComponent.value = defineAsyncComponent(() => import(`../components/${lastComponentName}.vue`))
+                            firstComponent.value = defineAsyncComponent(() => import(`../components/${lastComponent.componentName}.vue`))
                         }, 0)
                     } else if (showComponentKey.value === 1) {
                         // Now component2 is shown, change to component1
                         showComponentKey.value = 0
                         setTimeout(() => {
+                            firstComponentId.value = newVal.id
+                            secondComponentId.value = lastComponent.id
                             firstComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
-                            secondComponent.value = defineAsyncComponent(() => import(`../components/${lastComponentName}.vue`))
+                            secondComponent.value = defineAsyncComponent(() => import(`../components/${lastComponent.componentName}.vue`))
                         }, 0)
                     }
                 }
             } else {
                 showComponentKey.value = 0
+                firstComponentId.value = newVal.id
                 firstComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
                 secondComponent.value = null
             }
@@ -67,7 +74,11 @@ watch(shownComponent, (newVal, oldVal) => {
     }
 })
 
-
+//TODO 返回
+const handleBack = ({from, to}) => {
+    console.log('from', from, shownComponent.value)
+    store.dispatch('application/popOverlay', {id: shownComponent.value.id})
+}
 </script>
 
 <style scoped>

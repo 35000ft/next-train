@@ -1,7 +1,6 @@
 import {reactive, toRaw} from "vue";
 import {isEqual} from "lodash";
 import {getNowByTimezone} from "src/utils/time-utils";
-import {useRouter} from "vue-router";
 
 
 const state = {
@@ -15,6 +14,9 @@ const mutations = {
         state.shownStationId = stationId
     },
     PUSH_OVERLAY(state, {component}) {
+        if (!component) return
+        component.id = component.componentName + '-' + crypto.randomUUID()
+        console.log('copm', component)
         if (state.overlayStack.length > 0) {
             const top = toRaw(state.overlayStack.slice(-1)[0])
             if (top.componentName === component.componentName) {
@@ -28,13 +30,14 @@ const mutations = {
             state.overlayStack.push(component)
         }
     },
-    POP_OVERLAY(state) {
+    POP_OVERLAY(state, {id}) {
         if (state.overlayStack.length > 0) {
-            state.overlayStack.splice(state.overlayStack.length - 1, 1)
+            const top = state.overlayStack.slice(-1)[0]
+            if (top.id === id) {
+                console.log('pop overlay, component id:', id)
+                state.overlayStack.splice(state.overlayStack.length - 1, 1)
+            }
         }
-    },
-    SET_OVERLAY_RENDERED(state, {isRendered}) {
-        state.isOverlayRendered = isRendered
     },
 };
 
@@ -50,9 +53,8 @@ const actions = {
             commit('PUSH_OVERLAY', {component})
         }
     },
-    popOverlay({commit, state}) {
-        console.log('pop overlay')
-        commit('POP_OVERLAY')
+    popOverlay({commit, state}, {id}) {
+        commit('POP_OVERLAY', {id})
     },
 
 };
