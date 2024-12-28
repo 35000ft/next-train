@@ -182,7 +182,6 @@ export default defineComponent({
                 const names = r.map(it => it.name)
                 let matchResults = []
                 if (isAlphabet(_keyword) && _keyword.length <= 4) {
-                    console.log('findByAbbr')
                     matchResults = matchResults.concat(...findByAbbr(_keyword, names))
                 } else {
                     matchResults = matchResults.concat(...findMatches(_keyword, names))
