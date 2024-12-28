@@ -82,7 +82,7 @@
                                 <div class="stop-info-wrapper row" v-for="stop in schedule"
                                      style="font-size: 18px;font-weight:bold;"
                                      :style="{height:STOP_ROW_HEIGHT+'px'}"
-                                     :class="getStopStatus(stop.stationId)"
+                                     :class="stop.statusClass||'ontime'"
                                      :key="stop.stationId">
                                     <div class="col-4 grey-border-bottom">
                                     <span class="show-text-in-2-line station-name"
@@ -94,8 +94,10 @@
                                          style="height: 100%;display: flex;justify-content: center;">
                                         <span style="height: 100%; flex: 1;" class="grey-border-bottom"></span>
                                         <span
+                                            class="line-segment"
                                             style="height: 100%;width: 10px;display: block;position: relative;"
-                                            :style="{backgroundColor:lineColorGetter(stop.lineId,stop.stationId),borderBottom:`2px solid ${lineColorGetter(stop.lineId,stop.stationId)}` }">
+                                            :style="stop.lineStyle||{}"
+                                        >
                                         <span class="circle"></span>
                                     </span>
                                         <span style="height: 100%; flex: 1;" class="grey-border-bottom"></span>
@@ -163,21 +165,6 @@ export default defineComponent({
         const router = useRouter()
         const trainInfo = ref(null)
         const trainDate = ref(null)
-        const lineColorGetter = computed(() => {
-            console.log('lineColorGetter')
-            return (lineId, stationId) => {
-                if (getStopStatus(stationId) === TRAIN_STATUS.DEPARTED.code) {
-                    return 'var(--q-grey-2)'
-                }
-                const _line = store.getters["railsystem/lines"].get(lineId)
-                if (_line) {
-                    return _line.color
-                } else {
-                    store.dispatch('railsystem/getLine', {lineId})
-                    return '#ffffff'
-                }
-            }
-        })
         const currentInterval = computed(() => {
             console.log('currentInterval')
             const _schedule = schedule.value
@@ -215,7 +202,6 @@ export default defineComponent({
             return []
         })
         const calcSchedule = (_trainInfo) => {
-            console.log('calcSchedule', _trainInfo)
             if (_trainInfo) {
                 const _schedule = _trainInfo.schedule
                 const trainVia = _trainInfo.trainVia
@@ -238,30 +224,16 @@ export default defineComponent({
         const {t} = useI18n()
         const STOP_ROW_HEIGHT = 80
         const isFirst = ref(true)
-        const stopStatusMap = ref({})
         const nextIndex = ref(null)
         const currentIndex = ref(null)
         const stopInfoListView = ref(null)
         const updateStatusInterval = ref(null)
-        const getStopStatus = (stationId) => {
-            if (!schedule.value) {
-                return TRAIN_STATUS.ONTIME.code
-            }
-            const className = stopStatusMap.value[stationId]
-            if (className) {
-                return className
-            }
-
-            return TRAIN_STATUS.ONTIME.code
-        }
         watch(schedule, (newValue, oldValue) => {
-            console.log('schedule change', newValue)
             if (newValue) {
                 updateStopStatus(newValue)
             }
         })
         const scrollToCurrent = (instantly = true) => {
-            console.log('scrollToCurrent')
             const dom = stopInfoListView.value
             if (!dom) {
                 return
@@ -282,7 +254,6 @@ export default defineComponent({
             }
         }
         const updateStopStatus = (_schedule) => {
-            console.log('updateStopStatus', _schedule)
             if (!_schedule || isUpdatingStopStatus.value) {
                 return
             }
@@ -315,28 +286,55 @@ export default defineComponent({
                     }
                 }
 
-
                 if (nextIndexValue) {
-                    _schedule.slice(0, nextIndexValue - 1).forEach(stopInfo => {
-                        const _stationTrainStatus = stopStatusMap.value[stopInfo.stationId]
-                        if (_stationTrainStatus !== TRAIN_STATUS.DEPARTED.code) {
-                            stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.DEPARTED.code
+                    for (let i = 0; i < nextIndexValue; i++) {
+                        const stopInfo = _schedule[i]
+                        if (stopInfo.statusClass !== TRAIN_STATUS.DEPARTED.code) {
+                            _schedule[i].statusClass = TRAIN_STATUS.DEPARTED.code
+                            _schedule[i].lineStyle = {
+                                backgroundColor: 'var(--q-grey-2)',
+                                borderBottom: `2px solid var(--q-grey-2)`
+                            }
                         }
-                    })
-                    _schedule.slice(nextIndexValue + 1).forEach(stopInfo => {
-                        const _stationTrainStatus = stopStatusMap.value[stopInfo.stationId]
-                        if (_stationTrainStatus !== TRAIN_STATUS.ONTIME.code) {
-                            stopStatusMap.value[stopInfo.stationId] = TRAIN_STATUS.ONTIME.code
+                    }
+                    for (let i = nextIndexValue + 1; i < _schedule.length; i++) {
+                        const stopInfo = _schedule[i]
+                        const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
+                        if (stopInfo.statusClass !== TRAIN_STATUS.ONTIME.code) {
+                            _schedule[i].statusClass = TRAIN_STATUS.ONTIME.code
+                            _schedule[i].lineStyle = {
+                                backgroundColor: _line.color || 'var(--q-primary)',
+                                borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
+                            }
                         }
-                    })
+                    }
+                    
+                    const stopInfo = _schedule[nextIndexValue]
+                    const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
+                    _schedule[nextIndexValue].statusClass = 'next-station'
+                    _schedule[nextIndexValue].lineStyle = {
+                        backgroundColor: _line.color || 'var(--q-primary)',
+                        borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
+                    }
+
+                    if (!currentIndexValue && nextIndexValue > 0) {
+                        _schedule[nextIndexValue - 1].statusClass = TRAIN_STATUS.DEPARTED.code
+                        _schedule[nextIndexValue - 1].lineStyle = {
+                            backgroundColor: 'var(--q-grey-2)',
+                            borderBottom: `2px solid var(--q-grey-2)`
+                        }
+                    }
+
                 }
                 if (currentIndexValue) {
-                    stopStatusMap.value[_schedule[currentIndexValue].stationId] = TRAIN_STATUS.ARRIVED.code
-                }
-                if (nextIndexValue) {
-                    stopStatusMap.value[_schedule[nextIndexValue].stationId] = 'next-station'
-                    if (!currentIndexValue) {
-                        stopStatusMap.value[_schedule[nextIndexValue - 1].stationId] = TRAIN_STATUS.DEPARTED.code
+                    const stopInfo = _schedule[currentIndexValue]
+                    if (stopInfo) {
+                        const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
+                        _schedule[currentIndexValue].statusClass = TRAIN_STATUS.ARRIVED.code
+                        _schedule[currentIndexValue].lineStyle = {
+                            backgroundColor: _line.color || 'var(--q-primary)',
+                            borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
+                        }
                     }
                 }
                 currentIndex.value = currentIndexValue
@@ -373,11 +371,9 @@ export default defineComponent({
             return false
         })
         const handleLocate = () => {
-            console.log('handleLocate')
             scrollToCurrent(false)
         }
         const terminal = computed(() => {
-            console.log('Calc terminal')
             if (trainInfo.value && trainInfo.value.schedule.length > 0) {
                 return trainInfo.value.schedule.slice(-1)[0].stationName
             }
@@ -386,7 +382,6 @@ export default defineComponent({
         const $q = useQuasar()
         let prefix = null
         onMounted(() => {
-            console.log('TDV onMounted')
             if (route.params.id && route.params.prefix) {
                 isFromUrl.value = true
                 trainInfoId.value = route.params.id
@@ -414,7 +409,6 @@ export default defineComponent({
             }
         })
         watch(stopInfoListView, (newVal, oldValue) => {
-            console.log('stopInfoListView change')
             if (newVal) {
                 stopInfoListView.value.addEventListener('scroll', _.debounce(() => {
                     scrollTop.value = stopInfoListView.value.scrollTop
@@ -423,14 +417,12 @@ export default defineComponent({
         })
 
         watch(() => props.trainInfoIdProp, (newVal, oldValue) => {
-            console.log('props.trainInfoIdProp change')
             if (newVal !== trainInfoId.value) {
                 trainInfoId.value = newVal;
             }
         })
 
         async function loadTrainInfo(_trainInfoId) {
-            console.log('TDV loadTrainInfo')
             if (loading.value || !_trainInfoId) {
                 return
             }
@@ -452,7 +444,6 @@ export default defineComponent({
         }
 
         watch(trainInfoId, (newVal, oldValue) => {
-            console.log('TDV trainInfoId change')
             if (newVal) {
                 show()
                 isFirst.value = true
@@ -465,7 +456,6 @@ export default defineComponent({
         })
 
         const handleClickStationName = (_stationId) => {
-            console.log('handleClickStationName')
             if (_stationId) {
                 store.dispatch('application/showStationRealtimeModal', {stationId: _stationId})
             }
@@ -497,7 +487,6 @@ export default defineComponent({
             afterClose,
             handleLocate,
             handleClickStationName,
-            getStopStatus,
             t,
             showLocationToolIcon,
             display,
@@ -506,7 +495,6 @@ export default defineComponent({
             trainInfo,
             schedule,
             nextIndex,
-            lineColorGetter,
             currentInterval,
             terminal,
             isFromUrl,
@@ -523,6 +511,7 @@ export default defineComponent({
     background-color: var(--q-background-grey-2);
 }
 
+
 .departed {
     .station-name {
         color: var(--q-grey-3);
@@ -531,8 +520,12 @@ export default defineComponent({
     .dep-arr-time {
         color: var(--q-grey-3);
     }
-}
 
+    .line-segment {
+        background-color: var(--q-grey-2);
+        border-bottom: 2px solid var(--q-grey-2);
+    }
+}
 
 .arrived {
     .station-name {

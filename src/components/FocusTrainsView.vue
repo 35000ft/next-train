@@ -50,6 +50,7 @@ const updateTrainStatus = (trains) => {
     console.log('Update focus train status', trains)
     if (!trains) return
     trains.forEach(train => {
+        console.log('trains foreach')
         const [status, seconds] = calcTrainStatus(train)
         train.status = status.code
         if (status === TRAIN_STATUS.ONTIME) {
@@ -62,17 +63,24 @@ const updateTrainStatus = (trains) => {
 }
 
 const focusTrains = computed(() => {
+    console.log('Calc focusTrains')
     let trains = store.getters["preference/focusTrains"]
     if (!trains || trains.length === 0) {
         return []
     }
     trains = trains.sort((o1, o2) => diff(o1.dep, o2.dep))
     updateTrainStatus(trains)
+    console.log('focusTrains:', trains)
     return trains
 })
 watch(focusTrains, (newTrains, oldTrains) => {
+    console.log('focusTrains changed')
     if (newTrains && newTrains.length > 0) {
         const newestTrains = newTrains.filter(it => oldTrains.findIndex(it2 => it2.id === it.id) === -1)
+        // If currentTrainId not in newTrains, then set currentTrainId to the first train's id of newestTrains
+        if (newTrains.findIndex(it => it.id === currentTrainId.value) === -1) {
+            currentTrainId.value = newTrains[0].id
+        }
         if (newestTrains.length > 0) {
             currentTrainId.value = newestTrains[0].id
         }
@@ -81,7 +89,7 @@ watch(focusTrains, (newTrains, oldTrains) => {
 })
 const currentTrainId = ref((focusTrains.value.length > 0 && focusTrains.value[0].id) || null)
 
-let updateTrainStatusInterval;
+let updateTrainStatusInterval
 
 onMounted(() => {
     updateTrainStatusInterval = setInterval(() => {

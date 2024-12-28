@@ -32,3 +32,5 @@ yarn-error.log*
 .vscode
 # local .env.development files
 .env.local*
+
+scripts

@@ -1,10 +1,9 @@
-// auto-scroll.js
+// overflow-auto-scroll.js
 export default {
     mounted(el) {
         // 检查元素是否超出容器
         const checkOverflow = () => {
-            const containerWidth = el.offsetWidth; // 容器宽度
-            if (containerWidth === 0) return
+            if (el.offsetWidth === 0) return
             let contentWidth = el.scrollWidth;  // 内容实际宽度
             if (el.style.display === 'flex') {
                 const childNodes = el.children;
@@ -17,7 +16,7 @@ export default {
                 }
                 el.style.width = contentWidth + 'px'
             }
-            if (contentWidth > containerWidth) {
+            if (contentWidth > el.offsetWidth) {
                 el.classList.add("auto-scroll-content");
             }
         };

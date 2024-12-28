@@ -175,17 +175,19 @@ export default defineComponent({
         const filterResult = (r, _keyword) => {
             if (typeof _keyword === "string") {
                 _keyword = _keyword.toString().replace(' ', '')
-                console.log('_keyword', _keyword, r)
+                console.log('keyword', _keyword)
                 if (_keyword.length === 0 || r.length === 0) {
                     return r
                 }
                 const names = r.map(it => it.name)
                 let matchResults = []
                 if (isAlphabet(_keyword) && _keyword.length <= 4) {
+                    console.log('findByAbbr')
                     matchResults = matchResults.concat(...findByAbbr(_keyword, names))
+                } else {
+                    matchResults = matchResults.concat(...findMatches(_keyword, names))
                 }
 
-                matchResults = matchResults.concat(...findMatches(_keyword, names))
                 if (matchResults.length > 0) {
                     const matchResultMap = matchResults.reduce((acc, cur) => {
                         if (acc.has(cur.index)) {

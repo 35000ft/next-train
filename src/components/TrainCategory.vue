@@ -13,11 +13,9 @@ import {useI18n} from "vue-i18n";
 const props = defineProps({
     categories: {
         type: Array,
-        default: () => ["LOCAL"]
     },
     category: {
         type: String,
-        default: "LOCAL"
     },
     maxWidth: {
         type: String,

@@ -16,7 +16,7 @@ function isChineseChar(char) {
 }
 
 function getPinyinAbbr(str) {
-    return pinyin(str, {type: 'string', separator: '', pattern: 'first'})
+    return pinyin(str, {type: 'string', separator: '', pattern: 'first', toneType: 'none'})
 }
 
 /**
@@ -41,6 +41,7 @@ function findByAbbr(targetAbbr, texts) {
         let match
         if (containsChinese(it)) {
             _abbr = getPinyinAbbr(it).toLowerCase()
+            console.log('pinyin', _abbr)
             const findStartIndex = _abbr.indexOf(targetAbbr)
             if (findStartIndex !== -1) {
                 match = it.slice(findStartIndex, findStartIndex + targetAbbr.length)

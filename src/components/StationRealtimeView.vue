@@ -3,22 +3,18 @@
                   swipeable
                   animated
                   @touchstart.stop>
-        <q-tab-panel v-for="station in currentLine.stations" :name="station.id" :key="station.id">
+        <q-tab-panel v-for="station in currentLine.stations" :name="station.id" :key="station.id"
+                     style="display: flex;flex-direction: column;">
             <div class="row">
                 <div class="col-3 station-name-row small text-left">
                     <div v-if="previousStation">
                         <div style="font-size: 25px;margin-bottom: 15px;overflow: hidden">
                             <i class="fa-solid fa-arrow-left"></i>
                         </div>
-                        <div class="direction-text row">
-                            <span class="col-4">
-                                {{ t('directionShort') }}:
-                            </span>
-                            <span class="col-8 auto-scroll-container">
-                                <div v-overflow-auto-scroll>
-                                    <b>{{ previousStation.direction }}</b>
-                                </div>
-                            </span>
+                        <div class="direction-text">
+                            <div v-overflow-auto-scroll>
+                                <span>{{ t('directionShort') }}: <b>{{ previousStation.direction }}</b></span>
+                            </div>
                         </div>
                         <div v-overflow-auto-scroll>
                             <span>{{ previousStation.name }}</span>
@@ -58,15 +54,10 @@
                         <div style="font-size: 25px;margin-bottom: 15px;overflow: hidden">
                             <i class="fa-solid fa-arrow-right"></i>
                         </div>
-                        <div class="direction-text row">
-                            <span class="col-4 text-left">
-                                {{ t('directionShort') }}:
-                            </span>
-                            <span class="col-8 auto-scroll-container">
-                                <div v-overflow-auto-scroll>
-                                    <b>{{ nextStation.direction }}</b>
-                                </div>
-                            </span>
+                        <div class="direction-text">
+                            <div v-overflow-auto-scroll>
+                                <span>{{ t('directionShort') }}: <b>{{ nextStation.direction }}</b></span>
+                            </div>
                         </div>
                         <div v-overflow-auto-scroll>
                             <span>{{ nextStation.name }}</span>
@@ -87,7 +78,7 @@
                           :disabled="currentLineId==='all'||line.id!==currentLine.id" class="line-icon">
                 </LineIcon>
             </div>
-            <div class="scroll" style="height: 57%;" ref="trainInfoArea">
+            <div class="scroll train-info-area-wrapper" ref="trainInfoArea">
                 <q-pull-to-refresh @refresh="handleRefreshTrainData" @touchstart="handleTouchTrainDataRegionStart">
                     <div>
                         <div v-if="showSkeleton">
@@ -217,12 +208,14 @@ const props = defineProps({
     },
 })
 
-watch(props, () => {
-    init()
-}, {deep: true})
-
 onMounted(() => {
     init()
+})
+
+watch(props, (newVal, oldValue) => {
+    if (!currentStationId.value && newVal.currentStationIdProp) {
+        init()
+    }
 })
 
 const showSkeleton = computed(() => {
@@ -391,10 +384,10 @@ async function updateCurrentTrains() {
         // }
     })
 }
-    
+
 const handleSelectStation = (stationId, lineId) => {
     if (stationId) {
-        handleChangeStation(stationId, lineId)
+        handleChangeStation(stationId, lineId, "handleSelectStation")
     }
 }
 
@@ -411,11 +404,11 @@ let currentStationId = ref(null)
 let currentLineId = ref(null)
 
 function init() {
-    handleChangeStation(props.currentStationIdProp, props.currentLineIdProp)
+    handleChangeStation(props.currentStationIdProp, props.currentLineIdProp, "init")
 }
 
-const handleChangeStation = (stationId, lineId) => {
-    console.log('Change station to stationId:', stationId)
+const handleChangeStation = (stationId, lineId, source) => {
+    console.log('Change station to stationId:', stationId, lineId, 'source:' + source)
     trainInfoMap.value = new Map()
     allTrains.value = []
     changeStation(stationId, lineId).then(station => {
@@ -576,7 +569,7 @@ watch(currentStationId, (stationId, oldValue) => {
         }
     }
     const _currentLineId = currentLine.value && currentLine.value.id || null
-    handleChangeStation(stationId, _currentLineId)
+    handleChangeStation(stationId, _currentLineId, "currentStationId Changed")
 })
 
 defineOptions({
@@ -636,6 +629,10 @@ defineOptions({
     border-bottom: 1px solid #dcdcdc;
     display: flex;
     align-items: center;
+}
+
+.train-info-area-wrapper {
+    flex-grow: 1;
 }
 
 .train-data div {

@@ -33,7 +33,7 @@
                 </q-card>
             </div>
 
-            <div class="col-12" style="height: 300px;">
+            <div class="col-12" style="height: 55vh;">
                 <q-card class="my-card full-height">
                     <q-card-section class="full-height" style="padding: 0;">
                         <StationRealtimeView :current-station-id-prop="currentStationId"
