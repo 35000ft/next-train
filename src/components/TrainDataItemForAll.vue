@@ -33,6 +33,7 @@ import {diffFromNow, fixedMins, formatToHHMM} from "src/utils/time-utils";
 import {TRAIN_CATEGORY} from "src/models/Train";
 import DepTrainTime from "components/DepTrainTime.vue";
 import TrainTerminal from "components/TrainTerminal.vue";
+import {localHostList} from "@quasar/app-vite/lib/helpers/net";
 
 const {t} = useI18n()
 const props = defineProps({
@@ -57,7 +58,8 @@ const trainCategories = computed(() => {
     return []
 })
 const arriveMins = computed(() => {
-    let diffSeconds = diffFromNow(props.trainData.arr, 'second')
+    const _ = props.trainData.updateTime
+    const diffSeconds = diffFromNow(props.trainData.arr, 'second')
     return fixedMins(diffSeconds)
 })
 const emit = defineEmits(['showTrainDetail'])

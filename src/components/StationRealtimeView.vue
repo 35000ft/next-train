@@ -100,6 +100,7 @@
                                     </div>
                                     <transition-group name="list-view" tag="div">
                                         <TrainDataItemForAll v-for="_trainInfo in allTrains" :key="_trainInfo.id"
+                                                             @show-train-detail="showTrainInfoDetailView"
                                                              :train-data="_trainInfo" :station="currentStation"/>
                                     </transition-group>
                                 </div>
@@ -163,6 +164,7 @@ import {isNumber} from "src/utils/string-utils";
 import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import _ from "lodash";
 import {useRouter} from "vue-router";
+import dayjs from "dayjs";
 
 const router = useRouter()
 const $q = useQuasar()
@@ -246,6 +248,8 @@ const handleCloseShowTrainDetail = () => {
     showTrainInfo.value = null
 }
 
+const currentTrainsMap = ref(new Map())
+
 /**
  * Calculate trains to show on current line tab
  */
@@ -254,58 +258,46 @@ async function calcCurrentTrains(_lineId, _station) {
         console.warn('trainInfoMap or currentStation is not inited')
         return []
     }
-    let _t = trainInfoMap.value
     const _stationId = _station.id
     const allLines = new Map(currentStation.value.lines.map(it => [it.id, it]))
-    if (_t && allLines) {
-        if (_lineId === 'all') {
-            // All Trains
-            const allTrains = Array.from(allLines.keys())
-                .map(lineId => {
-                    // trainInfoMap do not contain directionTrains of this line
-                    if (!_t.has(lineId)) {
-                        loadLineTrains(lineId, _stationId).then(_ => {
-                            const newT = trainInfoMap.value.get(lineId);
-                            if (newT && newT.length > 0) {
-                                updateCurrentTrains()
-                            }
-                        })
-                        return []
+    try {
+        if (allLines) {
+            if (_lineId === 'all') {
+                // All Trains
+                currentTrainsMap.value = new Map()
+                const loadTrainsPromises = Array.from(allLines.keys()).map(lineId => loadLineTrains(lineId, _stationId))
+                loadTrainsPromises.forEach(promise => promise.then(lineTrains => {
+                    if (!checkIsChanged(_lineId, _stationId)) {
+                        addAllTrains(lineTrains)
                     }
-                    const lineTrains = _t.get(lineId)
-                    return lineTrains.map(it => {
-                        it.line = allLines.get(lineId)
-                        return it
-                    })
-                }).flat()
-            return allTrains.sort((i1, i2) => i1.dep.localeCompare(i2.dep))
+                }))
+            } else {
+                const lineTrains = await store.dispatch('realtime/getStationDirectionTrains', {
+                    stationId: _stationId,
+                    lineId: _lineId
+                })
+                if (!checkIsChanged(_lineId, _stationId)) {
+                    currentTrains.value = lineTrains
+                }
+            }
         }
+    } catch {
 
-        let directionTrains
-        if (!_t.has(_lineId)) {
-            await loadLineTrains(_lineId, _stationId)
-            _t = trainInfoMap.value
-        }
-        directionTrains = await store.dispatch('realtime/getStationDirectionTrains', {
-            stationId: _stationId,
-            lineId: _lineId
-        })
-        return directionTrains
     }
-    return []
 }
 
 
 async function loadLineTrains(lineId, _stationId) {
-    console.log('loading line trains lineId:', lineId, 'stationId:', _stationId)
+    console.log('loading line trains', 'lineId:', lineId, 'stationId:', _stationId)
     if (!isNumber(lineId)) {
-        return Promise.reject()
+        return Promise.reject('LineId is not a number:' + lineId)
     }
     const _currentStationId = _stationId
     if (lineId && currentStationId) {
         return store.dispatch('realtime/getStationTrains', {stationId: _currentStationId, lineId: lineId}).then(r => {
             if (r instanceof Array) {
                 trainInfoMap.value.set(lineId, r)
+                return r
             }
         }).catch(err => {
             return Promise.reject(err)
@@ -317,6 +309,45 @@ async function loadLineTrains(lineId, _stationId) {
 
 function checkIsChanged(originLineId, originStationId) {
     return (currentLineId.value !== originLineId) || (originStationId !== currentStationId.value)
+}
+
+const addAllTrains = (trainInfoList) => {
+    if (!(trainInfoList instanceof Array)) return
+    trainInfoList.forEach(it => {
+        currentTrainsMap.value.set(it.id, true)
+        it.updateTime = new Date().getTime()
+    })
+    trainInfoList = trainInfoList.sort((i1, i2) => i1.dep.localeCompare(i2.dep))
+    let index = 0
+    const interval = setInterval(() => {
+        if (index >= trainInfoList.length) {
+            clearInterval(interval)
+            // 删除 allTrains 中不在 currentTrainsMap 中的元素
+            for (let i = allTrains.value.length - 1; i >= 0; i--) {
+                const train = allTrains.value[i]
+                if (!currentTrainsMap.value.get(train.id)) {
+                    allTrains.value.splice(i, 1)
+                }
+            }
+            allTrains.value.sort((i1, i2) => i1.dep.localeCompare(i2.dep))
+            return
+        }
+        const rItem = trainInfoList[index]
+        const curIndex = allTrains.value.findIndex(it => it.id === rItem.id);
+        if (curIndex !== -1) {
+            allTrains.value[curIndex] = rItem
+            index++
+            return
+        }
+        const preIndex = allTrains.value.findLastIndex(it => it.dep.localeCompare(rItem.dep))
+        allTrains.value.splice(preIndex + 1, 0, rItem)
+        index++
+    }, 250)
+
+    // lineTrains.map(it => {
+    //     it.line = allLines.get(lineId)
+    //     return it
+    // })
 }
 
 async function updateCurrentTrains() {
@@ -332,56 +363,13 @@ async function updateCurrentTrains() {
     if (!_station) {
         return
     }
-    const _stationId = _station.id
-    return calcCurrentTrains(_currentLindId, _station).then(r => {
-        if (checkIsChanged(_currentLindId, _stationId)) {
-            return
-        }
-        if (r instanceof Array && r.length > 0) {
-            if (_currentLindId !== 'all') {
-                // Logic for single line
-                currentTrains.value = r
-            } else {
-                // Logic for All Trains
-                let index = 0
-                const interval = setInterval(() => {
-                    if (index >= r.length) {
-                        clearInterval(interval)
-                        // 删除 currentTrains 中不在 r 中的元素
-                        for (let i = allTrains.value.length - 1; i >= 0; i--) {
-                            const train = allTrains.value[i];
-                            if (!r.find(item => item.id === train.id)) {
-                                allTrains.value.splice(i, 1)
-                            }
-                        }
-                        if (!checkIsChanged(_currentLindId, _stationId)) {
-                            isLoadingTrains.value = false
-                        }
-                        return
-                    }
-                    const rItem = r[index]
-                    const existingIndex = allTrains.value.findIndex(item => item.id === rItem.id)
-                    if (existingIndex === -1) {
-                        allTrains.value.splice(index, 0, rItem)
-                    } else if (existingIndex !== index) {
-                        // 如果位置不一致，将其移动到正确位置
-                        const [item] = allTrains.value.splice(existingIndex, 1)
-                        allTrains.value.splice(index, 0, item)
-                    }
-                    index++
-                }, 250)
-            }
-        } else {
-            currentTrains.value = []
-        }
+    return calcCurrentTrains(_currentLindId, _station).then(_ => {
     }).catch(err => {
+        console.warn('updateCurrentTrains err:', err)
         $q.notify.error(`${t('update')} ${t('trainInfo')} ${t('error')}`)
         currentTrains.value = []
     }).finally(_ => {
-        console.log('Check isChange', checkIsChanged(_currentLindId, _stationId))
-        // if (!checkIsChanged(_currentLindId, _stationId)) {
         isLoadingTrains.value = false
-        // }
     })
 }
 

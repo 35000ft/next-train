@@ -56,7 +56,8 @@ const trainCategories = computed(() => {
     return []
 })
 const arriveMins = computed(() => {
-    let diffSeconds = diffFromNow(props.trainData.arr, 'second')
+    const _ = props.trainData.updateTime
+    const diffSeconds = diffFromNow(props.trainData.arr, 'second')
     return fixedMins(diffSeconds)
 })
 const emit = defineEmits(['showTrainDetail'])

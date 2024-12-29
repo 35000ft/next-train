@@ -67,6 +67,7 @@ const actions = {
             if (lineTrains) {
                 if (isCurrent) {
                     const currentTrains = lineTrains.filter(it => isAfterNow(it.dep, station.timezone))
+                    console.log('currentTrains', currentTrains)
                     if (currentTrains.length < 5) {
                         if (currentTrains.length === 0) {
                             return this.dispatch('realtime/fetchStationTrain', {stationId, lineId})

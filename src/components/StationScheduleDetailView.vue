@@ -97,6 +97,7 @@ const saveAsImg = () => {
         return
     }
     console.log("saving schedule as image")
+    $q.notify.info('正在保存时刻表, 请稍候')
     const scale = 3
     const domNode = scheduleRef.value
     domtoimage.toPng(domNode, {
@@ -126,7 +127,7 @@ onMounted(() => {
     const stationId = route.params.stationId
     const lineId = route.params.lineId
     init(stationId, lineId).then(d => {
-        $q.notify.ok('Load schedule ok')
+        $q.notify.ok('加载时刻表成功')
         setTimeout(() => {
             scheduleData.value = d
         }, 1000)

@@ -1,34 +1,39 @@
 // overflow-auto-scroll.js
 export default {
     mounted(el) {
-        // 检查元素是否超出容器
+        // Check content if width over the container size
         const checkOverflow = () => {
             if (el.offsetWidth === 0) return
-            let contentWidth = el.scrollWidth;  // 内容实际宽度
+            let contentWidth = el.scrollWidth;  // Actual width of content
             if (el.style.display === 'flex') {
+                // If element is display as flex, the actual width is not the scrollWidth but the sum width of sub elements
                 const childNodes = el.children;
                 contentWidth = 0;
                 for (const child of childNodes) {
                     const computedStyle = window.getComputedStyle(child)
                     const marginLeft = parseFloat(computedStyle.marginLeft)
                     const marginRight = parseFloat(computedStyle.marginRight)
-                    contentWidth += child.offsetWidth + marginLeft + marginRight; // 累加每个子元素的宽度
+                    contentWidth += child.offsetWidth + marginLeft + marginRight;
                 }
-                el.style.width = contentWidth + 'px'
+                if (contentWidth < el.parentElement.clientWidth) {
+                    el.style.width = el.parentElement.clientWidth + 'px'
+                } else {
+                    el.style.width = contentWidth - 1 + 'px'
+                }
             }
             if (contentWidth > el.offsetWidth) {
                 el.classList.add("auto-scroll-content");
             }
         };
 
-        // 初次检测
+        // First check
         checkOverflow();
 
-        // 可选：监听窗口大小变化以重新检测
+        // Check if window resized
         const resizeObserver = new ResizeObserver(() => checkOverflow());
         resizeObserver.observe(el);
 
-        // 保存监听器以便销毁时清理
+        // Save observer to destroy on unmounted
         el.__resizeObserver__ = resizeObserver;
     },
     unmounted(el) {
