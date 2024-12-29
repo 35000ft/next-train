@@ -5,6 +5,18 @@ import en from '../i18n/en';
 import zhHans from "src/i18n/zhHans";
 import zhHant from "src/i18n/zhHant";
 
+const supportedLanguages = [
+    {
+        code: 'en',
+        name: 'English'
+    }, {
+        code: 'zh-Hans',
+        name: '简体中文'
+    }, {
+        code: 'zh-Hant',
+        name: '繁體中文'
+    },
+]
 const messages = {
     en: en,
     'zh-Hans': zhHans,
@@ -50,4 +62,4 @@ export default boot(({app}) => {
 });
 
 // 同时导出 i18n 实例
-export {i18n, getUserDefaultLanguage, mapLanguage};
+export {i18n, getUserDefaultLanguage, mapLanguage, supportedLanguages};
