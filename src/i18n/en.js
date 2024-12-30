@@ -52,6 +52,7 @@ export default {
     update: "Update",
     error: "error",
     success: "successfully",
+    emptyFocusTrainHint: 'Focus trains at Station Realtime',
     trainStatus: {
         arrived: "ARRIVED",
         departed: "DEPARTED",

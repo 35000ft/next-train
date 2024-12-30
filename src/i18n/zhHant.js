@@ -52,6 +52,7 @@ export default {
     update: "更新",
     error: "失敗",
     success: "成功",
+    emptyFocusTrainHint: '在車站实時添加關注列車',
     trainStatus: {
         arrived: "列車到站",
         departed: "正在離開",

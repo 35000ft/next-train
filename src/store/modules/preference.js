@@ -44,12 +44,18 @@ const mutations = {
         state.historyStations = historyStations
         localStorage.setItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST, JSON.stringify(historyStations))
     },
-    ADD_FOCUS_TRAIN(state, {train}) {
+    ADD_FOCUS_TRAIN(state, {train, isDelete = false}) {
         const focusTrains = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS)) || []
-        if (focusTrains.findIndex(it => it.id === train.id) !== -1) {
-            return
+        const existedIndex = focusTrains.findIndex(it => it.id === train.id && it.station.id === train.station.id);
+        if (existedIndex !== -1) {
+            if (isDelete) {
+                focusTrains.splice(existedIndex, 1)
+            } else {
+                return
+            }
+        } else {
+            focusTrains.push(train)
         }
-        focusTrains.push(train)
         state.focusTrains = focusTrains
         localStorage.setItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS, JSON.stringify(focusTrains))
     },
@@ -104,6 +110,9 @@ const actions = {
             station: toRaw(station)
         }
         commit('ADD_FOCUS_TRAIN', {train: _t})
+    },
+    cancelFocusTrain({commit, state}, {train}) {
+        commit('ADD_FOCUS_TRAIN', {train: train, isDelete: true})
     },
     isFavouriteStation({commit, state}, {stationId}) {
         if (!stationId) return false

@@ -164,7 +164,6 @@ import {isNumber} from "src/utils/string-utils";
 import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import _ from "lodash";
 import {useRouter} from "vue-router";
-import dayjs from "dayjs";
 
 const router = useRouter()
 const $q = useQuasar()

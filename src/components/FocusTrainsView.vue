@@ -2,7 +2,7 @@
     <div v-if="focusTrains.length===0"
          style="display: flex;justify-content: center;padding: 10px;  align-items: center;height: 100%;">
         <span style="font-size: 20px;text-align: center; display: flex;">
-            在车站实时添加关注列车
+            {{ t('emptyFocusTrainHint') }}
         </span>
     </div>
     <q-tab-panels v-if="focusTrains.length>0" v-model="currentTrainId" @touchstart.stop swipeable animated>
@@ -13,7 +13,7 @@
                         <i style="color: var(--q-primary)"> {{ train.station.name }}</i>
                     </div>
                 </div>
-                <div class="col-4">
+                <div class="col-4" @click="handleCancelFocus(train)">
                     {{ formatToHHMM(train.dep) }}
                 </div>
                 <div class="col-8" style="display: flex;align-items: center;justify-content: center;">
@@ -63,7 +63,6 @@ const updateTrainStatus = (trains) => {
 }
 
 const focusTrains = computed(() => {
-    console.log('Calc focusTrains')
     let trains = store.getters["preference/focusTrains"]
     if (!trains || trains.length === 0) {
         return []
@@ -104,7 +103,9 @@ onBeforeUnmount(() => {
         clearInterval(updateTrainStatusInterval)
     }
 })
-
+const handleCancelFocus = (train) => {
+    store.dispatch('preference/cancelFocusTrain', {train})
+}
 </script>
 
 <style scoped>
