@@ -218,6 +218,11 @@ watch(props, (newVal, oldValue) => {
     if (!currentStationId.value && newVal.currentStationIdProp) {
         init()
     }
+    if (newVal.currentStationIdProp) {
+        if (currentStationId.value !== newVal.currentStationIdProp) {
+            handleChangeStation(newVal.currentStationIdProp)
+        }
+    }
 })
 
 const showSkeleton = computed(() => {
