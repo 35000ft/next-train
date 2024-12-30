@@ -3,14 +3,17 @@ import axios from "axios";
 import dayjs from "dayjs";
 import {mapLanguage} from "boot/i18n";
 
+const LS_LANGUAGE = 'CurLanguage'
+
 const state = {
-    currentLanguage: mapLanguage(navigator.language),
+    currentLanguage: localStorage.getItem(LS_LANGUAGE) || mapLanguage(navigator.language),
 };
 
 const mutations = {
     SET_LANGUAGE(state, language) {
         console.log('language change', language)
         state.currentLanguage = language;
+        localStorage.setItem(LS_LANGUAGE, language)
     },
 };
 
@@ -44,7 +47,7 @@ const actions = {
 };
 
 const getters = {
-    currentLanguage: (state) => state.currentLanguage,
+    currentLanguage: state => state.currentLanguage,
 };
 
 export default {
