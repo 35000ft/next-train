@@ -1,7 +1,7 @@
 // store/modules/language.js
 import axios from "axios";
 import dayjs from "dayjs";
-import {mapLanguage} from "boot/i18n";
+import {i18n, mapLanguage} from "boot/i18n";
 
 const LS_LANGUAGE = 'CurLanguage'
 
@@ -35,6 +35,7 @@ function initLanguage() {
     setDayjsLocale(dayjsLang).then(_ => {
         console.log('Init dayjs locale locale OK')
     })
+    i18n.global.locale = curLang;
     return curLang
 }
 
