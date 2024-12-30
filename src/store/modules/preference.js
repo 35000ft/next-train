@@ -106,6 +106,7 @@ const actions = {
             category: train.category,
             dep: date2StringWithTimezone(train.dep),
             arr: date2StringWithTimezone(train.arr),
+            trainDate: train.trainDate,
             terminal: train.terminal,
             station: toRaw(station)
         }
