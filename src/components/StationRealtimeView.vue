@@ -420,7 +420,7 @@ async function changeStation(stationId, lineId) {
     isLoadingStation.value = true
     const station = await store.dispatch('railsystem/getStation', {stationId})
     if (!station || !(station.lines instanceof Array)) {
-        console.warn(`Load station error, cannot get station info. stationId:${stationId}`)
+        console.warn(`Load station error, cannot get station info. stationId:${stationId}`, station)
         return Promise.reject(`Load station error, cannot get station info. stationId:${stationId}`)
     }
     let line

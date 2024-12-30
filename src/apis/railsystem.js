@@ -35,7 +35,7 @@ export async function fetchRailsystem(railsystemCode) {
     return await axios
         .get(url)
         .then(res => {
-            return res.data.data
+            return res.data.data || res.data
         })
         .catch(err => {
             return Promise.reject(err)
@@ -51,7 +51,7 @@ export async function fetchLine(lineId) {
     return await axios
         .get(url)
         .then(res => {
-            return res.data.data
+            return res.data.data || res.data
         })
         .catch(err => {
             return Promise.reject(err)
@@ -63,7 +63,7 @@ export async function fetchStation(stationId) {
     return await axios
         .get(url)
         .then(res => {
-            return res.data.data
+            return res.data.data || res.data
         })
         .catch(err => {
             return Promise.reject(err)

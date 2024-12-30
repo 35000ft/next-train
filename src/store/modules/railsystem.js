@@ -66,7 +66,6 @@ const actions = {
         return state.railSystems.get(code)
     },
     async getStation({state, commit}, {stationId}) {
-        // TODO
         if (!stationId) {
             return Promise.reject(`stationId is undefined:${stationId}`)
         }
