@@ -1,9 +1,10 @@
 // store/modules/language.js
 import axios from "axios";
 import dayjs from "dayjs";
+import {mapLanguage} from "boot/i18n";
 
 const state = {
-    currentLanguage: null,
+    currentLanguage: mapLanguage(navigator.language),
 };
 
 const mutations = {
@@ -35,6 +36,8 @@ const actions = {
                 const scriptElement = document.getElementById(scriptId)
                 if (scriptElement) scriptElement.remove()
             })
+        } else {
+            dayjs.locale('en')
         }
         commit('SET_LANGUAGE', lang);
     },

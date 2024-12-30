@@ -18,7 +18,7 @@
                 <div style="text-align: right;" class="col-4">
                     <div class="q-pa-md col"
                          style="display: inline-block;padding-left: 0;padding-right: 0;margin-right: 10px;">
-                        <q-btn-dropdown color="primary" icon="fa-solid fa-language" label="" unelevated padding="0">
+                        <q-btn-dropdown color="primary" icon="language" label="" unelevated padding="0">
                             <q-list>
                                 <q-item v-for="lang in languages" :key="lang.code" clickable v-close-popup
                                         style="padding-top: 0;padding-bottom: 0;min-height: 30px"
@@ -32,7 +32,7 @@
                         </q-btn-dropdown>
                     </div>
                     <q-btn flat :label="currentRailSystem.name" class="text-white"
-                           style="font-size: 20px;font-weight:bold;padding-left: 0;padding-right: 0;"/>
+                           style="font-size: 20px;font-weight:bold;padding-left: 5px;padding-right: 5px;"/>
                     <!-- TODO 展示不展示切换线网 -->
                     <!--                           @click="handleClickSelectRailSystem"-->
                 </div>

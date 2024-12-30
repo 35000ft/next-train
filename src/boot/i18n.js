@@ -23,8 +23,6 @@ const messages = {
     'zh-Hant': zhHant,
 };
 
-const languages = Object.keys(messages)
-
 //TODO
 const mapLanguage = (language) => {
     if (typeof language !== "string") {
@@ -47,13 +45,13 @@ const mapLanguage = (language) => {
 }
 
 const defaultLanguage = mapLanguage(navigator.language)
-
+console.log('defaultLang:', defaultLanguage)
 const getUserDefaultLanguage = () => {
     return mapLanguage(navigator.language)
 }
 
 const i18n = createI18n({
-    local: defaultLanguage,
+    locale: defaultLanguage,
     messages,
 });
 // 导出 boot 函数和 i18n 实例

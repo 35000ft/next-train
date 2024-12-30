@@ -30,13 +30,15 @@ const router = createRouter({
 // 在每次路由导航时设置 locale
 router.beforeEach((to, from, next) => {
     const store = useStore()
-    const lang = mapLanguage(to.query.lang)
     console.log('route change', from.fullPath, to.fullPath)
-    store.dispatch('language/setLanguage', {lang}).then(() => {
-    }).catch(error => {
-        console.error('Error setting language:', error)
-    });
-    i18n.global.locale = lang;
+    if (to.query.lang && to.query.lang !== "") {
+        const lang = mapLanguage(to.query.lang)
+        store.dispatch('language/setLanguage', {lang}).then(() => {
+        }).catch(error => {
+            console.error('Error setting language:', error)
+        });
+        i18n.global.locale = lang;
+    }
     next();
 });
 export default router;

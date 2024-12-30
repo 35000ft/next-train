@@ -11,7 +11,6 @@ const LOCAL_STORAGE_KEYS = {
     FAVOURITE_STATIONS: 'favouriteStations',
 }
 const state = {
-    currentLanguage: 'en',
     historyStations: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST)) || [],
     currentStation: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)) || null,
     focusTrains: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS)) || [],
@@ -19,9 +18,6 @@ const state = {
 }
 
 const mutations = {
-    SET_LANGUAGE(state, language) {
-        state.currentLanguage = language;
-    },
     SET_CURRENT_STATION(state, station) {
         if (!station) return
         console.log('SET_CURRENT_STATION', station)
@@ -84,9 +80,6 @@ const mutations = {
 };
 
 const actions = {
-    setLanguage({commit}, language) {
-        commit('SET_LANGUAGE', language);
-    },
     setCurrentRailSystem({commit}, railSystem) {
         commit('SET_CURRENT_RAIL_SYSTEM', railSystem)
     },
@@ -126,7 +119,6 @@ const actions = {
 }
 
 const getters = {
-    currentLanguage: (state) => state.currentLanguage,
     favouriteStations: (state) => state.favouriteStations || new Map(),
     historyStations: (state) => state.historyStations,
     currentStation: (state) => state.currentStation,
