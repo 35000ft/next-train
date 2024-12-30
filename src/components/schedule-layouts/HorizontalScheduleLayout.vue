@@ -22,11 +22,11 @@
         </div>
         <div class="legends-wrapper">
             <span class="legend-wrapper">
-                <span class="minute-wrapper first-stop">01</span>{{ t('trainCategory.initial') + t('train') }}
+                <span class="minute-wrapper first-stop">01</span>{{ t('trainCategory.initial') }}
             </span>
             <span class="legend-wrapper">
                 <span class="minute-wrapper interval"
-                      style="margin-right: 2px;">15</span>{{ t('trainCategory.short') + t('train') }}
+                      style="margin-right: 2px;">15</span>{{ t('trainCategory.short') }}
                 </span>
             <span class="legend-wrapper">
                 <span class="minute-wrapper express" style="margin-right: 2px;">00</span>
@@ -34,14 +34,14 @@
             </span>
             <span class="legend-wrapper">
                 <span class="minute-wrapper through" style="margin-right: 2px;">37</span>
-                {{ t('trainCategory.through') + t('train') }}
+                {{ t('trainCategory.through') }}
             </span>
         </div>
 
     </div>
 </template>
 <script setup>
-import {computed, ref} from "vue";
+import {computed} from "vue";
 import {useI18n} from "vue-i18n";
 import {TRAIN_CATEGORY} from 'src/models/Train'
 import {useStore} from "vuex";
