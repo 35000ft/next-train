@@ -264,29 +264,25 @@ async function calcCurrentTrains(_lineId, _station) {
     }
     const _stationId = _station.id
     const allLines = new Map(currentStation.value.lines.map(it => [it.id, it]))
-    try {
-        if (allLines) {
-            if (_lineId === 'all') {
-                // All Trains
-                currentTrainsMap.value = new Map()
-                const loadTrainsPromises = Array.from(allLines.keys()).map(lineId => loadLineTrains(lineId, _stationId))
-                loadTrainsPromises.forEach(promise => promise.then(lineTrains => {
-                    if (!checkIsChanged(_lineId, _stationId)) {
-                        addAllTrains(lineTrains)
-                    }
-                }))
-            } else {
-                const lineTrains = await store.dispatch('realtime/getStationDirectionTrains', {
-                    stationId: _stationId,
-                    lineId: _lineId
-                })
+    if (allLines) {
+        if (_lineId === 'all') {
+            // All Trains
+            currentTrainsMap.value = new Map()
+            const loadTrainsPromises = Array.from(allLines.keys()).map(lineId => loadLineTrains(lineId, _stationId))
+            loadTrainsPromises.forEach(promise => promise.then(lineTrains => {
                 if (!checkIsChanged(_lineId, _stationId)) {
-                    currentTrains.value = lineTrains
+                    addAllTrains(lineTrains)
                 }
+            }))
+        } else {
+            const lineTrains = await store.dispatch('realtime/getStationDirectionTrains', {
+                stationId: _stationId,
+                lineId: _lineId
+            })
+            if (!checkIsChanged(_lineId, _stationId)) {
+                currentTrains.value = lineTrains
             }
         }
-    } catch {
-
     }
 }
 
@@ -420,7 +416,7 @@ async function changeStation(stationId, lineId) {
     isLoadingStation.value = true
     const station = await store.dispatch('railsystem/getStation', {stationId})
     if (!station || !(station.lines instanceof Array)) {
-        console.warn(`Load station error, cannot get station info. stationId:${stationId}`)
+        console.warn(`Load station error, cannot get station info. stationId:${stationId}`, station)
         return Promise.reject(`Load station error, cannot get station info. stationId:${stationId}`)
     }
     let line

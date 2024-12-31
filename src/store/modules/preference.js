@@ -2,6 +2,7 @@ import {reactive, toRaw} from "vue";
 import {date2StringWithTimezone, isAfterNow} from "src/utils/time-utils";
 import {arr2Map} from "src/utils/array-utils";
 import {isNumber} from "src/utils/string-utils";
+import {fetchStation} from "src/apis/railsystem";
 
 const LOCAL_STORAGE_KEYS = {
     CURRENT_STATION: 'currentStation',
@@ -10,6 +11,33 @@ const LOCAL_STORAGE_KEYS = {
     FOCUS_TRAINS: 'focusTrains',
     FAVOURITE_STATIONS: 'favouriteStations',
 }
+
+//TODO 存在bug 在migrateFavourStationFromV1未完成前用户收藏favIds中的车站会导致重复收藏
+function migrateFavourStationFromV1() {
+    const json = localStorage.getItem('DefaultStationList')
+    if (json) {
+        const favIds = Object.keys(JSON.parse(json))
+        const favouriteStations = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || []
+        const favMap = arr2Map(favouriteStations, 'id') || new Map()
+        const promises = []
+        for (const id of favIds) {
+            if (favMap.has(id)) continue
+            promises.push(fetchStation(id))
+        }
+        promises.forEach(it => it.then(station => {
+            if (station) {
+                favouriteStations.push(station)
+            }
+        }))
+        Promise.all(promises).then(_ => {
+            console.log('Migrate fav stations done', favouriteStations)
+            localStorage.setItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS, JSON.stringify(favouriteStations))
+        })
+    }
+}
+
+migrateFavourStationFromV1()
+
 const state = {
     historyStations: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST)) || [],
     currentStation: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)) || null,
