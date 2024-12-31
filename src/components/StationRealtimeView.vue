@@ -32,9 +32,9 @@
                             <q-icon name="departure_board" @click="handleShowSchedule"/>
                         </div>
                         <div>
-                            <a :href="locationUrl" target="_blank">
-                                <q-icon name="map"/>
-                            </a>
+                            <!--                            <a :href="locationUrl" target="_blank">-->
+                            <q-icon @click="handleClickMap" name="map"/>
+                            <!--                            </a>-->
                         </div>
                     </div>
                     <div style="margin-top: 5px;max-width: 40%;" @click="handleClickStationName">
@@ -164,6 +164,7 @@ import {isNumber} from "src/utils/string-utils";
 import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import _ from "lodash";
 import {useRouter} from "vue-router";
+import {genAmapPositionUrl} from "src/utils/navigator_utils";
 
 const router = useRouter()
 const $q = useQuasar()
@@ -198,6 +199,23 @@ const locationUrl = computed(() => {
     }
     return url
 })
+
+const handleClickMap = () => {
+    const _station = currentStation.value
+    if (!_station) {
+        return
+    }
+    console.log('sds', _station)
+    if (_station.location) {
+        const positionUrl = genAmapPositionUrl(_station.location)
+        try {
+            window.open(positionUrl.url)
+        } catch (e) {
+            window.open(positionUrl.fallbackUrl, '_blank')
+        }
+
+    }
+}
 
 const props = defineProps({
     currentStationIdProp: {

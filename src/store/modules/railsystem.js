@@ -70,27 +70,22 @@ const actions = {
             return Promise.reject(`stationId is undefined:${stationId}`)
         }
         const isFavourite = await this.dispatch('preference/isFavouriteStation', {stationId})
-        const currentRailSystem = state.currentRailSystem;
         let station = state.stations.get(stationId)
         if (!station) {
-            station = currentRailSystem.stations && currentRailSystem.stations.find(it => it.id === stationId)
-            if (station) {
-                return station
-            } else {
-                const _station = JSON.parse(localStorage.getItem('station:' + stationId))
-                if (_station) {
-                    commit('SET_STATION', {_station})
-                    return _station
-                }
-                return new Promise((resolve, reject) => {
-                    fetchStation(stationId).then(station => {
-                        commit('SET_STATION', {station})
-                        resolve(station)
-                    }).catch(err => {
-                        reject(err)
-                    })
+            //TODO 缓存策略
+            // const _station = JSON.parse(localStorage.getItem('station:' + stationId))
+            // if (_station) {
+            //     commit('SET_STATION', {_station})
+            //     return _station
+            // }
+            return new Promise((resolve, reject) => {
+                fetchStation(stationId).then(station => {
+                    commit('SET_STATION', {station})
+                    resolve(station)
+                }).catch(err => {
+                    reject(err)
                 })
-            }
+            })
         }
         if (!station) {
             return Promise.reject('Get station err stationId:' + stationId)
