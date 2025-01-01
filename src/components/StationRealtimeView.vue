@@ -165,6 +165,7 @@ import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import _ from "lodash";
 import {useRouter} from "vue-router";
 import {genAmapPositionUrl} from "src/utils/navigator_utils";
+import {localHostList} from "@quasar/app-vite/lib/helpers/net";
 
 const router = useRouter()
 const $q = useQuasar()
@@ -205,13 +206,25 @@ const handleClickMap = () => {
     if (!_station) {
         return
     }
-    console.log('sds', _station)
     if (_station.location) {
         const positionUrl = genAmapPositionUrl(_station.location)
         try {
-            window.open(positionUrl.url)
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = positionUrl.url;
+            document.body.appendChild(iframe);
+            setTimeout(function () {
+                // 如果页面未加载，则认为没有安装应用
+                document.body.removeChild(iframe)
+                if (positionUrl.fallbackUrl) {
+                    window.open(positionUrl.fallbackUrl, '_blank')
+                }
+            }, 500);
+            // window.open(positionUrl.url)
         } catch (e) {
-            window.open(positionUrl.fallbackUrl, '_blank')
+            if (positionUrl.fallbackUrl) {
+                window.open(positionUrl.fallbackUrl, '_blank')
+            }
         }
 
     }

@@ -14,6 +14,7 @@ export default {
     arrTime: "到達時刻",
     direction: "方向",
     trainTo: "開往",
+    noAvailableSchedule: "無可用時刻表",
     directionShort: "方向",
     trainDataUpdated: "列車資料已更新",
     focusTrainSuccess: '關注列車成功, 列車將於$remain後出發',

@@ -14,6 +14,7 @@ export default {
     arrTime: "Arr. Time",
     direction: "Towards",
     trainTo: "Towards",
+    noAvailableSchedule: "No Available Schedule",
     directionShort: "To",
     trainDataUpdated: "Train data is update to date",
     focusTrainSuccess: "Successfully Focus train , train will depart in $remain",

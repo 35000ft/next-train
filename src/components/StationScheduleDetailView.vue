@@ -41,26 +41,30 @@
                             <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
                                 {{ t('date') }}:<b>{{ scheduleData.date.format('YYYY-MM-DD dddd') }}</b>
                             </div>
-                            <div v-else style="width: 100%;">
+                            <div v-if="!scheduleData&&loading" style="width: 100%;">
                                 <q-skeleton height="18px" width="40%" style="margin-bottom: 4px;"></q-skeleton>
                             </div>
                             <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
                                 {{ t('version') }}:<b>{{ scheduleData.version }}</b>
                             </div>
-                            <div v-else style="width: 100%;">
+                            <div v-if="!scheduleData&&loadings" style="width: 100%;">
                                 <q-skeleton height="18px" width="35%" style="margin-bottom: 3px;"></q-skeleton>
                             </div>
                         </div>
                     </div>
                     <div class="schedule-area-wrapper">
                         <HorizontalScheduleLayout v-if="scheduleData" :schedule-data="scheduleData"/>
-                        <div v-else style="width: 100%;">
+                        <div v-if="!scheduleData&&loading" style="width: 100%;">
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
+                        </div>
+                        <div v-if="!scheduleData&&!loading"
+                             style="display: flex;justify-content: center;">
+                            <h5>{{ t('noAvailableSchedule') }}</h5>
                         </div>
                     </div>
                 </div>
@@ -122,17 +126,17 @@ const route = useRoute()
 const router = useRouter()
 const store = useStore()
 const $q = useQuasar()
-
 onMounted(() => {
     const stationId = route.params.stationId
     const lineId = route.params.lineId
     init(stationId, lineId).then(d => {
         $q.notify.ok('加载时刻表成功')
-        setTimeout(() => {
-            scheduleData.value = d
-        }, 1000)
+        scheduleData.value = d
     }).catch(e => {
-        //TODO
+        scheduleData.value = null
+        $q.notify.info('加载时刻表失败')
+    }).finally(() => {
+        loading.value = false
     })
 })
 
