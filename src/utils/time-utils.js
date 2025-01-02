@@ -44,6 +44,10 @@ export function getNowTime(_date) {
     }
 }
 
+export function getToday(timezone) {
+    return getNowByTimezone(timezone).format(TIME_FORMATS.DATE)
+}
+
 /**
  *
  * @param {String}_timezone String like "+0800"

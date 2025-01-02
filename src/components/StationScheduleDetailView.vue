@@ -41,26 +41,30 @@
                             <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
                                 {{ t('date') }}:<b>{{ scheduleData.date.format('YYYY-MM-DD dddd') }}</b>
                             </div>
-                            <div v-else style="width: 100%;">
+                            <div v-if="!scheduleData&&loading" style="width: 100%;">
                                 <q-skeleton height="18px" width="40%" style="margin-bottom: 4px;"></q-skeleton>
                             </div>
                             <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
                                 {{ t('version') }}:<b>{{ scheduleData.version }}</b>
                             </div>
-                            <div v-else style="width: 100%;">
+                            <div v-if="!scheduleData&&loading" style="width: 100%;">
                                 <q-skeleton height="18px" width="35%" style="margin-bottom: 3px;"></q-skeleton>
                             </div>
                         </div>
                     </div>
                     <div class="schedule-area-wrapper">
                         <HorizontalScheduleLayout v-if="scheduleData" :schedule-data="scheduleData"/>
-                        <div v-else style="width: 100%;">
+                        <div v-if="!scheduleData&&loading" style="width: 100%;">
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
+                        </div>
+                        <div v-if="!scheduleData&&!loading"
+                             style="display: flex;justify-content: center;">
+                            <h5>{{ t('noAvailableSchedule') }}</h5>
                         </div>
                     </div>
                 </div>
@@ -72,9 +76,9 @@
 
 <script setup>
 import OverlayView from "components/OverlayView.vue";
-import {onMounted, ref} from "vue";
+import {onMounted, ref, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {fetchStationSchedule} from "src/apis/reailtime";
+import {fetchStationSchedule, fetchStationScheduleV2} from "src/apis/reailtime";
 import {genBriefName} from "src/utils/string-utils";
 import dayjs from "dayjs";
 import {useStore} from "vuex";
@@ -83,6 +87,8 @@ import LineIcon from "components/LineIcon.vue";
 import {useI18n} from "vue-i18n";
 import HorizontalScheduleLayout from "components/schedule-layouts/HorizontalScheduleLayout.vue";
 import domtoimage from 'dom-to-image';
+import {isTargetScheduleHeader} from "src/models/Schedule";
+import {getToday, TIME_FORMATS} from "src/utils/time-utils";
 
 const loading = ref(true)
 const scheduleData = ref(null)
@@ -120,85 +126,107 @@ const saveAsImg = () => {
 }
 const route = useRoute()
 const router = useRouter()
+const curDate = ref(dayjs())
 const store = useStore()
+const lineScheduleHeaders = ref([])
+const curLineScheduleHeader = ref(null)
 const $q = useQuasar()
+
 
 onMounted(() => {
     const stationId = route.params.stationId
     const lineId = route.params.lineId
-    store.dispatch('realtime/getLineScheduleHeader', {lineId}).then(lineScheduleHeader => {
-        console.log('fet', lineScheduleHeader)
-    })
-    init(stationId, lineId).then(d => {
-        $q.notify.ok('加载时刻表成功')
-        setTimeout(() => {
-            scheduleData.value = d
-        }, 1000)
-    }).catch(e => {
-        //TODO
-    })
+    init(stationId, lineId)
 })
 
+watch(curLineScheduleHeader, (newVal, oldVal) => {
+    if (!newVal) return
+    loading.value = true
+    const _line = line.value
+    const _station = station.value
+    fetchStationScheduleV2(_station.id, newVal.scheduleId).then(_scheduleData => {
+        if (line.value.id !== _line.id || _station.id !== station.value.id) {
+            return
+        }
+        console.log('curLineScheduleHeader changed, update schedule', newVal)
+        _scheduleData = processScheduleData(_scheduleData, _line)
+        scheduleData.value = _scheduleData
+    }).finally(_ => {
+        loading.value = false
+    })
+})
 
 async function init(stationId, lineId) {
     if (!stationId || !lineId) {
         return
     }
+    loading.value = true
     try {
-        loading.value = true
         store.dispatch('railsystem/getStation', {stationId}).then(_station => {
             station.value = _station
         }).catch(err => {
-            $q.notify.error('No such station!')
+            $q.notify.error('No such station!', err)
             router.push('/')
         })
         const _line = await store.dispatch('railsystem/getLine', {lineId}).then(_line => {
             line.value = _line
             return _line
         }).catch(err => {
-            $q.notify.error('No such line!')
+            $q.notify.error('No such line!', err)
             router.push('/')
         })
-        const scheduleData = await fetchStationSchedule(stationId, lineId)
-        const rawSchedule = scheduleData.schedules || []
-        scheduleData.date = dayjs(scheduleData.date)
-        const ID_INDEX = 0
-        const DEP_TIME_INDEX = 1
-        const TRAIN_CATEGORY_INDEX = 2
-        const shortTerminalStationIds = new Set()
-
-        const lineTerminalStationIds = new Set([_line.stations[0].id, _line.stations.slice(-1)[0].id])
-        rawSchedule.flat().flatMap(it => Object.entries(it)).map(it => {
-            it[1] = it[1][0];
-            return it[0]
-        }).filter(it => !lineTerminalStationIds.has(it)).forEach(it => shortTerminalStationIds.add(it))
-        const briefNameMap = new Map()
-        for (let stationId of shortTerminalStationIds) {
-            const station = scheduleData.stationMap[stationId]
-            station.briefName = genBriefName(station.name, briefNameMap)
-            briefNameMap.set(stationId, station)
-        }
-        scheduleData.schedules = rawSchedule.map(it => {
-            for (let stationId of Object.keys(it)) {
-                it[stationId] = it[stationId].map(trainInfo => {
-                    return {
-                        id: trainInfo[ID_INDEX],
-                        depTime: scheduleData.date.add(trainInfo[DEP_TIME_INDEX], "seconds"),
-                        dayOffset: Math.floor(trainInfo[DEP_TIME_INDEX] / 86400),
-                        categories: trainInfo[TRAIN_CATEGORY_INDEX],
-                    }
-                })
-            }
-            return it
+        store.dispatch('realtime/getLineScheduleHeaders', {lineId}).then(async _lineScheduleHeaders => {
+            const railsystem = await store.dispatch('railsystem/getRailsystemByLineId', {lineId})
+            const date = getToday(railsystem.timezone)
+            lineScheduleHeaders.value = _lineScheduleHeaders
+            curLineScheduleHeader.value = _lineScheduleHeaders.find(it => isTargetScheduleHeader(it, date))
         })
-        scheduleData.briefNameMap = briefNameMap
-        return scheduleData
-    } catch (e) {
-        console.error('Load schedule err:', e)
-        return Promise.reject()
-    } finally {
+        // TODO ROLLBACK VERSION
+        // const _scheduleData = await fetchStationSchedule(stationId, lineId)
+        // const _d = processScheduleData(_scheduleData, _line)
+        // console.log('sok', _d)
+        // scheduleData.value = _d
+        // loading.value = false
+    } catch (err) {
         loading.value = false
     }
+
+}
+
+const processScheduleData = (scheduleData, _line) => {
+    const rawSchedule = scheduleData.schedules || []
+    scheduleData.date = dayjs(scheduleData.date || curDate.value.format(TIME_FORMATS.DATE))
+    const ID_INDEX = 0
+    const DEP_TIME_INDEX = 1
+    const TRAIN_CATEGORY_INDEX = 2
+    const shortTerminalStationIds = new Set()
+
+    const lineTerminalStationIds = new Set([_line.stations[0].id, _line.stations.slice(-1)[0].id])
+    rawSchedule.flat().flatMap(it => Object.entries(it)).map(it => {
+        it[1] = it[1][0];
+        return it[0]
+    }).filter(it => !lineTerminalStationIds.has(it)).forEach(it => shortTerminalStationIds.add(it))
+    const briefNameMap = new Map()
+    for (let stationId of shortTerminalStationIds) {
+        const station = scheduleData.stationMap[stationId]
+        station.briefName = genBriefName(station.name, briefNameMap)
+        briefNameMap.set(stationId, station)
+    }
+    scheduleData.schedules = rawSchedule.map(it => {
+        for (let stationId of Object.keys(it)) {
+            it[stationId] = it[stationId].map(trainInfo => {
+                return {
+                    id: trainInfo[ID_INDEX],
+                    depTime: dayjs('2024-01-01T00:00:00').add(trainInfo[DEP_TIME_INDEX], "seconds"),
+                    dayOffset: Math.floor(trainInfo[DEP_TIME_INDEX] / 86400),
+                    categories: trainInfo[TRAIN_CATEGORY_INDEX],
+                }
+            })
+        }
+        return it
+    })
+    scheduleData.briefNameMap = briefNameMap
+    return scheduleData
 }
 
 </script>

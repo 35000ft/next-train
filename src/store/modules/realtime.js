@@ -177,26 +177,17 @@ const actions = {
      * @param commit
      * @param state
      * @param lineId
+     * @param update 是否立即更新
      * @param date {String} 2024-10-15
      */
-    async getLineScheduleHeader({commit, state}, {lineId, date}) {
-        const lineScheduleHeader = state.lineScheduleHeaderMap.get(lineId)
-        if (lineScheduleHeader) {
-            if (lineScheduleHeader.specifiedDates.contains(date)) {
-                return lineScheduleHeader
-            }
-            const fromDate = dayjs(lineScheduleHeader.fromDate)
-            const toDate = dayjs(lineScheduleHeader.toDate)
-            const _date = dayjs(date)
-            if (_date >= fromDate && _date <= toDate) {
-                if (lineScheduleHeader.period.contains(_date.day() + 1)) {
-                    return lineScheduleHeader
-                }
-            }
+    async getLineScheduleHeaders({commit, state}, {lineId, update = false}) {
+        const lineScheduleHeaders = state.lineScheduleHeaderMap.get(lineId)
+        if (lineScheduleHeaders && !update) {
+            return lineScheduleHeaders
         }
         return fetchScheduleHeader(lineId).then(lineScheduleHeaders => {
             commit('SET_LINE_SCHEDULE_HEADER', {lineScheduleHeaders})
-            return lineScheduleHeader
+            return lineScheduleHeaders
         })
     }
 }

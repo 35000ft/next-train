@@ -40,6 +40,18 @@ export async function fetchStationSchedule(stationId, lineId) {
         })
 }
 
+export async function fetchStationScheduleV2(stationId, scheduleId) {
+    const url = `api/metro-realtime/station/schedule/v3/${stationId}/${scheduleId}`
+    return await axios
+        .post(url)
+        .then(res => {
+            return res.data.data
+        })
+        .catch(err => {
+            return Promise.reject(err)
+        })
+}
+
 export async function fetchTrainInfoById(id) {
     const url = `api/metro-realtime/train-info/id/${id}`
     return await axios
