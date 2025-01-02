@@ -51,3 +51,15 @@ export async function fetchTrainInfoById(id) {
             return Promise.reject(err)
         })
 }
+
+export async function fetchScheduleHeader(lineId) {
+    const url = `api/metro-realtime/schedules/header/get/line/${lineId}`
+    return await axios
+        .get(url)
+        .then(res => {
+            return res.data.data
+        })
+        .catch(err => {
+            return Promise.reject(err)
+        })
+}

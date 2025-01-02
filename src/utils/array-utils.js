@@ -18,3 +18,11 @@ export function arr2Map(_array, keyName) {
     }, new Map());
 
 }
+
+
+export function contains(_list, target) {
+    if (_list instanceof Array) {
+        return _list.indexOf(target) !== -1
+    }
+    return false
+}

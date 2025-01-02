@@ -126,6 +126,9 @@ const $q = useQuasar()
 onMounted(() => {
     const stationId = route.params.stationId
     const lineId = route.params.lineId
+    store.dispatch('realtime/getLineScheduleHeader', {lineId}).then(lineScheduleHeader => {
+        console.log('fet', lineScheduleHeader)
+    })
     init(stationId, lineId).then(d => {
         $q.notify.ok('加载时刻表成功')
         setTimeout(() => {
