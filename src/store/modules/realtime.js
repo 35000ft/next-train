@@ -3,12 +3,14 @@ import LRU from "src/utils/LRU";
 import {trainScheduleParser, trainViaParser} from "src/models/Train";
 import {reactive} from "vue";
 import {isAfterNow} from "src/utils/time-utils";
-import {fetchStationCurrentTrainInfo, fetchTrainInfoById} from "src/apis/reailtime";
+import {fetchScheduleHeader, fetchStationCurrentTrainInfo, fetchTrainInfoById} from "src/apis/reailtime";
+import {contains} from "src/utils/array-utils";
 
 const state = {
     trainInfoMap: reactive(new LRU(100)),
     stationTrainInfoMap: reactive(new LRU(20)),
-    LOCK: reactive(new Map())
+    LOCK: reactive(new Map()),
+    lineScheduleHeaderMap: reactive(new LRU(20)),
 }
 const mutations = {
     SET_TRAININFO(state, {trainInfoId, trainInfo}) {
@@ -24,6 +26,11 @@ const mutations = {
     },
     SET_LOCK(state, {key}) {
         state.LOCK.set(key, true)
+    },
+    SET_LINE_SCHEDULE_HEADER(state, {lineScheduleHeader}) {
+        if (lineScheduleHeader && lineScheduleHeader.lineId) {
+            state.lineScheduleHeaderMap.set(lineScheduleHeader.lineId, lineScheduleHeader)
+        }
     },
     UNLOCK(state, {key}) {
         state.LOCK.delete(key)
@@ -165,6 +172,33 @@ const actions = {
         }
     },
 
+    /**
+     *
+     * @param commit
+     * @param state
+     * @param lineId
+     * @param date {String} 2024-10-15
+     */
+    async getLineScheduleHeader({commit, state}, {lineId, date}) {
+        const lineScheduleHeader = state.lineScheduleHeaderMap.get(lineId)
+        if (lineScheduleHeader) {
+            if (lineScheduleHeader.specifiedDates.contains(date)) {
+                return lineScheduleHeader
+            }
+            const fromDate = dayjs(lineScheduleHeader.fromDate)
+            const toDate = dayjs(lineScheduleHeader.toDate)
+            const _date = dayjs(date)
+            if (_date >= fromDate && _date <= toDate) {
+                if (lineScheduleHeader.period.contains(_date.day() + 1)) {
+                    return lineScheduleHeader
+                }
+            }
+        }
+        return fetchScheduleHeader(lineId).then(lineScheduleHeaders => {
+            commit('SET_LINE_SCHEDULE_HEADER', {lineScheduleHeaders})
+            return lineScheduleHeader
+        })
+    }
 }
 
 const getters = {
