@@ -67,5 +67,6 @@ export default {
         WEEKEND: "WEEKEND",
         NORMAL: "NORMAL",
     },
-    schedule: ' Schedule'
+    schedule: ' Schedule',
+    scheduleExecuteDate: "From $date",
 }

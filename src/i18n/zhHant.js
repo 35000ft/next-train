@@ -67,5 +67,6 @@ export default {
         WEEKEND: "周末",
         NORMAL: "平日",
     },
-    schedule: '時刻表'
+    schedule: '時刻表',
+    scheduleExecuteDate: "自$date起"
 }

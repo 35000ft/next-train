@@ -1,12 +1,16 @@
 import dayjs from "dayjs";
+import {TIME_FORMATS} from "src/utils/time-utils";
 
 /**
  * 判断date是不是属于这个时刻表头
  * @param  lineScheduleHeader
- * @param  {String} date
+ * @param  {String|dayjs.Dayjs} date
  * @returns {boolean}
  */
 export function isTargetScheduleHeader(lineScheduleHeader, date) {
+    if (date instanceof Object) {
+        date = date.format(TIME_FORMATS.DATE)
+    }
     if (lineScheduleHeader.specifiedDates && lineScheduleHeader.specifiedDates.contains(date)) {
         return true
     }
@@ -17,14 +21,15 @@ export function isTargetScheduleHeader(lineScheduleHeader, date) {
     const toDate = dayjs(lineScheduleHeader.toDate)
     const _date = dayjs(date)
     if (_date >= fromDate && _date <= toDate) {
-        if (lineScheduleHeader.period.contains(_date.day())) {
+        const weekday = _date.day() === 0 ? 7 : _date.day()
+        if (lineScheduleHeader.period.contains(weekday)) {
             return true
         }
     }
     return false
 }
 
-const SCHEDULE_CATEGORY = {
+export const SCHEDULE_CATEGORY = {
     HOLIDAY: {
         code: "HOLIDAY",
     },
@@ -34,4 +39,8 @@ const SCHEDULE_CATEGORY = {
     WEEKEND: {
         code: "WEEKEND",
     },
+    NORMAL: {
+        code: "NORMAL",
+    }
+
 }

@@ -1,17 +1,21 @@
 <template>
     <OverlayView name="StationScheduleDetail">
         <template v-slot:header-center>
-            <!--            <div>线路时刻表</div>-->
-            <div v-if="curLineScheduleHeader">
+            <div v-if="lineScheduleHeaders && lineScheduleHeaders.length>0">
                 <q-btn-dropdown color="primary"
-                                :label="t(`scheduleCategory.${curLineScheduleHeader.category}`) + t('schedule')"
-                                unelevated padding="0">
+                                unelevated>
+                    <template v-slot:label>
+                        <div style="font-size: 18px;">{{ curDate.format('MM/DD · dddd') }}</div>
+                    </template>
                     <q-list>
-                        <q-item v-for="header in lineScheduleHeaders" :key="header.scheduleId" clickable v-close-popup
-                                style="padding-top: 0;padding-bottom: 0;min-height: 30px">
+                        <q-item v-for="_date in selectableDates" :key="_date" clickable v-close-popup
+                                style="padding-top: 0;padding-bottom: 0;min-height: 30px"
+                                @click="handleChangeDate(_date)"
+                                :class="_date===curDate?'current-date':''"
+                        >
                             <q-item-section>
                                 <q-item-label>
-                                    {{ t(`scheduleCategory.${header.category}`) }}{{ t("schedule") }}
+                                    {{ _date.format('MM/DD · dddd') }}
                                 </q-item-label>
                             </q-item-section>
                         </q-item>
@@ -60,10 +64,10 @@
                             <div v-if="!scheduleData&&loading" style="width: 100%;">
                                 <q-skeleton height="18px" width="40%" style="margin-bottom: 4px;"></q-skeleton>
                             </div>
-                            <div v-if="scheduleData" class="update-time-box col-12" style="color: var(--q-grey-3);">
-                                {{ t('version') }}:<b>{{ scheduleData.version }}</b>
+                            <div v-if="headerInfo" class="update-time-box col-12" style="color: var(--q-grey-3);">
+                                {{ t(`version`) }}:<b>{{ headerInfo.version }}</b>
                             </div>
-                            <div v-if="!scheduleData&&loading" style="width: 100%;">
+                            <div v-if="!headerInfo&&loading" style="width: 100%;">
                                 <q-skeleton height="18px" width="35%" style="margin-bottom: 3px;"></q-skeleton>
                             </div>
                         </div>
@@ -92,9 +96,9 @@
 
 <script setup>
 import OverlayView from "components/OverlayView.vue";
-import {onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {fetchStationSchedule, fetchStationScheduleV2} from "src/apis/reailtime";
+import {fetchStationScheduleV2} from "src/apis/reailtime";
 import {genBriefName} from "src/utils/string-utils";
 import dayjs from "dayjs";
 import {useStore} from "vuex";
@@ -103,8 +107,8 @@ import LineIcon from "components/LineIcon.vue";
 import {useI18n} from "vue-i18n";
 import HorizontalScheduleLayout from "components/schedule-layouts/HorizontalScheduleLayout.vue";
 import domtoimage from 'dom-to-image';
-import {isTargetScheduleHeader} from "src/models/Schedule";
-import {getToday, TIME_FORMATS} from "src/utils/time-utils";
+import {isTargetScheduleHeader, SCHEDULE_CATEGORY} from "src/models/Schedule";
+import {formatWeekday, getToday, TIME_FORMATS} from "src/utils/time-utils";
 
 const loading = ref(true)
 const scheduleData = ref(null)
@@ -142,35 +146,74 @@ const saveAsImg = () => {
 }
 const route = useRoute()
 const router = useRouter()
-const curDate = ref(dayjs())
 const store = useStore()
 const lineScheduleHeaders = ref([])
-const curLineScheduleHeader = ref(null)
 const $q = useQuasar()
-
-
+const selectableDates = ref(Array.from({length: 8}, (_, i) => dayjs().add(i - 1, 'day')))
+const curDate = ref(selectableDates.value[1])
+const curHeader = ref(null)
+const headerInfo = computed(() => {
+    const _curHeader = curHeader.value
+    if (_curHeader) {
+        const fromDate = dayjs(_curHeader.fromDate).format(TIME_FORMATS.DATE)
+        const categoryStr = t(`scheduleCategory.${_curHeader.category}`) + t('schedule')
+        const scheduleExecuteDate = t('scheduleExecuteDate').replace('%date', fromDate)
+        if (_curHeader.category === SCHEDULE_CATEGORY.NORMAL.code) {
+            return {
+                version: categoryStr,
+                executeDate: scheduleExecuteDate
+            }
+        }
+        if (_curHeader.period) {
+            const _categoryStr = `${categoryStr}·${formatWeekday(_curHeader.period)}`
+            return {
+                version: _categoryStr,
+                executeDate: scheduleExecuteDate
+            }
+        } else if (_curHeader.specifiedDates && _curHeader.specifiedDates.length > 0) {
+            const _scheduleExecuteDates = _curHeader.specifiedDates.join(',')
+            return {
+                version: categoryStr,
+                executeDate: _scheduleExecuteDates
+            }
+        }
+    }
+    return null
+})
 onMounted(() => {
     const stationId = route.params.stationId
     const lineId = route.params.lineId
     init(stationId, lineId)
 })
 
-watch(curLineScheduleHeader, (newVal, oldVal) => {
-    if (!newVal) return
+const changeSchedule = (_date) => {
     loading.value = true
+    let change = false
+    if (scheduleData.value) {
+        change = true
+        scheduleData.value = null
+        $q.notify.info('正在切换时刻表')
+    }
+    const lineScheduleHeader = lineScheduleHeaders.value.find(it => isTargetScheduleHeader(it, _date))
+    if (!lineScheduleHeader) {
+        return
+    }
+    curHeader.value = lineScheduleHeader
     const _line = line.value
     const _station = station.value
-    fetchStationScheduleV2(_station.id, newVal.scheduleId).then(_scheduleData => {
+    fetchStationScheduleV2(_station.id, lineScheduleHeader.scheduleId).then(_scheduleData => {
         if (line.value.id !== _line.id || _station.id !== station.value.id) {
             return
         }
-        console.log('curLineScheduleHeader changed, update schedule', newVal)
         _scheduleData = processScheduleData(_scheduleData, _line)
         scheduleData.value = _scheduleData
+        if (change) {
+            $q.notify.ok('切换时刻表成功')
+        }
     }).finally(_ => {
         loading.value = false
     })
-})
+}
 
 async function init(stationId, lineId) {
     if (!stationId || !lineId) {
@@ -195,7 +238,7 @@ async function init(stationId, lineId) {
             const railsystem = await store.dispatch('railsystem/getRailsystemByLineId', {lineId})
             const date = getToday(railsystem.timezone)
             lineScheduleHeaders.value = _lineScheduleHeaders
-            curLineScheduleHeader.value = _lineScheduleHeaders.find(it => isTargetScheduleHeader(it, date))
+            changeSchedule(date)
         })
         // TODO ROLLBACK VERSION
         // const _scheduleData = await fetchStationSchedule(stationId, lineId)
@@ -245,6 +288,15 @@ const processScheduleData = (scheduleData, _line) => {
     return scheduleData
 }
 
+/**
+ *
+ * @param {dayjs.Dayjs}  _date
+ */
+const handleChangeDate = (_date) => {
+    if (_date === curDate.value) return
+    curDate.value = _date
+    changeSchedule(_date)
+}
 </script>
 
 <style scoped>
@@ -308,5 +360,10 @@ const processScheduleData = (scheduleData, _line) => {
     font-size: 24px;
     color: var(--q-primary-d);
     font-weight: bold;
+}
+
+.current-date {
+    font-weight: bold;
+    color: var(--q-primary-d);
 }
 </style>

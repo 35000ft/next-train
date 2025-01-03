@@ -44,6 +44,41 @@ export function getNowTime(_date) {
     }
 }
 
+const isArithmeticSequence = (arr) => {
+    // 1. 排序数组
+    arr.sort((a, b) => a - b);
+    // 2. 检查是否是等差数列，差值为 1
+    for (let i = 1; i < arr.length; i++) {
+        if (arr[i] - arr[i - 1] !== 1) {
+            return false; // 如果相邻元素差值不是 1，返回 false
+        }
+    }
+    return true; // 如果差值都为 1，返回 true
+};
+
+/**
+ *
+ * @param {[{String}]} weekdays 星期几 [1,2,3]=>周一 ~ 周三
+ * @returns {*|string}
+ */
+export function formatWeekday(weekdays) {
+    const today = dayjs(); // 获取今天的日期
+    const startOfWeek = today.startOf('week');
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+        weekDates.push(startOfWeek.add(i, 'day').format('ddd'));
+    }
+    if (weekdays.length === 1) {
+        return weekDates[weekdays[0] - 1]
+    }
+    weekdays = weekdays.sort((a, b) => a - b)
+    if (weekdays.length > 2 && isArithmeticSequence(weekdays)) {
+        return weekDates[weekdays[0] - 1] + ' ~ ' + weekDates[weekdays.slice(-1)[0] - 1]
+    } else {
+        return weekdays.map(it => weekDates[it - 1]).join(',')
+    }
+}
+
 export function getToday(timezone) {
     return getNowByTimezone(timezone).format(TIME_FORMATS.DATE)
 }
