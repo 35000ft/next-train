@@ -53,11 +53,19 @@ export default {
     error: "error",
     success: "successfully",
     emptyFocusTrainHint: 'Focus trains at Station Realtime',
+    downloadingSchedule: "Downloading station schedule...",
     trainStatus: {
         arrived: "ARRIVED",
         departed: "DEPARTED",
         arriveSoon: "ARRIVE SOON",
         delayed: "DELAYED",
         exitService: "EXIT SERVICE",
-    }
+    },
+    scheduleCategory: {
+        HOLIDAY: "HOLIDAY",
+        WORKDAY: "WORKDAY",
+        WEEKEND: "WEEKEND",
+        NORMAL: "NORMAL",
+    },
+    schedule: ' Schedule'
 }

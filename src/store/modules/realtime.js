@@ -4,7 +4,6 @@ import {trainScheduleParser, trainViaParser} from "src/models/Train";
 import {reactive} from "vue";
 import {isAfterNow} from "src/utils/time-utils";
 import {fetchScheduleHeader, fetchStationCurrentTrainInfo, fetchTrainInfoById} from "src/apis/reailtime";
-import {contains} from "src/utils/array-utils";
 
 const state = {
     trainInfoMap: reactive(new LRU(100)),

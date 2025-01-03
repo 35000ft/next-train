@@ -1,7 +1,23 @@
 <template>
     <OverlayView name="StationScheduleDetail">
         <template v-slot:header-center>
-            <div>线路时刻表</div>
+            <!--            <div>线路时刻表</div>-->
+            <div v-if="curLineScheduleHeader">
+                <q-btn-dropdown color="primary"
+                                :label="t(`scheduleCategory.${curLineScheduleHeader.category}`) + t('schedule')"
+                                unelevated padding="0">
+                    <q-list>
+                        <q-item v-for="header in lineScheduleHeaders" :key="header.scheduleId" clickable v-close-popup
+                                style="padding-top: 0;padding-bottom: 0;min-height: 30px">
+                            <q-item-section>
+                                <q-item-label>
+                                    {{ t(`scheduleCategory.${header.category}`) }}{{ t("schedule") }}
+                                </q-item-label>
+                            </q-item-section>
+                        </q-item>
+                    </q-list>
+                </q-btn-dropdown>
+            </div>
         </template>
         <template v-slot:default>
             <div style="position: relative;">
@@ -103,7 +119,7 @@ const saveAsImg = () => {
         return
     }
     console.log("saving schedule as image")
-    $q.notify.info('正在保存时刻表, 请稍候')
+    $q.notify.info(t("downloadingSchedule"))
     const scale = 3
     const domNode = scheduleRef.value
     domtoimage.toPng(domNode, {

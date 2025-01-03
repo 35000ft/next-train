@@ -23,3 +23,15 @@ export function isTargetScheduleHeader(lineScheduleHeader, date) {
     }
     return false
 }
+
+const SCHEDULE_CATEGORY = {
+    HOLIDAY: {
+        code: "HOLIDAY",
+    },
+    WORKDAY: {
+        code: "WORKDAY",
+    },
+    WEEKEND: {
+        code: "WEEKEND",
+    },
+}

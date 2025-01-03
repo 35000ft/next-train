@@ -53,11 +53,19 @@ export default {
     error: "失敗",
     success: "成功",
     emptyFocusTrainHint: '在車站实時添加關注列車',
+    downloadingSchedule: "正在儲存時刻表, 請稍候",
     trainStatus: {
         arrived: "列車到站",
         departed: "正在離開",
         arriveSoon: "即將進站",
         delayed: "延誤",
         exitService: "退出服務",
-    }
+    },
+    scheduleCategory: {
+        HOLIDAY: "节假日",
+        WORKDAY: "工作日",
+        WEEKEND: "周末",
+        NORMAL: "平日",
+    },
+    schedule: '時刻表'
 }
