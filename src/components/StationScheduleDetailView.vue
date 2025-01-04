@@ -79,7 +79,7 @@
                     </div>
                     <div class="schedule-area-wrapper">
                         <HorizontalScheduleLayout v-if="scheduleData" :schedule-data="scheduleData"/>
-                        <div v-if="!scheduleData&&loading" style="width: 100%;">
+                        <div v-else style="width: 100%;">
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
