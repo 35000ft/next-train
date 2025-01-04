@@ -41,7 +41,6 @@ function findByAbbr(targetAbbr, texts) {
         let match
         if (containsChinese(it)) {
             _abbr = getPinyinAbbr(it).toLowerCase()
-            console.log('pinyin', _abbr)
             const findStartIndex = _abbr.indexOf(targetAbbr)
             if (findStartIndex !== -1) {
                 match = it.slice(findStartIndex, findStartIndex + targetAbbr.length)

@@ -236,7 +236,11 @@ export default defineComponent({
             }
             loadStations(lineId).then(r => {
                 if (r && r instanceof Array) {
-                    searchResults.value = r
+                    if (keyword.value && keyword.value.length > 0) {
+                        searchResults.value = filterResult(r, keyword.value)
+                    } else {
+                        searchResults.value = r
+                    }
                 }
                 loading.value = false
             })

@@ -11,8 +11,7 @@
                         <q-item v-for="_date in selectableDates" :key="_date" clickable v-close-popup
                                 style="padding-top: 0;padding-bottom: 0;min-height: 30px"
                                 @click="handleChangeDate(_date)"
-                                :class="_date===curDate?'current-date':''"
-                        >
+                                :class="_date===curDate?'current-date':''">
                             <q-item-section>
                                 <q-item-label>
                                     {{ _date.format('MM/DD · dddd') }}
@@ -65,7 +64,13 @@
                                 <q-skeleton height="18px" width="40%" style="margin-bottom: 4px;"></q-skeleton>
                             </div>
                             <div v-if="headerInfo" class="update-time-box col-12" style="color: var(--q-grey-3);">
-                                {{ t(`version`) }}:<b>{{ headerInfo.version }}</b>
+                                <div>{{ t(`version`) }}:<b>{{ headerInfo.version }}</b></div>
+                            </div>
+                            <div v-if="!headerInfo&&loading" style="width: 100%;">
+                                <q-skeleton height="18px" width="35%" style="margin-bottom: 3px;"></q-skeleton>
+                            </div>
+                            <div v-if="headerInfo" class="update-time-box col-12" style="color: var(--q-grey-3);">
+                                <div>{{ headerInfo.executeDate }}</div>
                             </div>
                             <div v-if="!headerInfo&&loading" style="width: 100%;">
                                 <q-skeleton height="18px" width="35%" style="margin-bottom: 3px;"></q-skeleton>
@@ -157,7 +162,7 @@ const headerInfo = computed(() => {
     if (_curHeader) {
         const fromDate = dayjs(_curHeader.fromDate).format(TIME_FORMATS.DATE)
         const categoryStr = t(`scheduleCategory.${_curHeader.category}`) + t('schedule')
-        const scheduleExecuteDate = t('scheduleExecuteDate').replace('%date', fromDate)
+        const scheduleExecuteDate = t('scheduleExecuteDate').replace('$date', fromDate)
         if (_curHeader.category === SCHEDULE_CATEGORY.NORMAL.code) {
             return {
                 version: categoryStr,

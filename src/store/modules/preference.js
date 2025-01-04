@@ -60,7 +60,7 @@ const mutations = {
     ADD_HISTORY_STATION(state, {station}) {
         let historyStations = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST))
         if (historyStations == null) historyStations = []
-        const maxHistoryAmount = 20
+        const maxHistoryAmount = 10
         if (historyStations.length >= maxHistoryAmount) {
             historyStations = historyStations.slice(1, maxHistoryAmount)
         }

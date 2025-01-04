@@ -68,5 +68,5 @@ export default {
         NORMAL: "平日",
     },
     schedule: '时刻表',
-    scheduleExecuteDate: "自$date起"
+    scheduleExecuteDate: "自$date起执行"
 }

@@ -238,11 +238,6 @@ export default defineComponent({
             if (!dom) {
                 return
             }
-            let index = currentIndex.value || (nextIndex.value && nextIndex.value - 1)
-            if (index < 0) index = 0
-            if (!index) {
-                return
-            }
             if (dom.scrollHeight <= dom.clientHeight) {
                 return
             }
@@ -285,8 +280,7 @@ export default defineComponent({
                         }
                     }
                 }
-
-                if (nextIndexValue) {
+                if (nextIndexValue >= 0) {
                     for (let i = 0; i < nextIndexValue; i++) {
                         const stopInfo = _schedule[i]
                         if (stopInfo.statusClass !== TRAIN_STATUS.DEPARTED.code) {
@@ -308,7 +302,7 @@ export default defineComponent({
                             }
                         }
                     }
-                    
+
                     const stopInfo = _schedule[nextIndexValue]
                     const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
                     _schedule[nextIndexValue].statusClass = 'next-station'

@@ -68,5 +68,5 @@ export default {
         NORMAL: "NORMAL",
     },
     schedule: ' Schedule',
-    scheduleExecuteDate: "From $date",
+    scheduleExecuteDate: "Effective from $date",
 }
