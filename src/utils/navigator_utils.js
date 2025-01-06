@@ -31,3 +31,20 @@ export function genAmapPositionUrl(location, osType = getOSType()) {
             }
     }
 }
+
+export function genGoogleMapPositionUrl(location, osType = getOSType()) {
+    const [lon, lat] = location.split(',')
+    const fallbackUrl = `https://www.google.com/maps?q=${lat},${lon}`
+    const url = `geo://${lat},${lon}?q=${lat},${lon}`
+    if (osType === 'pc') {
+        return {
+            url: fallbackUrl,
+            fallbackUrl
+        }
+    } else {
+        return {
+            url,
+            fallbackUrl
+        }
+    }
+}

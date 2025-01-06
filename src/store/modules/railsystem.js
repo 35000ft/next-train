@@ -81,6 +81,7 @@ const actions = {
             return new Promise((resolve, reject) => {
                 fetchStation(stationId).then(station => {
                     commit('SET_STATION', {station})
+                    station.isFavourite = isFavourite
                     resolve(station)
                 }).catch(err => {
                     reject(err)
@@ -92,6 +93,14 @@ const actions = {
         }
         station.isFavourite = isFavourite
         return station
+    },
+    async getStationByIds({dispatch, state, commit}, {stationIds}) {
+        const promises = []
+        for (const stationId of stationIds) {
+            const promise = dispatch('getStation', {stationId})
+            promises.push(promise)
+        }
+        return await Promise.all(promises)
     },
     async getAllStations({state, commit}) {
         const currentRailSystem = state.currentRailSystem

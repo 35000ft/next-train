@@ -69,5 +69,12 @@ export default {
         NORMAL: "平日",
     },
     schedule: '时刻表',
-    scheduleExecuteDate: "自$date起执行"
+    scheduleExecuteDate: "自$date起执行",
+    cancel: "取消",
+    favStationDesc: "设定时间规则, 在指定的时间段内该车站将为首页默认车站",
+    fromTimeCannotBeEqToTime: "起始时间不能等于结束时间",
+    addRule: "添加规则",
+    favStation: "收藏车站",
+    favStationOnly: "仅收藏车站",
+    period: "周期",
 }

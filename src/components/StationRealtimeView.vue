@@ -148,6 +148,7 @@
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
     <train-info-detail-view v-if="showTrainInfo" :train-info-id-prop="showTrainInfo.id" :date="showTrainInfo.date"
                             @close="handleCloseShowTrainDetail"/>
+    <EditFavouriteStationDialog :station="addFavStation" @close="()=>addFavStation=null"/>
 </template>
 
 <script setup>
@@ -165,7 +166,7 @@ import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import _ from "lodash";
 import {useRouter} from "vue-router";
 import {genAmapPositionUrl} from "src/utils/navigator_utils";
-import {localHostList} from "@quasar/app-vite/lib/helpers/net";
+import EditFavouriteStationDialog from "components/EditFavouriteStationDialog.vue";
 
 const router = useRouter()
 const $q = useQuasar()
@@ -185,22 +186,7 @@ const currentStation = ref(null)
 const currentTrains = ref([])
 const allTrains = ref([])
 const showTrainInfo = ref(null)
-
-//TODO 国际化 多地图服务商 根据坐标查询
-const locationUrl = computed(() => {
-    const _station = currentStation.value
-    if (!_station) {
-        return "/"
-    }
-    const base = "https://www.amap.com/search?query="
-    const railsystem = store.getters['railsystem/railsystemGetter'](_station.railsystemCode)
-    let url = `${base}${_station.name}地铁站`
-    if (railsystem) {
-        url += " " + railsystem.city
-    }
-    return url
-})
-
+const addFavStation = ref(null)
 const handleClickMap = () => {
     const _station = currentStation.value
     if (!_station) {
@@ -220,7 +206,6 @@ const handleClickMap = () => {
                     window.open(positionUrl.fallbackUrl, '_blank')
                 }
             }, 500);
-            // window.open(positionUrl.url)
         } catch (e) {
             if (positionUrl.fallbackUrl) {
                 window.open(positionUrl.fallbackUrl, '_blank')
@@ -260,14 +245,7 @@ const showSkeleton = computed(() => {
 })
 const handleFavourStation = (_station) => {
     if (!_station) return
-    store.dispatch('preference/favourStation', {station: _station}).then(_isFavouriteStation => {
-        if (currentStation.value && currentStation.value.id === _station.id) {
-            currentStation.value.isFavourite = _isFavouriteStation
-            if (_isFavouriteStation) {
-                $q.notify.ok(t('favourStationOk'))
-            }
-        }
-    })
+    addFavStation.value = _station
 }
 
 const showTrainInfoDetailView = (trainInfo) => {
@@ -412,7 +390,7 @@ const handleSelectStation = (stationId, lineId) => {
 
 const refreshTrainInfoTimer = setInterval(() => {
     updateCurrentTrains()
-}, 30000)
+}, 20000)
 
 //clean refresh train info timer
 onBeforeUnmount(() => {
@@ -446,6 +424,7 @@ async function changeStation(stationId, lineId) {
     }
     isLoadingStation.value = true
     const station = await store.dispatch('railsystem/getStation', {stationId})
+    console.log('station', station)
     if (!station || !(station.lines instanceof Array)) {
         console.warn(`Load station error, cannot get station info. stationId:${stationId}`, station)
         return Promise.reject(`Load station error, cannot get station info. stationId:${stationId}`)

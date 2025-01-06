@@ -79,6 +79,19 @@ export function formatWeekday(weekdays) {
     }
 }
 
+export function getWeekdays(lang) {
+    const today = dayjs(); // 获取今天的日期
+    const startOfWeek = today.startOf('week');
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+        weekDates.push(startOfWeek.add(i, 'day').format('ddd'));
+    }
+    if (lang.startsWith('zh')) {
+        return weekDates.map(it => it.at(it.length - 1))
+    }
+    return weekDates
+}
+
 export function getToday(timezone) {
     return getNowByTimezone(timezone).format(TIME_FORMATS.DATE)
 }
@@ -287,4 +300,60 @@ export function formatToHHMM(_date) {
 
     // 格式化为 HH:MM
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function timeStringToMinutes(timeStr) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+}
+
+/**
+ *
+ * @param {String} fromTime 15:23
+ * @param  {String}toTime 23:23
+ * @param  {[Number]}period 1,2,3,...,7
+ */
+export function parseTimeRule2NumberLine({fromTime, toTime, period}) {
+    const fromTimeMin = timeStringToMinutes(fromTime)
+    let toTimeMin = timeStringToMinutes(toTime)
+    if (toTimeMin < fromTimeMin) toTimeMin += 60 * 24
+    const result = []
+    const weekMaxMin = 24 * 7 * 60
+    for (const weekday of period) {
+        const offset = (weekday - 1) * 60 * 24
+        const tempFromMin = fromTimeMin + offset
+        const tempToMin = toTimeMin + offset
+        if (tempToMin < weekMaxMin) {
+            result.push([tempFromMin, tempToMin])
+        } else {
+            // 周日的时间溢出到周一的情况 如周日 起始时间23:00 截至时间01:00(周一)
+            result.push([tempFromMin, weekMaxMin])
+            result.push([0, tempToMin - weekMaxMin])
+        }
+    }
+    return result
+}
+
+/**
+ *  [[0,60],[45,70]] is conflict, because 45~60 is conflict
+ * @param {[[Number,Number]]} numberLine
+ */
+export function checkNumberLineConflictEle(numberLine) {
+    if (!Array.isArray(numberLine) || numberLine.length === 0) {
+        throw new Error("Input must be a non-empty array of intervals.");
+    }
+
+    // Sort intervals by their start value
+    numberLine.sort((a, b) => a[0] - b[0]);
+    // Check for overlap between consecutive intervals
+    for (let i = 1; i < numberLine.length; i++) {
+        const [prevStart, prevEnd] = numberLine[i - 1];
+        const [currentStart, currentEnd] = numberLine[i];
+
+        // Overlap condition: currentStart is less than or equal to prevEnd
+        if (currentStart <= prevEnd) {
+            return true;
+        }
+    }
+    return false; // No conflicts found
 }

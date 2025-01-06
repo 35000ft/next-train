@@ -69,5 +69,10 @@ export default {
         NORMAL: "平日",
     },
     schedule: '時刻表',
-    scheduleExecuteDate: "自$date起執行"
+    scheduleExecuteDate: "自$date起執行",
+    cancel: "取消",
+    fromTimeCannotBeEqToTime: "起始時間不能等於結束時間",
+    favStation: "收藏車站",
+    favStationOnly: "仅收藏車站",
+    period: "週期",
 }

@@ -1,8 +1,14 @@
 import {reactive, toRaw} from "vue";
-import {date2StringWithTimezone, isAfterNow} from "src/utils/time-utils";
+import {
+    checkNumberLineConflictEle,
+    date2StringWithTimezone,
+    isAfterNow,
+    parseTimeRule2NumberLine
+} from "src/utils/time-utils";
 import {arr2Map} from "src/utils/array-utils";
 import {isNumber} from "src/utils/string-utils";
 import {fetchStation} from "src/apis/railsystem";
+import railsystem from "src/store/modules/railsystem";
 
 const LOCAL_STORAGE_KEYS = {
     CURRENT_STATION: 'currentStation',
@@ -10,6 +16,7 @@ const LOCAL_STORAGE_KEYS = {
     HISTORY_STATION_LIST: 'historyStationList',
     FOCUS_TRAINS: 'focusTrains',
     FAVOURITE_STATIONS: 'favouriteStations',
+    FAVOURITE_RULES: 'favouriteRules',
 }
 
 //TODO 存在bug 在migrateFavourStationFromV1未完成前用户收藏favIds中的车站会导致重复收藏
@@ -42,13 +49,13 @@ const state = {
     historyStations: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST)) || [],
     currentStation: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)) || null,
     focusTrains: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS)) || [],
-    favouriteStations: reactive(arr2Map((JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || []), 'id'))
+    favouriteStations: reactive(arr2Map((JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || []), 'id')),
+    favouriteRules: reactive(new Map(Object.entries(JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_RULES)) || {}))),
 }
 
 const mutations = {
     SET_CURRENT_STATION(state, station) {
         if (!station) return
-        console.log('SET_CURRENT_STATION', station)
         state.currentStation = station;
         localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_STATION, JSON.stringify(station))
     },
@@ -109,11 +116,39 @@ const mutations = {
     SET_FOCUS_TRAINS(state, trains) {
         state.focusTrains = trains
         localStorage.setItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS, JSON.stringify(trains))
+    },
+    ADD_FAVOUR_STATION_RULE(state, {station, fromTime, toTime, period}) {
+        const _list = state.favouriteRules.get(station.railsystemCode) || []
+        _list.push({
+            id: new Date().getTime(),
+            stationId: station.id,
+            fromTime,
+            toTime,
+            period,
+            use: true
+        })
+        state.favouriteRules.set(station.railsystemCode, _list)
+        const key = LOCAL_STORAGE_KEYS.FAVOURITE_RULES
+        localStorage.setItem(key, JSON.stringify(Object.fromEntries(state.favouriteRules)))
     }
 
 };
 
 const actions = {
+    async addFavourStationRule({state, commit}, {station, fromTime, toTime, period}) {
+        const newNumberLine = parseTimeRule2NumberLine({fromTime, toTime, period})
+        const ruleList = state.favouriteRules.get(station.railsystemCode) || []
+        for (let favouriteRule of ruleList) {
+            if (!favouriteRule.use) continue
+            const curNumberLine = parseTimeRule2NumberLine(favouriteRule)
+            curNumberLine.push(...newNumberLine)
+            if (checkNumberLineConflictEle(curNumberLine)) {
+                return Promise.reject(favouriteRule)
+            }
+        }
+        commit('ADD_FAVOUR_STATION_RULE', {station, fromTime, toTime, period})
+        return Promise.resolve()
+    },
     setCurrentRailSystem({commit}, railSystem) {
         commit('SET_CURRENT_RAIL_SYSTEM', railSystem)
     },
@@ -164,7 +199,8 @@ const getters = {
         const trains = state.focusTrains.filter(it => isAfterNow(it.dep))
         mutations.SET_FOCUS_TRAINS(state, trains)
         return trains
-    }
+    },
+    curFavouriteRule: state => (railsystem) => state.favouriteRules.get(railsystem) || []
 }
 
 export default {

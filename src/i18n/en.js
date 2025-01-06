@@ -70,4 +70,10 @@ export default {
     },
     schedule: ' Schedule',
     scheduleExecuteDate: "Effective from $date",
+    cancel: "Cancel",
+    fromTimeCannotBeEqToTime: "The start time cannot be equal to the end time",
+    addRule: "Add Rule",
+    favStation: "Star Station",
+    favStationOnly: "Star Station Only",
+    period: "Period",
 }
