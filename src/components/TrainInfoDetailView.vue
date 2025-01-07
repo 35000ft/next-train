@@ -249,7 +249,7 @@ export default defineComponent({
             }
         }
         const updateStopStatus = (_schedule) => {
-            if (!_schedule || isUpdatingStopStatus.value) {
+            if (!_schedule || isUpdatingStopStatus.value || _schedule.length === 0) {
                 return
             }
             let nextIndexValue = null

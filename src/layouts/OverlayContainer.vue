@@ -31,6 +31,7 @@ const secondComponent = shallowRef(null)
 const firstComponentId = shallowRef(null)
 const secondComponentId = shallowRef(null)
 const store = useStore()
+const initTime = ref(null)
 const overlayComponentStack = computed(() => store.getters['application/overlayComponentStack'])
 const shownComponent = computed(() => store.getters["application/topOverlayComponent"])
 watch(shownComponent, (newVal, oldVal) => {
@@ -74,9 +75,14 @@ watch(shownComponent, (newVal, oldVal) => {
     }
 })
 
+onMounted(() => {
+    const time = new Date().getTime();
+    console.log('OverlayContainer init, ', time)
+    initTime.value = time
+})
 //TODO 返回
 const handleBack = ({from, to}) => {
-    console.log('from', from, shownComponent.value)
+    console.log('from:' + from, 'to:' + to, shownComponent.value,)
     store.dispatch('application/popOverlay', {id: shownComponent.value.id})
 }
 </script>
