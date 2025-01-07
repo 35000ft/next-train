@@ -80,7 +80,6 @@ onMounted(() => {
     console.log('OverlayContainer init, ', time)
     initTime.value = time
 })
-//TODO 返回
 const handleBack = ({from, to}) => {
     console.log('from:' + from, 'to:' + to, shownComponent.value,)
     store.dispatch('application/popOverlay', {id: shownComponent.value.id})

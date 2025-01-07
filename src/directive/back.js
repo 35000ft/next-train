@@ -7,7 +7,6 @@ export default {
         if (eventMap.has(elMd5)) return
         window.addEventListener('popstate', (event) => {
             eventMap.set(elMd5, true)
-            console.log('popstate', el, eventMap)
             return (binding.value)({
                 from: event.state.forward,
                 to: event.state.current

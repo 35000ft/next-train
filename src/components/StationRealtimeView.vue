@@ -234,6 +234,7 @@ watch(props, (newVal, oldValue) => {
         init()
     }
     if (newVal.currentStationIdProp) {
+        console.log('handle prop station change')
         if (currentStationId.value !== newVal.currentStationIdProp) {
             handleChangeStation(newVal.currentStationIdProp)
         }
@@ -359,10 +360,11 @@ const addAllTrains = (trainInfoList) => {
     // })
 }
 
-async function updateCurrentTrains() {
-    if (isLoadingTrains.value) {
+async function updateCurrentTrains(force = false) {
+    if (isLoadingTrains.value && !force) {
         return
     }
+    console.log('updateCurrentTrains...')
     isLoadingTrains.value = true
     const _currentLindId = currentLineId.value
     if (!_currentLindId) {
@@ -411,7 +413,7 @@ const handleChangeStation = (stationId, lineId, source) => {
     changeStation(stationId, lineId).then(station => {
         currentStation.value = station
         currentStationId.value = station.id
-        updateCurrentTrains()
+        updateCurrentTrains(true)
         emit('changeStation', station)
     }).finally(_ => {
         isLoadingStation.value = false
@@ -424,7 +426,6 @@ async function changeStation(stationId, lineId) {
     }
     isLoadingStation.value = true
     const station = await store.dispatch('railsystem/getStation', {stationId})
-    console.log('station', station)
     if (!station || !(station.lines instanceof Array)) {
         console.warn(`Load station error, cannot get station info. stationId:${stationId}`, station)
         return Promise.reject(`Load station error, cannot get station info. stationId:${stationId}`)

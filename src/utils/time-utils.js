@@ -1,9 +1,11 @@
 import dayjs, {Dayjs} from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import isoWeek from 'dayjs/plugin/isoWeek';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(isoWeek);
 export const TIME_FORMATS = {
     DEFAULT: "YYYY-MM-DD HH:mm:ss",
     HMS: "HH:mm:ss",
@@ -81,7 +83,7 @@ export function formatWeekday(weekdays) {
 
 export function getWeekdays(lang) {
     const today = dayjs(); // 获取今天的日期
-    const startOfWeek = today.startOf('week');
+    const startOfWeek = today.startOf('isoWeek');
     const weekDates = [];
     for (let i = 0; i < 7; i++) {
         weekDates.push(startOfWeek.add(i, 'day').format('ddd'));
@@ -334,6 +336,12 @@ export function parseTimeRule2NumberLine({fromTime, toTime, period}) {
     return result
 }
 
+export function getOffsetMinSinceMonday(timezone) {
+    const now = getNowByTimezone(timezone);
+    const mondayStart = now.startOf('isoWeek')
+    return now.diff(mondayStart, 'minute')
+}
+
 /**
  *  [[0,60],[45,70]] is conflict, because 45~60 is conflict
  * @param {[[Number,Number]]} numberLine
@@ -356,4 +364,25 @@ export function checkNumberLineConflictEle(numberLine) {
         }
     }
     return false; // No conflicts found
+}
+
+/**
+ * 检查一个数是否在数轴的区间内
+ * @param {Array} numberLine - 数轴的区间数组，例如 [[0, 30], [45, 50]]
+ * @param {number} target - 要检查的目标数字
+ * @returns {boolean} - 如果数字在区间内返回 true，否则返回 false
+ */
+export function checkIsInNumberLine(numberLine, target) {
+    if (!Array.isArray(numberLine) || numberLine.length === 0) {
+        throw new Error("Input must be a non-empty array of intervals.");
+    }
+    for (const [start, end] of numberLine) {
+        if (typeof start !== 'number' || typeof end !== 'number' || start > end) {
+            throw new Error("Each interval must be a valid [start, end] pair with start <= end.");
+        }
+        // 检查目标数字是否在当前区间内
+        if (target >= start && target <= end) {
+            return true;
+        }
+    }
 }

@@ -1,14 +1,14 @@
 import {reactive, toRaw} from "vue";
 import {
+    checkIsInNumberLine,
     checkNumberLineConflictEle,
-    date2StringWithTimezone,
+    date2StringWithTimezone, getOffsetMinSinceMonday,
     isAfterNow,
     parseTimeRule2NumberLine
 } from "src/utils/time-utils";
 import {arr2Map} from "src/utils/array-utils";
 import {isNumber} from "src/utils/string-utils";
 import {fetchStation} from "src/apis/railsystem";
-import railsystem from "src/store/modules/railsystem";
 
 const LOCAL_STORAGE_KEYS = {
     CURRENT_STATION: 'currentStation',
@@ -54,7 +54,7 @@ const state = {
 }
 
 const mutations = {
-    SET_CURRENT_STATION(state, station) {
+    SET_CURRENT_STATION(state, {station}) {
         if (!station) return
         state.currentStation = station;
         localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_STATION, JSON.stringify(station))
@@ -130,6 +130,23 @@ const mutations = {
         state.favouriteRules.set(station.railsystemCode, _list)
         const key = LOCAL_STORAGE_KEYS.FAVOURITE_RULES
         localStorage.setItem(key, JSON.stringify(Object.fromEntries(state.favouriteRules)))
+    },
+    DELETE_FAVOUR_STATION_RULE(state, {rule}) {
+        if (rule && rule.id) {
+            for (const railsystem of state.favouriteRules.keys()) {
+                const rules = state.favouriteRules.get(railsystem)
+                if (!(rules instanceof Array)) {
+                    continue
+                }
+                const index = rules.findIndex(it => it.id === rule.id)
+                if (index !== 1) {
+                    rules.splice(index, 1)
+                    state.favouriteRules.set(railsystem, rules)
+                    localStorage.setItem(LOCAL_STORAGE_KEYS.FAVOURITE_RULES, JSON.stringify(Object.fromEntries(state.favouriteRules)))
+                    break
+                }
+            }
+        }
     }
 
 };
@@ -152,8 +169,8 @@ const actions = {
     setCurrentRailSystem({commit}, railSystem) {
         commit('SET_CURRENT_RAIL_SYSTEM', railSystem)
     },
-    setCurrentStation({commit}, station) {
-        commit('SET_CURRENT_STATION', station)
+    setCurrentStation({commit}, {station}) {
+        commit('SET_CURRENT_STATION', {station})
     },
     addHistoryStation({commit, state}, station) {
         if (!station || !station.id) {
@@ -188,7 +205,26 @@ const actions = {
     },
     async getAllFavouriteStations({commit, state}) {
         return state.favouriteStations || new Map()
-    }
+    },
+    async getRuleFavourStation({state, rootGetters, dispatch}) {
+        const currentSystem = rootGetters['railsystem/currentRailSystem']
+        const ruleList = state.favouriteRules.get(currentSystem.code);
+        if (!(ruleList instanceof Array) || ruleList.length === 0) {
+            return null
+        }
+        const offsetMins = getOffsetMinSinceMonday(currentSystem.timezone)
+        for (let favouriteRule of ruleList) {
+            if (!favouriteRule.use) continue
+            const curNumberLine = parseTimeRule2NumberLine(favouriteRule)
+            if (checkIsInNumberLine(curNumberLine, offsetMins)) {
+                if (favouriteRule.stationId) {
+                    console.log('Use fav station rule:', favouriteRule)
+                    return this.dispatch('railsystem/getStation', {stationId: favouriteRule.stationId})
+                }
+            }
+        }
+        return null
+    },
 }
 
 const getters = {

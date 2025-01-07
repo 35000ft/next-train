@@ -76,4 +76,6 @@ export default {
     favStation: "Star Station",
     favStationOnly: "Star Station Only",
     period: "Period",
+    delete: "Delete",
+    confirmDelete: "Confirm to delete?",
 }

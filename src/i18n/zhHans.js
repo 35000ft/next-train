@@ -77,4 +77,6 @@ export default {
     favStation: "收藏车站",
     favStationOnly: "仅收藏车站",
     period: "周期",
+    delete: "删除",
+    confirmDelete: "确认删除吗？",
 }

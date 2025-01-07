@@ -90,7 +90,7 @@
                                             <q-toggle v-model="rule.use"/>
                                         </q-item-section>
                                         <q-item-section side>
-                                            <q-icon name="close"/>
+                                            <q-icon name="close" @click="()=>toDeleteRule=rule"/>
                                         </q-item-section>
                                     </q-item>
                                 </q-expansion-item>
@@ -111,6 +111,23 @@
 
             </q-card>
         </q-dialog>
+
+        <q-dialog v-model="showDeleteDialog" persistent transition-show="scale" transition-hide="scale">
+            <q-card class="text-white" style="max-width: 300px;width: 75vw;background-color: var(--q-red)">
+                <q-card-section>
+                    <div class="text-h6">{{ t('confirmDelete') }}</div>
+                </q-card-section>
+
+                <q-card-section class="q-pt-none">
+                </q-card-section>
+
+                <q-card-actions align="right" class="bg-white text-teal">
+                    <q-btn style="color: var(--q-primary)" flat :label="t('cancel')" @click="()=>toDeleteRule=null"/>
+                    <q-btn style="color: var(--q-red)" flat :label="t('delete')"
+                           @click="handleDeleteRule(toDeleteRule)"/>
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
     </div>
 </template>
 
@@ -123,6 +140,9 @@ import {useI18n} from "vue-i18n";
 import {arr2Map} from "src/utils/array-utils";
 
 const store = useStore()
+const showDeleteDialog = computed(() => {
+    return toDeleteRule.value != null
+})
 const lang = computed(() => {
     return store.getters['language/currentLanguage']
 })
@@ -138,7 +158,7 @@ const _weekdays = getWeekdays(lang.value).map(((it, index) => {
 const weekdays = ref(_weekdays)
 const stationMap = ref(new Map())
 const conflictRuleId = ref(null)
-
+const toDeleteRule = ref(null)
 const expandMap = ref(new Map())
 const handleClickExpand = (stationRule) => {
     const stationId = stationRule.stationId;
@@ -199,6 +219,12 @@ const handleSelect = (dayOfWeek) => {
         dayOfWeek.select = !dayOfWeek.select
     }
 }
+const handleDeleteRule = (rule) => {
+    if (rule) {
+        store.commit('preference/DELETE_FAVOUR_STATION_RULE', {rule})
+        toDeleteRule.value = null
+    }
+}
 const isShow = computed(() => props.station != null)
 const fromTime = ref('00:00')
 const toTime = ref('23:59')
@@ -224,7 +250,6 @@ const handleOk = () => {
         conflictRuleId.value = conflictRule.id
         expandMap.value.set(conflictRule.stationId, true)
     })
-
 }
 </script>
 
@@ -248,8 +273,12 @@ label {
 .day-of-week-text {
     border-radius: 50%;
     padding: 5px;
-    width: 20px;
-    height: 20px;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     border: 1px solid var(--q-grey-2);
     transition: .5s;
 }
