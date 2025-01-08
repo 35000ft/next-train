@@ -2,10 +2,14 @@
     <div class="row train-data border-bottom" v-if="trainData"
          style="padding-left: 4px;">
         <div style="display: flex; align-items: center;text-align: left; width: auto;">
-            <TrainStatusIndicator :arrive-mins="arriveMins" size="13px"/>
+            <TrainStatusIndicator :arrive-mins="fixedMins(arriveSeconds)" size="13px"/>
         </div>
         <div class="col-5 text-left" style="color: var(--q-normal)">
-            <TrainTerminal :train-data="trainData" @show-train-detail="handleShowTrainDetail"/>
+            <div>
+                <TrainTerminal :train-data="trainData" @show-train-detail="handleShowTrainDetail"/>
+                <span v-if="arriveSeconds<=10"
+                      style="color: var(--q-arrived);font-weight:bold;">{{ t('trainStatus.arrived') }}</span>
+            </div>
         </div>
         <div class="col-5">
             <div v-overflow-auto-scroll
@@ -55,10 +59,9 @@ const trainCategories = computed(() => {
     }
     return []
 })
-const arriveMins = computed(() => {
+const arriveSeconds = computed(() => {
     const _ = props.trainData.updateTime
-    const diffSeconds = diffFromNow(props.trainData.arr, 'second')
-    return fixedMins(diffSeconds)
+    return diffFromNow(props.trainData.arr, 'second')
 })
 const emit = defineEmits(['showTrainDetail'])
 const handleShowTrainDetail = () => {

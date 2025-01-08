@@ -1,6 +1,6 @@
 <template>
     <div style="display: flex;flex-direction: column; height: 100%;">
-        <div class="header-wrapper">常用车站</div>
+        <div class="header-wrapper">{{ t('frqUsedStation') }}</div>
         <div class="content-wrapper scroll">
             <div class="row station-row" v-for="station in stations" :key="station.id"
                  @click="handleViewStation(station)">
@@ -27,10 +27,11 @@ import {computed} from "vue";
 import {arr2Map} from "src/utils/array-utils";
 import _ from "lodash";
 import {useRouter} from "vue-router";
+import {useI18n} from "vue-i18n";
 
 const store = useStore()
 const router = useRouter()
-
+const {t} = useI18n()
 const stations = computed(() => {
     const historyStations = arr2Map(store.getters['preference/historyStations'], 'id')
     const favouredStations = store.getters['preference/favouriteStations']

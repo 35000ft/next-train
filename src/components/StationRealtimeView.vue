@@ -280,7 +280,7 @@ async function calcCurrentTrains(_lineId, _station) {
             currentTrainsMap.value = new Map()
             const loadTrainsPromises = Array.from(allLines.keys()).map(lineId => loadLineTrains(lineId, _stationId))
             loadTrainsPromises.forEach(promise => promise.then(lineTrains => {
-                if (!checkIsChanged(_lineId, _stationId)) {
+                if (!checkIsChanged(_stationId)) {
                     addAllTrains(lineTrains)
                 }
             }))
@@ -289,7 +289,7 @@ async function calcCurrentTrains(_lineId, _station) {
                 stationId: _stationId,
                 lineId: _lineId
             })
-            if (!checkIsChanged(_lineId, _stationId)) {
+            if (!checkIsChanged(_stationId)) {
                 currentTrains.value = lineTrains
             }
         }
@@ -317,8 +317,11 @@ async function loadLineTrains(lineId, _stationId) {
     }
 }
 
-function checkIsChanged(originLineId, originStationId) {
-    return (currentLineId.value !== originLineId) || (originStationId !== currentStationId.value)
+function checkIsChanged(originStationId) {
+    if (currentStationId.value) {
+        return (originStationId !== currentStationId.value)
+    }
+    return false
 }
 
 const addAllTrains = (trainInfoList) => {
@@ -364,7 +367,7 @@ async function updateCurrentTrains(force = false) {
     if (isLoadingTrains.value && !force) {
         return
     }
-    console.log('updateCurrentTrains...')
+    console.log('updateCurrentTrains... source', currentStation.value)
     isLoadingTrains.value = true
     const _currentLindId = currentLineId.value
     if (!_currentLindId) {
@@ -410,7 +413,9 @@ const handleChangeStation = (stationId, lineId, source) => {
     console.log('Change station to stationId:', stationId, lineId, 'source:' + source)
     trainInfoMap.value = new Map()
     allTrains.value = []
+    currentStationId.value = stationId
     changeStation(stationId, lineId).then(station => {
+        if (checkIsChanged(stationId)) return
         currentStation.value = station
         currentStationId.value = station.id
         updateCurrentTrains(true)

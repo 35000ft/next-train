@@ -77,4 +77,5 @@ export default {
     period: "週期",
     delete: "刪除",
     confirmDelete: "確認刪除嗎？",
+    frqUsedStation: "常用車站",
 }

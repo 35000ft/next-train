@@ -44,10 +44,11 @@ function migrateFavourStationFromV1() {
 }
 
 migrateFavourStationFromV1()
+const LOCAL_STORAGE_CUR_STATION = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)) || null
 
 const state = {
     historyStations: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST)) || [],
-    currentStation: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)) || null,
+    currentStation: LOCAL_STORAGE_CUR_STATION,
     focusTrains: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS)) || [],
     favouriteStations: reactive(arr2Map((JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || []), 'id')),
     favouriteRules: reactive(new Map(Object.entries(JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_RULES)) || {}))),
@@ -57,6 +58,7 @@ const mutations = {
     SET_CURRENT_STATION(state, {station}) {
         if (!station) return
         state.currentStation = station;
+        console.log('set cur station ok', station)
         localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_STATION, JSON.stringify(station))
     },
     SET_CURRENT_RAIL_SYSTEM(state, railsystem) {
@@ -168,9 +170,6 @@ const actions = {
     },
     setCurrentRailSystem({commit}, railSystem) {
         commit('SET_CURRENT_RAIL_SYSTEM', railSystem)
-    },
-    setCurrentStation({commit}, {station}) {
-        commit('SET_CURRENT_STATION', {station})
     },
     addHistoryStation({commit, state}, station) {
         if (!station || !station.id) {

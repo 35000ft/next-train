@@ -79,4 +79,5 @@ export default {
     period: "周期",
     delete: "删除",
     confirmDelete: "确认删除吗？",
+    frqUsedStation: "常用车站",
 }

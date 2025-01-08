@@ -78,4 +78,5 @@ export default {
     period: "Period",
     delete: "Delete",
     confirmDelete: "Confirm to delete?",
+    frqUsedStation: "Station Shortcut",
 }

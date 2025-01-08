@@ -65,7 +65,8 @@ const props = defineProps({})
 const topBanner = ref('home2')
 const $q = useQuasar()
 const currentStationId = computed(() => {
-    const currentStation = store.getters['preference/currentStation'];
+    const currentStation = store.getters['preference/currentStation']
+    console.log('getter cur station', currentStation.name)
     if (currentStation) {
         return currentStation.id
     } else {
@@ -87,7 +88,8 @@ const loadRuleFavStation = () => {
 }
 
 const handleChangeStation = (station) => {
-    store.dispatch('preference/setCurrentStation', {station})
+    console.log('handleChangeStation', station)
+    store.commit('preference/SET_CURRENT_STATION', {station})
 }
 
 </script>
