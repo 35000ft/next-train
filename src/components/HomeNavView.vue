@@ -41,19 +41,19 @@
                     </q-card-section>
                 </q-card>
             </div>
-
         </div>
     </q-page-container>
-
 </template>
 
 <script setup>
 import SearchHeader from "components/SearchHeader.vue";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
+import {useQuasar} from "quasar";
+import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 
 defineOptions({
     name: 'HomeView'
@@ -62,8 +62,10 @@ defineOptions({
 const store = useStore()
 const props = defineProps({})
 const topBanner = ref('home2')
+const $q = useQuasar()
 const currentStationId = computed(() => {
-    const currentStation = store.getters['preference/currentStation'];
+    const currentStation = store.getters['preference/currentStation']
+    console.log('getter cur station', currentStation.name)
     if (currentStation) {
         return currentStation.id
     } else {
@@ -71,9 +73,22 @@ const currentStationId = computed(() => {
         return railsystem.defaultStationId
     }
 })
+onMounted(() => {
+    loadRuleFavStation()
+})
+const loadRuleFavStation = () => {
+    store.dispatch('preference/getRuleFavourStation').then(_favStation => {
+        if (_favStation) {
+            store.commit('preference/SET_CURRENT_STATION', {station: _favStation})
+            $q.notify.ok('切换到收藏车站成功')
+        }
+    })
+
+}
 
 const handleChangeStation = (station) => {
-    store.dispatch('preference/setCurrentStation', station)
+    console.log('handleChangeStation', station)
+    store.commit('preference/SET_CURRENT_STATION', {station})
 }
 
 </script>

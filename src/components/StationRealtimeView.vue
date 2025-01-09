@@ -146,8 +146,7 @@
     </q-tab-panels>
     <line-stations-selector :height="45" ref="lineStationsSelector" @select="handleSelectStation"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
-    <train-info-detail-view v-if="showTrainInfo" :train-info-id-prop="showTrainInfo.id" :date="showTrainInfo.date"
-                            @close="handleCloseShowTrainDetail"/>
+    <EditFavouriteStationDialog :station="addFavStation" @close="()=>addFavStation=null"/>
 </template>
 
 <script setup>
@@ -161,11 +160,10 @@ import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineStationsSelector from "components/LineStationsSelector.vue";
 import {isNumber} from "src/utils/string-utils";
-import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import _ from "lodash";
 import {useRouter} from "vue-router";
 import {genAmapPositionUrl} from "src/utils/navigator_utils";
-import {localHostList} from "@quasar/app-vite/lib/helpers/net";
+import EditFavouriteStationDialog from "components/EditFavouriteStationDialog.vue";
 
 const router = useRouter()
 const $q = useQuasar()
@@ -184,23 +182,7 @@ const lineStationsSelector = ref(null)
 const currentStation = ref(null)
 const currentTrains = ref([])
 const allTrains = ref([])
-const showTrainInfo = ref(null)
-
-//TODO 国际化 多地图服务商 根据坐标查询
-const locationUrl = computed(() => {
-    const _station = currentStation.value
-    if (!_station) {
-        return "/"
-    }
-    const base = "https://www.amap.com/search?query="
-    const railsystem = store.getters['railsystem/railsystemGetter'](_station.railsystemCode)
-    let url = `${base}${_station.name}地铁站`
-    if (railsystem) {
-        url += " " + railsystem.city
-    }
-    return url
-})
-
+const addFavStation = ref(null)
 const handleClickMap = () => {
     const _station = currentStation.value
     if (!_station) {
@@ -220,7 +202,6 @@ const handleClickMap = () => {
                     window.open(positionUrl.fallbackUrl, '_blank')
                 }
             }, 500);
-            // window.open(positionUrl.url)
         } catch (e) {
             if (positionUrl.fallbackUrl) {
                 window.open(positionUrl.fallbackUrl, '_blank')
@@ -249,6 +230,7 @@ watch(props, (newVal, oldValue) => {
         init()
     }
     if (newVal.currentStationIdProp) {
+        console.log('handle prop station change')
         if (currentStationId.value !== newVal.currentStationIdProp) {
             handleChangeStation(newVal.currentStationIdProp)
         }
@@ -260,29 +242,14 @@ const showSkeleton = computed(() => {
 })
 const handleFavourStation = (_station) => {
     if (!_station) return
-    store.dispatch('preference/favourStation', {station: _station}).then(_isFavouriteStation => {
-        if (currentStation.value && currentStation.value.id === _station.id) {
-            currentStation.value.isFavourite = _isFavouriteStation
-            if (_isFavouriteStation) {
-                $q.notify.ok(t('favourStationOk'))
-            }
-        }
-    })
+    addFavStation.value = _station
 }
 
 const showTrainInfoDetailView = (trainInfo) => {
     if (trainInfo) {
-        showTrainInfo.value = {
-            id: trainInfo.id,
-            date: trainInfo.trainDate
-        }
+        store.commit('application/SET_SHOWN_TRAININFO', {trainInfo: trainInfo})
     }
 }
-
-const handleCloseShowTrainDetail = () => {
-    showTrainInfo.value = null
-}
-
 const currentTrainsMap = ref(new Map())
 
 /**
@@ -301,7 +268,7 @@ async function calcCurrentTrains(_lineId, _station) {
             currentTrainsMap.value = new Map()
             const loadTrainsPromises = Array.from(allLines.keys()).map(lineId => loadLineTrains(lineId, _stationId))
             loadTrainsPromises.forEach(promise => promise.then(lineTrains => {
-                if (!checkIsChanged(_lineId, _stationId)) {
+                if (!checkIsChanged(_stationId)) {
                     addAllTrains(lineTrains)
                 }
             }))
@@ -310,7 +277,7 @@ async function calcCurrentTrains(_lineId, _station) {
                 stationId: _stationId,
                 lineId: _lineId
             })
-            if (!checkIsChanged(_lineId, _stationId)) {
+            if (!checkIsChanged(_stationId)) {
                 currentTrains.value = lineTrains
             }
         }
@@ -338,8 +305,11 @@ async function loadLineTrains(lineId, _stationId) {
     }
 }
 
-function checkIsChanged(originLineId, originStationId) {
-    return (currentLineId.value !== originLineId) || (originStationId !== currentStationId.value)
+function checkIsChanged(originStationId) {
+    if (currentStationId.value) {
+        return (originStationId !== currentStationId.value)
+    }
+    return false
 }
 
 const addAllTrains = (trainInfoList) => {
@@ -381,10 +351,11 @@ const addAllTrains = (trainInfoList) => {
     // })
 }
 
-async function updateCurrentTrains() {
-    if (isLoadingTrains.value) {
+async function updateCurrentTrains(force = false) {
+    if (isLoadingTrains.value && !force) {
         return
     }
+    console.log('updateCurrentTrains... source', currentStation.value)
     isLoadingTrains.value = true
     const _currentLindId = currentLineId.value
     if (!_currentLindId) {
@@ -412,7 +383,7 @@ const handleSelectStation = (stationId, lineId) => {
 
 const refreshTrainInfoTimer = setInterval(() => {
     updateCurrentTrains()
-}, 30000)
+}, 20000)
 
 //clean refresh train info timer
 onBeforeUnmount(() => {
@@ -430,10 +401,12 @@ const handleChangeStation = (stationId, lineId, source) => {
     console.log('Change station to stationId:', stationId, lineId, 'source:' + source)
     trainInfoMap.value = new Map()
     allTrains.value = []
+    currentStationId.value = stationId
     changeStation(stationId, lineId).then(station => {
+        if (checkIsChanged(stationId)) return
         currentStation.value = station
         currentStationId.value = station.id
-        updateCurrentTrains()
+        updateCurrentTrains(true)
         emit('changeStation', station)
     }).finally(_ => {
         isLoadingStation.value = false

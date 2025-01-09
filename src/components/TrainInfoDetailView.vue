@@ -124,385 +124,341 @@
     </bottom-modal>
 </template>
 
-<script>
+<script setup>
 import BottomModal from "components/BottomModal.vue";
-import {computed, defineComponent, onMounted, onUnmounted, ref, watch} from "vue";
+import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import {useStore} from "vuex";
 import {useRoute, useRouter} from "vue-router";
 import {useQuasar} from "quasar";
 import TrainCategory from "components/TrainCategory.vue";
 import {TRAIN_STATUS} from "src/models/Train";
-import {diffFromNowFormatted, formatToHHMM, isAfterNow, isBeforeNow} from "src/utils/time-utils";
+import {diffFromNowFormatted, formatToHHMM, isAfterNow, isBeforeNow, TIME_FORMATS} from "src/utils/time-utils";
 import {smoothScroll} from "src/utils/dom-utils";
 import {useI18n} from "vue-i18n";
 import _ from 'lodash';
 
-export default defineComponent({
-    components: {TrainCategory, BottomModal},
-    props: {
-        trainInfoProp: {
-            type: Object,
-            default: null
-        },
-        trainInfoIdProp: {
-            type: String
-        },
-        date: {
-            type: String
-        }
-    },
-    setup(props, {emit}) {
-        const primaryColor = computed(() => {
-            return getComputedStyle(document.documentElement).getPropertyValue('--q-primary').trim()
-        })
-        const isFromUrl = ref(false)
-        const isUpdatingStopStatus = ref(false)
-        const store = useStore()
-        const loading = ref(false)
-        const trainInfoId = ref(null)
-        const display = ref(false)
-        const route = useRoute()
-        const router = useRouter()
-        const trainInfo = ref(null)
-        const trainDate = ref(null)
-        const currentInterval = computed(() => {
-            console.log('currentInterval')
-            const _schedule = schedule.value
-            const _nextIndex = nextIndex.value
-            const _currentIndex = currentIndex.value
-            if (_currentIndex === _schedule.length - 1) {
-                return `<span style="color: var(--q-arrived)">${t('trainHasArrivedAtTerm')}</span>`
-            }
-            if (_schedule && _nextIndex && _nextIndex > 0) {
-                const currentStop = _schedule[_nextIndex - 1]
-                const nextStop = _schedule[_nextIndex]
-                if (isAfterNow(currentStop.dep)) {
-                    return `<span style="color: var(--q-arrived)">${currentStop.stationName}</span> ~ <span style="color:var(--q-ontime);">${nextStop.stationName}</span>`
-                } else {
-                    return `<span style="color: var(--q-grey-3)">${currentStop.stationName}</span> ~ <span style="color:var(--q-next-station);">${nextStop.stationName}</span>`
-                }
-            } else if (_schedule && _nextIndex === 0) {
-                const remainTime = diffFromNowFormatted(_schedule[0].arr, {
-                    $hour: t('time.hour'),
-                    $minute: t('time.minute'),
-                    $second: t('time.second'),
-                }, 'hm')
-                if (remainTime.totalSeconds <= 30) {
-                    return t('trainStatus.arriveSoon')
-                }
-                return t('arriveIn').replace('$remain', remainTime.str)
-            } else {
-                return '--'
-            }
-        })
-        const schedule = computed(() => {
-            if (trainInfo.value) {
-                return calcSchedule(trainInfo.value)
-            }
-            return []
-        })
-        const calcSchedule = (_trainInfo) => {
-            if (_trainInfo) {
-                const _schedule = _trainInfo.schedule
-                const trainVia = _trainInfo.trainVia
-                let reduce = trainVia.reduce((acc, cur) => {
-                    for (let i = cur.fromIndex; i <= cur.toIndex; i++) {
-                        acc.set(i, cur.lineId)
-                    }
-                    return acc
-                }, new Map());
-                _schedule.forEach(((it, index) => {
-                    it.lineId = reduce.get(index)
-                    it.arrStr = formatToHHMM(it.arr.toDate())
-                    it.depStr = formatToHHMM(it.dep.toDate())
-                }))
-                _schedule[_schedule.length - 1].depStr = '--:--'
-                return _schedule
-            }
-            return []
-        }
-        const {t} = useI18n()
-        const STOP_ROW_HEIGHT = 80
-        const isFirst = ref(true)
-        const nextIndex = ref(null)
-        const currentIndex = ref(null)
-        const stopInfoListView = ref(null)
-        const updateStatusInterval = ref(null)
-        watch(schedule, (newValue, oldValue) => {
-            if (newValue) {
-                updateStopStatus(newValue)
-            }
-        })
-        const scrollToCurrent = (instantly = true) => {
-            const dom = stopInfoListView.value
-            if (!dom) {
-                return
-            }
-            let index = currentIndex.value || (nextIndex.value && nextIndex.value - 1)
-            if (index < 0) index = 0
-            if (!index) {
-                return
-            }
-            if (dom.scrollHeight <= dom.clientHeight) {
-                return
-            }
-            const target = (nextIndex.value * STOP_ROW_HEIGHT)
-            if (instantly) {
-                stopInfoListView.value.scrollTop = target
-            } else {
-                smoothScroll(dom, target, 600)
-            }
-        }
-        const updateStopStatus = (_schedule) => {
-            if (!_schedule || isUpdatingStopStatus.value) {
-                return
-            }
-            let nextIndexValue = null
-            let currentIndexValue = null
-            isUpdatingStopStatus.value = true
-            try {
-                for (let index = 0; index < _schedule.length; index++) {
-                    const _stopInfo = _schedule[index]
-                    if (isBeforeNow(_stopInfo.arr)) {
-                        if (isAfterNow(_stopInfo.dep)) {
-                            currentIndexValue = index
-                            if (index < _schedule.length - 1) {
-                                nextIndexValue = index + 1
-                            }
-                            break
-                        }
-                    } else {
-                        currentIndexValue = null
-                        if (index === 0) {
-                            nextIndexValue = 0
-                            break
-                        }
+const primaryColor = computed(() => {
+    return getComputedStyle(document.documentElement).getPropertyValue('--q-primary').trim()
+})
+const shownTrainInfo = computed(() => {
+    return store.getters['application/shownTrainInfo']
+})
+const isFromUrl = ref(false)
+const isUpdatingStopStatus = ref(false)
+const store = useStore()
+const loading = ref(false)
+const trainInfoId = ref(null)
+const display = ref(false)
+const route = useRoute()
+const router = useRouter()
+const trainInfo = ref(null)
+const trainDate = ref(null)
 
-                        const previousStop = _schedule[index - 1]
-                        if (isBeforeNow(previousStop.dep)) {
-                            nextIndexValue = index
-                            break
-                        }
+const currentInterval = computed(() => {
+    const _schedule = schedule.value
+    const _nextIndex = nextIndex.value
+    const _currentIndex = currentIndex.value
+    if (_currentIndex === _schedule.length - 1) {
+        return `<span style="color: var(--q-arrived)">${t('trainHasArrivedAtTerm')}</span>`
+    }
+    if (_schedule && _nextIndex && _nextIndex > 0) {
+        const currentStop = _schedule[_nextIndex - 1]
+        const nextStop = _schedule[_nextIndex]
+        if (isAfterNow(currentStop.dep)) {
+            return `<span style="color: var(--q-arrived)">${currentStop.stationName}</span> ~ <span style="color:var(--q-ontime);">${nextStop.stationName}</span>`
+        } else {
+            return `<span style="color: var(--q-grey-3)">${currentStop.stationName}</span> ~ <span style="color:var(--q-next-station);">${nextStop.stationName}</span>`
+        }
+    } else if (_schedule && _nextIndex === 0) {
+        const remainTime = diffFromNowFormatted(_schedule[0].arr, {
+            $hour: t('time.hour'),
+            $minute: t('time.minute'),
+            $second: t('time.second'),
+        }, 'hm')
+        if (remainTime.totalSeconds <= 30) {
+            return t('trainStatus.arriveSoon')
+        }
+        return t('arriveIn').replace('$remain', remainTime.str)
+    } else {
+        return '--'
+    }
+})
+const schedule = computed(() => {
+    if (trainInfo.value) {
+        return calcSchedule(trainInfo.value)
+    }
+    return []
+})
+const calcSchedule = (_trainInfo) => {
+    if (_trainInfo) {
+        const _schedule = _trainInfo.schedule
+        const trainVia = _trainInfo.trainVia
+        let reduce = trainVia.reduce((acc, cur) => {
+            for (let i = cur.fromIndex; i <= cur.toIndex; i++) {
+                acc.set(i, cur.lineId)
+            }
+            return acc
+        }, new Map());
+        _schedule.forEach(((it, index) => {
+            it.lineId = reduce.get(index)
+            it.arrStr = formatToHHMM(it.arr.toDate())
+            it.depStr = formatToHHMM(it.dep.toDate())
+        }))
+        _schedule[_schedule.length - 1].depStr = '--:--'
+        return _schedule
+    }
+    return []
+}
+const {t} = useI18n()
+const STOP_ROW_HEIGHT = 80
+const isFirst = ref(true)
+const nextIndex = ref(null)
+const currentIndex = ref(null)
+const stopInfoListView = ref(null)
+const updateStatusInterval = ref(null)
+watch(schedule, (newValue, oldValue) => {
+    if (newValue) {
+        updateStopStatus(newValue)
+    }
+})
+const scrollToCurrent = (instantly = true) => {
+    const dom = stopInfoListView.value
+    if (!dom) {
+        return
+    }
+    if (dom.scrollHeight <= dom.clientHeight) {
+        return
+    }
+    const target = (nextIndex.value * STOP_ROW_HEIGHT)
+    if (instantly) {
+        stopInfoListView.value.scrollTop = target
+    } else {
+        smoothScroll(dom, target, 600)
+    }
+}
+const updateStopStatus = (_schedule) => {
+    if (!_schedule || isUpdatingStopStatus.value || _schedule.length === 0) {
+        return
+    }
+    let nextIndexValue = null
+    let currentIndexValue = null
+    isUpdatingStopStatus.value = true
+    try {
+        for (let index = 0; index < _schedule.length; index++) {
+            const _stopInfo = _schedule[index]
+            if (isBeforeNow(_stopInfo.arr)) {
+                if (isAfterNow(_stopInfo.dep)) {
+                    currentIndexValue = index
+                    if (index < _schedule.length - 1) {
+                        nextIndexValue = index + 1
                     }
+                    break
+                }
+            } else {
+                currentIndexValue = null
+                if (index === 0) {
+                    nextIndexValue = 0
+                    break
                 }
 
-                if (nextIndexValue) {
-                    for (let i = 0; i < nextIndexValue; i++) {
-                        const stopInfo = _schedule[i]
-                        if (stopInfo.statusClass !== TRAIN_STATUS.DEPARTED.code) {
-                            _schedule[i].statusClass = TRAIN_STATUS.DEPARTED.code
-                            _schedule[i].lineStyle = {
-                                backgroundColor: 'var(--q-grey-2)',
-                                borderBottom: `2px solid var(--q-grey-2)`
-                            }
-                        }
+                const previousStop = _schedule[index - 1]
+                if (isBeforeNow(previousStop.dep)) {
+                    nextIndexValue = index
+                    break
+                }
+            }
+        }
+        if (nextIndexValue >= 0) {
+            for (let i = 0; i < nextIndexValue; i++) {
+                const stopInfo = _schedule[i]
+                if (stopInfo.statusClass !== TRAIN_STATUS.DEPARTED.code) {
+                    _schedule[i].statusClass = TRAIN_STATUS.DEPARTED.code
+                    _schedule[i].lineStyle = {
+                        backgroundColor: 'var(--q-grey-2)',
+                        borderBottom: `2px solid var(--q-grey-2)`
                     }
-                    for (let i = nextIndexValue + 1; i < _schedule.length; i++) {
-                        const stopInfo = _schedule[i]
-                        const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
-                        if (stopInfo.statusClass !== TRAIN_STATUS.ONTIME.code) {
-                            _schedule[i].statusClass = TRAIN_STATUS.ONTIME.code
-                            _schedule[i].lineStyle = {
-                                backgroundColor: _line.color || 'var(--q-primary)',
-                                borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
-                            }
-                        }
-                    }
-                    
-                    const stopInfo = _schedule[nextIndexValue]
-                    const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
-                    _schedule[nextIndexValue].statusClass = 'next-station'
-                    _schedule[nextIndexValue].lineStyle = {
+                }
+            }
+            for (let i = nextIndexValue + 1; i < _schedule.length; i++) {
+                const stopInfo = _schedule[i]
+                const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
+                if (stopInfo.statusClass !== TRAIN_STATUS.ONTIME.code) {
+                    _schedule[i].statusClass = TRAIN_STATUS.ONTIME.code
+                    _schedule[i].lineStyle = {
                         backgroundColor: _line.color || 'var(--q-primary)',
                         borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
                     }
-
-                    if (!currentIndexValue && nextIndexValue > 0) {
-                        _schedule[nextIndexValue - 1].statusClass = TRAIN_STATUS.DEPARTED.code
-                        _schedule[nextIndexValue - 1].lineStyle = {
-                            backgroundColor: 'var(--q-grey-2)',
-                            borderBottom: `2px solid var(--q-grey-2)`
-                        }
-                    }
-
                 }
-                if (currentIndexValue) {
-                    const stopInfo = _schedule[currentIndexValue]
-                    if (stopInfo) {
-                        const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
-                        _schedule[currentIndexValue].statusClass = TRAIN_STATUS.ARRIVED.code
-                        _schedule[currentIndexValue].lineStyle = {
-                            backgroundColor: _line.color || 'var(--q-primary)',
-                            borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
-                        }
-                    }
-                }
-                currentIndex.value = currentIndexValue
-                nextIndex.value = nextIndexValue
-            } finally {
-                isUpdatingStopStatus.value = false
             }
 
-            if (isFirst.value) {
-                setTimeout(() => {
-                    scrollToCurrent()
-                    isFirst.value = false
-                }, 100)
+            const stopInfo = _schedule[nextIndexValue]
+            const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
+            _schedule[nextIndexValue].statusClass = 'next-station'
+            _schedule[nextIndexValue].lineStyle = {
+                backgroundColor: _line.color || 'var(--q-primary)',
+                borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
+            }
+
+            if (!currentIndexValue && nextIndexValue > 0) {
+                _schedule[nextIndexValue - 1].statusClass = TRAIN_STATUS.DEPARTED.code
+                _schedule[nextIndexValue - 1].lineStyle = {
+                    backgroundColor: 'var(--q-grey-2)',
+                    borderBottom: `2px solid var(--q-grey-2)`
+                }
+            }
+
+        }
+        if (currentIndexValue) {
+            const stopInfo = _schedule[currentIndexValue]
+            if (stopInfo) {
+                const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
+                _schedule[currentIndexValue].statusClass = TRAIN_STATUS.ARRIVED.code
+                _schedule[currentIndexValue].lineStyle = {
+                    backgroundColor: _line.color || 'var(--q-primary)',
+                    borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
+                }
             }
         }
-        const scrollTop = ref(0)
-        const showLocationToolIcon = computed(() => {
-            const dom = stopInfoListView.value
-            const _currentIndex = currentIndex.value || (nextIndex.value - 1)
-            const _scrollTop = scrollTop.value
-            if (dom && _currentIndex) {
-                if (dom.scrollHeight <= dom.clientHeight) {
-                    return false
-                }
-                const currentStopHeight = _currentIndex * STOP_ROW_HEIGHT
-                if (currentStopHeight > _scrollTop + dom.clientHeight) {
-                    return true
-                }
-                if (_scrollTop > currentStopHeight + STOP_ROW_HEIGHT) {
-                    return true
-                }
-                return false
-            }
-            return false
-        })
-        const handleLocate = () => {
-            scrollToCurrent(false)
-        }
-        const terminal = computed(() => {
-            if (trainInfo.value && trainInfo.value.schedule.length > 0) {
-                return trainInfo.value.schedule.slice(-1)[0].stationName
-            }
-            return "--"
-        })
-        const $q = useQuasar()
-        let prefix = null
-        onMounted(() => {
-            if (route.params.id && route.params.prefix) {
-                isFromUrl.value = true
-                trainInfoId.value = route.params.id
-                if (route.params.prefix === '') {
-                    prefix = '/'
-                } else {
-                    prefix = '/' + route.params.prefix.join('/')
-                }
-            }
-            if (props.trainInfoProp) {
-                trainInfo.value = props.trainInfoProp
-            } else if (props.trainInfoIdProp) {
-                trainInfoId.value = props.trainInfoIdProp
-                if (props.date) {
-                    trainDate.value = props.date
-                } else {
-                    store.getters['application/getNowTime']()
-                }
-            }
-            updateStatusInterval.value = setInterval(() => updateStopStatus(schedule.value), 5000)
-        })
-        onUnmounted(() => {
-            if (updateStatusInterval.value) {
-                clearInterval(updateStatusInterval.value)
-            }
-        })
-        watch(stopInfoListView, (newVal, oldValue) => {
-            if (newVal) {
-                stopInfoListView.value.addEventListener('scroll', _.debounce(() => {
-                    scrollTop.value = stopInfoListView.value.scrollTop
-                }, 300))
-            }
-        })
-
-        watch(() => props.trainInfoIdProp, (newVal, oldValue) => {
-            if (newVal !== trainInfoId.value) {
-                trainInfoId.value = newVal;
-            }
-        })
-
-        async function loadTrainInfo(_trainInfoId) {
-            if (loading.value || !_trainInfoId) {
-                return
-            }
-            loading.value = true
-            return store.dispatch('realtime/getTrainInfoById', {
-                trainInfoId: _trainInfoId,
-                date: props.date
-            }).then(_trainInfo => {
-                return _trainInfo
-            }).catch(err => {
-                console.warn('loadTrainInfo err:', err)
-                $q.notify.error(`Failed to get train info`)
-                return Promise.reject(err)
-            }).finally(_ => {
-                if (trainInfoId.value === _trainInfoId) {
-                    loading.value = false
-                }
-            })
-        }
-
-        watch(trainInfoId, (newVal, oldValue) => {
-            if (newVal) {
-                show()
-                isFirst.value = true
-                loadTrainInfo(newVal).then(res => {
-                    setTimeout(() => {
-                        trainInfo.value = res
-                    }, 100)
-                })
-            }
-        })
-
-        const handleClickStationName = (_stationId) => {
-            if (_stationId) {
-                store.dispatch('application/showStationRealtimeModal', {stationId: _stationId})
-            }
-        }
-
-        const handleCloseSelector = () => {
-            display.value = false
-        }
-
-        function afterClose() {
-            if (isFromUrl.value) {
-                if (prefix) {
-                    router.push(prefix)
-                } else {
-                    router.push('/')
-                }
-            }
-            isFromUrl.value = false
-            emit('close')
-        }
-
-        const show = () => {
-            display.value = true
-        }
-
-        return {
-            handleCloseSelector,
-            show,
-            afterClose,
-            handleLocate,
-            handleClickStationName,
-            t,
-            showLocationToolIcon,
-            display,
-            stopInfoListView,
-            primaryColor,
-            trainInfo,
-            schedule,
-            nextIndex,
-            currentInterval,
-            terminal,
-            isFromUrl,
-            STOP_ROW_HEIGHT
-        }
+        currentIndex.value = currentIndexValue
+        nextIndex.value = nextIndexValue
+    } finally {
+        isUpdatingStopStatus.value = false
     }
 
+    if (isFirst.value) {
+        setTimeout(() => {
+            scrollToCurrent()
+            isFirst.value = false
+        }, 100)
+    }
+}
+const scrollTop = ref(0)
+const showLocationToolIcon = computed(() => {
+    const dom = stopInfoListView.value
+    const _currentIndex = currentIndex.value || (nextIndex.value - 1)
+    const _scrollTop = scrollTop.value
+    if (dom && _currentIndex) {
+        if (dom.scrollHeight <= dom.clientHeight) {
+            return false
+        }
+        const currentStopHeight = _currentIndex * STOP_ROW_HEIGHT
+        if (currentStopHeight > _scrollTop + dom.clientHeight) {
+            return true
+        }
+        if (_scrollTop > currentStopHeight + STOP_ROW_HEIGHT) {
+            return true
+        }
+        return false
+    }
+    return false
 })
+const handleLocate = () => {
+    scrollToCurrent(false)
+}
+const terminal = computed(() => {
+    if (trainInfo.value && trainInfo.value.schedule.length > 0) {
+        return trainInfo.value.schedule.slice(-1)[0].stationName
+    }
+    return "--"
+})
+const $q = useQuasar()
+let prefix = null
+onMounted(() => {
+    if (route.params.id && route.params.prefix) {
+        isFromUrl.value = true
+        trainInfoId.value = route.params.id
+        trainDate.value = store.getters['application/getNowTime'].format(TIME_FORMATS.DATE)
+        if (route.params.prefix === '') {
+            prefix = '/'
+        } else {
+            prefix = '/' + route.params.prefix.join('/')
+        }
+    }
+    updateStatusInterval.value = setInterval(() => updateStopStatus(schedule.value), 5000)
+})
+onUnmounted(() => {
+    if (updateStatusInterval.value) {
+        clearInterval(updateStatusInterval.value)
+    }
+})
+watch(stopInfoListView, (newVal, oldValue) => {
+    if (newVal) {
+        stopInfoListView.value.addEventListener('scroll', _.debounce(() => {
+            scrollTop.value = stopInfoListView.value.scrollTop
+        }, 300))
+    }
+})
+
+watch(() => shownTrainInfo.value, (newVal, oldValue) => {
+    console.log('shownTrainInfo change', newVal)
+    if (newVal) {
+        if (newVal.id !== trainInfoId.value) {
+            trainInfoId.value = newVal.id
+            trainDate.value = newVal.trainDate
+        }
+    }
+})
+
+async function loadTrainInfo(_trainInfoId, trainDate) {
+    if (loading.value || !_trainInfoId) {
+        return
+    }
+    loading.value = true
+    return store.dispatch('realtime/getTrainInfoById', {
+        trainInfoId: _trainInfoId,
+        date: trainDate
+    }).then(_trainInfo => {
+        return _trainInfo
+    }).catch(err => {
+        console.warn('loadTrainInfo err:', err)
+        $q.notify.error(`Failed to get train info`)
+        return Promise.reject(err)
+    }).finally(_ => {
+        if (trainInfoId.value === _trainInfoId) {
+            loading.value = false
+        }
+    })
+}
+
+watch(trainInfoId, (newVal, oldValue) => {
+    if (newVal) {
+        show()
+        isFirst.value = true
+        loadTrainInfo(newVal).then(res => {
+            setTimeout(() => {
+                trainInfo.value = res
+            }, 100)
+        })
+    }
+})
+
+const handleClickStationName = (_stationId) => {
+    if (_stationId) {
+        store.dispatch('application/showStationRealtimeModal', {stationId: _stationId})
+    }
+}
+
+const handleCloseSelector = () => {
+    display.value = false
+}
+
+function afterClose() {
+    if (isFromUrl.value) {
+        if (prefix) {
+            router.push(prefix)
+        } else {
+            router.push('/')
+        }
+    }
+    isFromUrl.value = false
+    store.commit('application/SET_SHOWN_TRAININFO', {trainInfo: null})
+    emit('close')
+}
+
+const show = () => {
+    display.value = true
+}
+
 </script>
 <style scoped>
 .wrapper {
