@@ -55,6 +55,10 @@ const state = {
 }
 
 const mutations = {
+    SAVE_CUR_FAV_STATION_RULES(state) {
+        console.log('save fav cur rules')
+        localStorage.setItem(LOCAL_STORAGE_KEYS.FAVOURITE_RULES, JSON.stringify(Object.fromEntries(state.favouriteRules)))
+    },
     SET_CURRENT_STATION(state, {station}) {
         if (!station) return
         state.currentStation = station;
@@ -96,19 +100,23 @@ const mutations = {
         state.focusTrains = focusTrains
         localStorage.setItem(LOCAL_STORAGE_KEYS.FOCUS_TRAINS, JSON.stringify(focusTrains))
     },
-    FAVOUR_STATION(state, {station}) {
-        if (!isNumber(station.id)) {
-            return
-        }
+    FAVOUR_STATION(state, {station, isFav}) {
+        if (!isNumber(station.id)) throw new Error("station id should be number")
         let favouriteStations = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS)) || []
         const favouriteStationMap = arr2Map(favouriteStations, 'id')
         let isFavourite
-        if (favouriteStationMap.has(station.id)) {
-            favouriteStationMap.delete(station.id)
-            isFavourite = false
+        if (typeof isFav === "boolean") {
+            isFavourite = isFav
         } else {
+            if (favouriteStationMap.has(station.id)) {
+                favouriteStationMap.delete(station.id)
+                isFavourite = false
+            } else {
+                isFavourite = true
+            }
+        }
+        if (isFavourite) {
             favouriteStationMap.set(station.id, station)
-            isFavourite = true
         }
         favouriteStations = Array.from(favouriteStationMap.values())
         localStorage.setItem(LOCAL_STORAGE_KEYS.FAVOURITE_STATIONS, JSON.stringify(favouriteStations))
@@ -130,6 +138,7 @@ const mutations = {
             use: true
         })
         state.favouriteRules.set(station.railsystemCode, _list)
+        this.commit('preference/FAVOUR_STATION', {station, isFav: true})
         const key = LOCAL_STORAGE_KEYS.FAVOURITE_RULES
         localStorage.setItem(key, JSON.stringify(Object.fromEntries(state.favouriteRules)))
     },
@@ -154,16 +163,24 @@ const mutations = {
 };
 
 const actions = {
-    async addFavourStationRule({state, commit}, {station, fromTime, toTime, period}) {
+    checkIsFavRulesConflict({state}, {station, fromTime, toTime, period, id}) {
         const newNumberLine = parseTimeRule2NumberLine({fromTime, toTime, period})
         const ruleList = state.favouriteRules.get(station.railsystemCode) || []
         for (let favouriteRule of ruleList) {
             if (!favouriteRule.use) continue
+            if (id && favouriteRule.id === id) continue
             const curNumberLine = parseTimeRule2NumberLine(favouriteRule)
             curNumberLine.push(...newNumberLine)
             if (checkNumberLineConflictEle(curNumberLine)) {
-                return Promise.reject(favouriteRule)
+                return favouriteRule
             }
+        }
+        return false
+    },
+    async addFavourStationRule({state, commit}, {station, fromTime, toTime, period}) {
+        const conflictRule = await this.dispatch('checkIsFavRulesConflict', {station, fromTime, toTime, period})
+        if (conflictRule) {
+            return Promise.reject(conflictRule)
         }
         commit('ADD_FAVOUR_STATION_RULE', {station, fromTime, toTime, period})
         return Promise.resolve()

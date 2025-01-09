@@ -87,7 +87,7 @@
                                             <q-item-label caption>{{ formatWeekday(rule.period) }}</q-item-label>
                                         </q-item-section>
                                         <q-item-section side>
-                                            <q-toggle v-model="rule.use"/>
+                                            <q-toggle v-model="rule.use" @click="handleCLickRuleToggle(rule)"/>
                                         </q-item-section>
                                         <q-item-section side>
                                             <q-icon name="close" @click="()=>toDeleteRule=rule"/>
@@ -138,6 +138,7 @@ import {formatWeekday, getWeekdays} from "src/utils/time-utils";
 import {useStore} from "vuex";
 import {useI18n} from "vue-i18n";
 import {arr2Map} from "src/utils/array-utils";
+import _ from "lodash";
 
 const store = useStore()
 const showDeleteDialog = computed(() => {
@@ -168,6 +169,22 @@ const handleClickExpand = (stationRule) => {
         expandMap.value.set(stationId, true)
     }
 }
+const handleCLickRuleToggle = _.debounce(rule => {
+    if (!rule.use) {
+        store.commit('preference/SAVE_CUR_FAV_STATION_RULES')
+        return
+    }
+    const station = stationMap.value.get(rule.stationId)
+    store.dispatch('preference/checkIsFavRulesConflict', {...rule, station: station}).then(conflictRule => {
+        if (conflictRule) {
+            rule.use = false
+            showConflictRule(conflictRule)
+        } else {
+            store.commit('preference/SAVE_CUR_FAV_STATION_RULES')
+        }
+    })
+}, 1000)
+
 const rules = computed(() => {
     if (!props.station) return []
     const rawRules = store.getters['preference/curFavouriteRule'](props.station.railsystemCode)
@@ -245,11 +262,13 @@ const handleOk = () => {
     }).then(_ => {
         $q.notify.ok('添加规则成功')
     }).catch(conflictRule => {
-        $q.notify.info('添加规则失败, 规则存在冲突')
-        console.log('conflict rule', conflictRule)
-        conflictRuleId.value = conflictRule.id
-        expandMap.value.set(conflictRule.stationId, true)
+        showConflictRule(conflictRule)
     })
+}
+const showConflictRule = (conflictRule) => {
+    $q.notify.info('添加规则失败, 规则存在冲突')
+    conflictRuleId.value = conflictRule.id
+    expandMap.value.set(conflictRule.stationId, true)
 }
 </script>
 
