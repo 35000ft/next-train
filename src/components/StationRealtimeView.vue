@@ -146,8 +146,6 @@
     </q-tab-panels>
     <line-stations-selector :height="45" ref="lineStationsSelector" @select="handleSelectStation"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
-    <train-info-detail-view v-if="showTrainInfo" :train-info-id-prop="showTrainInfo.id" :date="showTrainInfo.date"
-                            @close="handleCloseShowTrainDetail"/>
     <EditFavouriteStationDialog :station="addFavStation" @close="()=>addFavStation=null"/>
 </template>
 
@@ -162,7 +160,6 @@ import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineStationsSelector from "components/LineStationsSelector.vue";
 import {isNumber} from "src/utils/string-utils";
-import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import _ from "lodash";
 import {useRouter} from "vue-router";
 import {genAmapPositionUrl} from "src/utils/navigator_utils";
@@ -251,17 +248,9 @@ const handleFavourStation = (_station) => {
 
 const showTrainInfoDetailView = (trainInfo) => {
     if (trainInfo) {
-        showTrainInfo.value = {
-            id: trainInfo.id,
-            date: trainInfo.trainDate
-        }
+        store.commit('application/SET_SHOWN_TRAININFO', {trainInfo: trainInfo})
     }
 }
-
-const handleCloseShowTrainDetail = () => {
-    showTrainInfo.value = null
-}
-
 const currentTrainsMap = ref(new Map())
 
 /**

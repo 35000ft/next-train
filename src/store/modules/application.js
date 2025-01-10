@@ -8,9 +8,13 @@ const state = {
     shownStationId: reactive(null),
     overlayStack: reactive([]),
     // 相对当前时间的偏移秒数
-    timeOffsetSeconds: 0
+    timeOffsetSeconds: 0,
+    shownTrainInfo: reactive(null),
 };
 const mutations = {
+    SET_SHOWN_TRAININFO(state, {trainInfo}) {
+        state.shownTrainInfo = trainInfo
+    },
     SET_SHOWN_STATION_ID(state, {stationId}) {
         state.shownStationId = stationId
     },
@@ -63,7 +67,10 @@ const getters = {
     shownStationId: state => state.shownStationId,
     topOverlayComponent: state => state.overlayStack.slice(-1)[0],
     overlayComponentStack: state => state.overlayStack,
-    getNowTime: state => (timezone) => getNowByTimezone(timezone).add(state.timeOffsetSeconds, "seconds")
+    getNowTime: state => (timezone) => getNowByTimezone(timezone).add(state.timeOffsetSeconds, "seconds"),
+    shownTrainInfo: state => {
+        return {...state.shownTrainInfo}
+    }
 };
 
 export default {

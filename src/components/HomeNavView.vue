@@ -41,20 +41,19 @@
                     </q-card-section>
                 </q-card>
             </div>
-
         </div>
     </q-page-container>
-
 </template>
 
 <script setup>
 import SearchHeader from "components/SearchHeader.vue";
-import {computed, onMounted, ref} from "vue";
+import {computed, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
+import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 
 defineOptions({
     name: 'HomeView'

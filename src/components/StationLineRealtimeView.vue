@@ -42,13 +42,11 @@
                         <TrainDataItem v-for="_trainInfo in directionTrainInfo.trains"
                                        :key="_trainInfo.id"
                                        :station="station"
-                                       @show-train-detail="showTrainInfoDetailView"
                                        :train-data="_trainInfo"/>
                     </q-expansion-item>
                 </div>
             </div>
         </div>
-        <train-info-detail-view :train-info-id-prop="showTrainInfoId" @close="handleCloseShowTrainDetail"/>
         <line-stations-selector :height="45" ref="lineStationsSelector" @select="handleSelectStation"/>
     </div>
 </template>
@@ -58,7 +56,6 @@ import TrainDataItem from "components/TrainDataItem.vue";
 import {computed, onMounted, onUnmounted, ref} from "vue";
 import {useI18n} from "vue-i18n";
 import {isNumber} from "src/utils/string-utils";
-import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import {useStore} from "vuex";
 import LineStationsSelector from "components/LineStationsSelector.vue";
 import {useQuasar} from "quasar";
@@ -81,7 +78,6 @@ const showSkeleton = computed(() => {
     return isLoadingTrains.value
 })
 const isLoadingTrains = ref(true)
-const showTrainInfoId = ref(null)
 const lineStationsSelector = ref(null)
 let updateTrainsTimer
 onMounted(() => {
@@ -113,21 +109,13 @@ const handleShowLineStationSelector = (event) => {
         })
     }
 }
-const handleSelectStation = (stationId, lineId) => {
+const handleSelectStation = (stationId) => {
     if (stationId) {
-        emit('changeStation', stationId, lineId)
-    }
-}
-const showTrainInfoDetailView = (trainInfoId) => {
-    if (isNumber(trainInfoId)) {
-        showTrainInfoId.value = trainInfoId
+        emit('changeStation', stationId)
     }
 }
 
 const $q = useQuasar()
-const handleCloseShowTrainDetail = () => {
-    showTrainInfoId.value = null
-}
 
 async function loadLineTrains(lineId) {
     if (!isNumber(lineId)) {

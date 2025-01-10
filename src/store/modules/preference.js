@@ -204,7 +204,7 @@ const actions = {
             arr: date2StringWithTimezone(train.arr),
             trainDate: train.trainDate,
             terminal: train.terminal,
-            station: toRaw(station)
+            station: toRaw(station),
         }
         commit('ADD_FOCUS_TRAIN', {train: _t})
     },
