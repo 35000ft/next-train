@@ -47,7 +47,7 @@
 
 <script setup>
 import SearchHeader from "components/SearchHeader.vue";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";

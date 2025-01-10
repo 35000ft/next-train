@@ -16,7 +16,8 @@
                 <div class="col-4" @click="handleCancelFocus(train)">
                     {{ formatToHHMM(train.dep) }}
                 </div>
-                <div class="col-8" style="display: flex;align-items: center;justify-content: center;">
+                <div class="col-8" style="display: flex;align-items: center;justify-content: center;"
+                     @click="handleClickTerminal(train)">
                     <div class="show-text-in-2-line"
                          style="font-weight: bold;width: 100%;font-size: 18px;text-align: center;">
                         {{ train.terminal }}
@@ -87,7 +88,11 @@ watch(focusTrains, (newTrains, oldTrains) => {
     }
 })
 const currentTrainId = ref((focusTrains.value.length > 0 && focusTrains.value[0].id) || null)
-
+const handleClickTerminal = (trainInfo) => {
+    if (trainInfo) {
+        store.commit('application/SET_SHOWN_TRAININFO', {trainInfo})
+    }
+}
 let updateTrainStatusInterval
 
 onMounted(() => {
