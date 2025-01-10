@@ -101,7 +101,7 @@
 
 <script setup>
 import OverlayView from "components/OverlayView.vue";
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {fetchStationScheduleV2} from "src/apis/reailtime";
 import {genBriefName} from "src/utils/string-utils";

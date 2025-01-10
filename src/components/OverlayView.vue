@@ -23,7 +23,7 @@
 
 <script setup>
 import {useRouter} from "vue-router";
-import {useStore} from "vuex";
+import {inject} from "vue";
 
 const props = defineProps({
     onClose: Function,
@@ -35,11 +35,17 @@ const props = defineProps({
         type: String
     }
 })
-const store = useStore()
+const eventBus = inject('eventBus');
 const router = useRouter()
 const handleClose = (event) => {
-    router.back()
-    store.dispatch('application/popOverlay', {id: props.componentId})
+    if (window.history.length === 1) {
+        if (eventBus) {
+            eventBus.handleBack({from: window.history.state.current, to: '/'})
+        }
+        router.push('/')
+    } else {
+        router.back()
+    }
 }
 
 </script>

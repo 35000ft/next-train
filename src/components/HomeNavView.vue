@@ -65,7 +65,6 @@ const topBanner = ref('home2')
 const $q = useQuasar()
 const currentStationId = computed(() => {
     const currentStation = store.getters['preference/currentStation']
-    console.log('getter cur station', currentStation.name)
     if (currentStation) {
         return currentStation.id
     } else {

@@ -37,6 +37,7 @@ const mutations = {
     POP_OVERLAY(state, {id}) {
         if (state.overlayStack.length > 0) {
             const top = state.overlayStack.slice(-1)[0]
+            console.log('pop ov', top, id)
             if (top.id === id) {
                 console.log('pop overlay, component id:', id)
                 state.overlayStack.splice(state.overlayStack.length - 1, 1)
