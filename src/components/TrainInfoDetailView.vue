@@ -398,6 +398,7 @@ watch(() => shownTrainInfo.value, (newVal, oldValue) => {
         }
     }
 })
+const emit = defineEmits(['close'])
 
 async function loadTrainInfo(_trainInfoId, trainDate) {
     if (loading.value || !_trainInfoId) {

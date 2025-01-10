@@ -178,7 +178,12 @@ const actions = {
         return false
     },
     async addFavourStationRule({state, commit}, {station, fromTime, toTime, period}) {
-        const conflictRule = await this.dispatch('checkIsFavRulesConflict', {station, fromTime, toTime, period})
+        const conflictRule = await this.dispatch('preference/checkIsFavRulesConflict', {
+            station,
+            fromTime,
+            toTime,
+            period
+        })
         if (conflictRule) {
             return Promise.reject(conflictRule)
         }
