@@ -198,12 +198,18 @@ const rules = computed(() => {
     }, new Map())
 
     loadStations(groupByStationId.keys())
-    return Array.from(groupByStationId.entries().map(item => {
-        return {
-            stationId: item[0],
-            rules: item[1],
-        }
-    }))
+    try {
+        const arrayLike = Array.from(groupByStationId.entries()).map(item => {
+            return {
+                stationId: item[0],
+                rules: item[1],
+            }
+        })
+        return Array.from(arrayLike)
+    } catch (e) {
+        $q.notify.error(`加载收藏规则失败, ERROR:${e}`)
+        return []
+    }
 })
 const props = defineProps({
     station: {
