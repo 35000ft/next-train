@@ -63,11 +63,11 @@
                             <div class="header-station-info">
 
                                 <div v-overflow-auto-scroll>
-                                    <span v-if="isDown===false"
+                                    <span v-if="isDown"
                                           style="font-weight:bold;font-style: italic;color: var(--q-primary)">
                                         {{ terminal }}
                                     </span>
-                                    <div v-if="isDown===false" class="color-change-text"
+                                    <div v-if="isDown" class="color-change-text"
                                          style="margin-left: 3px; margin-right: 2px;">
                                         <span style="--index:0">&lt;</span>
                                         <span style="--index:1">&lt;</span>
@@ -76,13 +76,13 @@
                                     <span style="font-weight:bold;font-style: italic;color: var(--q-primary)">
                                         {{ shownHeaderStop.stationName }}
                                     </span>
-                                    <div v-if="isDown" class="color-change-text"
+                                    <div v-if="isDown===false" class="color-change-text"
                                          style="margin-left: 3px; margin-right: 2px;">
                                         <span style="--index:0">></span>
                                         <span style="--index:1">></span>
                                         <span style="--index:2">></span>
                                     </div>
-                                    <span v-if="isDown"
+                                    <span v-if="isDown===false"
                                           style="font-weight:bold;font-style: italic;color: var(--q-primary)">
                                         {{ terminal }}
                                     </span>
