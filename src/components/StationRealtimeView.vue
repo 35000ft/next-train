@@ -231,8 +231,8 @@ watch(props, (newVal, oldValue) => {
         init()
     }
     if (newVal.currentStationIdProp) {
-        console.log('handle prop station change')
         if (currentStationId.value !== newVal.currentStationIdProp) {
+            console.log('handle prop station change', newVal.currentStationIdProp, currentStationId.value)
             handleChangeStation(newVal.currentStationIdProp)
         }
     }
@@ -391,20 +391,18 @@ onBeforeUnmount(() => {
     clearInterval(refreshTrainInfoTimer)
 })
 
-let currentStationId = ref(null)
-let currentLineId = ref(null)
+const currentStationId = ref(null)
+const currentLineId = ref(null)
 
 function init() {
     handleChangeStation(props.currentStationIdProp, props.currentLineIdProp, "init")
 }
 
 const handleChangeStation = (stationId, lineId, source) => {
-    console.log('Change station to stationId:', stationId, lineId, 'source:' + source)
+    console.log('Change station', stationId, lineId, 'source:' + source)
     trainInfoMap.value = new Map()
     allTrains.value = []
-    currentStationId.value = stationId
     changeStation(stationId, lineId).then(station => {
-        if (checkIsChanged(stationId)) return
         currentStation.value = station
         currentStationId.value = station.id
         updateCurrentTrains(true)
@@ -561,8 +559,7 @@ watch(currentStationId, (stationId, oldValue) => {
             return
         }
     }
-    const _currentLineId = currentLine.value && currentLine.value.id || null
-    handleChangeStation(stationId, _currentLineId, "currentStationId Changed")
+    handleChangeStation(stationId, currentLineId.value, "watch currentStationId")
 })
 
 defineOptions({

@@ -4,6 +4,7 @@
         <template v-slot:default>
             <div>
                 <q-input outlined rounded v-model="keyword" label="车站名 | 车站代码" @update:model-value="handleSearch"
+                         @keydown.enter="handleEnter"
                          :bg-color="isDark?'grey-10':'grey-2'"/>
             </div>
             <div class="row" style="overflow-y: auto;">
@@ -257,17 +258,20 @@ export default defineComponent({
         }
 
         const handleSelect = (station, line) => {
-            station = toRaw(station)
-            if (line) {
-                line = toRaw(line)
-            }
             if (station.id === currentStation.value.id && !line) {
                 return
             }
+            const lineId = line ? line.id : null
             store.dispatch('preference/addHistoryStation', station)
-            store.commit('railsystem/SET_STATION', {station})
-            emit('select', station.id, (line && line.id) || null)
+            emit('select', station.id, lineId)
             display.value = false
+        }
+
+        const handleEnter = () => {
+            const results = searchResults.value
+            if (results && results.length > 0) {
+                handleSelect(results[0], null)
+            }
         }
 
         const showSelector = () => {
@@ -297,6 +301,7 @@ export default defineComponent({
             searchGroups,
             historyStations,
             handleSearch,
+            handleEnter,
             handleChangeSearchGroup,
         }
     }
