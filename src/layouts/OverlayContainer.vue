@@ -22,7 +22,7 @@
 
 <script setup>
 
-import {computed, defineAsyncComponent, onMounted, ref, shallowRef, watch} from "vue";
+import {computed, defineAsyncComponent, onMounted, ref, shallowRef, watch, provide} from "vue";
 import {useStore} from "vuex";
 
 const showComponentKey = ref(null)
@@ -81,9 +81,10 @@ onMounted(() => {
     initTime.value = time
 })
 const handleBack = ({from, to}) => {
-    console.log('from:' + from, 'to:' + to, shownComponent.value,)
+    console.log('handleBack  from:' + from, 'to:' + to, shownComponent.value,)
     store.dispatch('application/popOverlay', {id: shownComponent.value.id})
 }
+provide('eventBus', {handleBack});
 </script>
 
 <style scoped>

@@ -10,46 +10,86 @@
                         <!-- TODO 标题-->
                         <span style="color: #ffffff;padding-left: 20px;font-size: 15px;font-weight: bold;"></span>
                     </div>
-                    <div class="row" style="height: 100px;">
-                        <div class="col-6"
-                             style="border-right: 2px solid var(--q-primary-d);height: 100%;align-items: center;display: flex;">
-                            <div style="margin: 0 auto;width: 90%;">
-                                <div>
-                                    <TrainCategory v-if="trainInfo" :category="trainInfo.category"/>
-                                    <q-skeleton v-else width="40px" height="20px"/>
-                                </div>
-                                <div style="display: flex;align-items: baseline;">
-                                    <div class="auto-scroll-container"
-                                         style="max-width: 95%;display: inline-block;margin-right: 4px;">
+
+                    <q-tab-panels v-model="headerTabName" style="height: 100px;" swipeable infinite animated>
+                        <q-tab-panel name="short-train-info" class="full-height" style="padding: 0;">
+                            <div class="row full-height" style="background-color: var(--q-background-grey-2);">
+                                <div class="col-6"
+                                     style="border-right: 2px solid var(--q-primary-d);height: 100%;align-items: center;display: flex;">
+                                    <div style="margin: 0 auto;width: 90%;">
+                                        <div>
+                                            <TrainCategory v-if="trainInfo" :category="trainInfo.category"/>
+                                            <q-skeleton v-else width="40px" height="20px"/>
+                                        </div>
+                                        <div style="display: flex;align-items: baseline;">
+                                            <div class="auto-scroll-container"
+                                                 style="max-width: 95%;display: inline-block;margin-right: 4px;">
                                         <span v-overflow-auto-scroll v-if="trainInfo"
                                               style="font-weight:bold;color: var(--q-primary-d);font-size: 18px;">
                                                 {{ terminal }}
                                         </span>
-                                        <q-skeleton v-else type="text" width="120px" height="30px"/>
+                                                <q-skeleton v-else type="text" width="120px" height="30px"/>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-6" style="align-items: center;display: flex;">
-                            <div style="margin: 0 auto;width: 90%;" v-if="trainInfo">
-                                <div style="color: var(--q-normal);">
-                                    <span v-if="nextIndex===0">{{ t('waitingForDeparture') }}</span>
-                                    <span v-else>{{ t('currentInterval') }}</span>
-                                </div>
-                                <div class="auto-scroll-container">
-                                    <div v-overflow-auto-scroll>
+                                <div class="col-6" style="align-items: center;display: flex;">
+                                    <div style="margin: 0 auto;width: 90%;" v-if="trainInfo">
+                                        <div style="color: var(--q-normal);">
+                                            <span v-if="nextIndex===0">{{ t('waitingForDeparture') }}</span>
+                                            <span v-else>{{ t('currentInterval') }}</span>
+                                        </div>
+                                        <div class="auto-scroll-container">
+                                            <div v-overflow-auto-scroll>
                                         <span
                                             style="font-weight:bold;color: var(--q-primary-d);font-size: 18px;"
                                             v-html="currentInterval">
                                     </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-else style="margin: 0 auto;width: 90%;">
+                                        <q-skeleton width="100%" height="50px"/>
                                     </div>
                                 </div>
                             </div>
-                            <div v-else style="margin: 0 auto;width: 90%;">
-                                <q-skeleton width="100%" height="50px"/>
+                        </q-tab-panel>
+                        <q-tab-panel v-if="shownHeaderStop" name="quick-station-view"
+                                     style="background-color: var(--q-background);position: relative;">
+                            <div
+                                style="width: 100%;height: 100%;overflow: hidden;">
+                                <img :src="shownHeaderStop.quickStationImg" alt="" class="quick-station-view-img">
                             </div>
-                        </div>
-                    </div>
+                            <div class="header-station-info">
+
+                                <div v-overflow-auto-scroll>
+                                    <span v-if="isDown"
+                                          style="font-weight:bold;font-style: italic;color: var(--q-primary)">
+                                        {{ terminal }}
+                                    </span>
+                                    <div v-if="isDown" class="color-change-text"
+                                         style="margin-left: 3px; margin-right: 2px;">
+                                        <span style="--index:0">&lt;</span>
+                                        <span style="--index:1">&lt;</span>
+                                        <span style="--index:2">&lt;</span>
+                                    </div>
+                                    <span style="font-weight:bold;font-style: italic;color: var(--q-primary)">
+                                        {{ shownHeaderStop.stationName }}
+                                    </span>
+                                    <div v-if="isDown===false" class="color-change-text"
+                                         style="margin-left: 3px; margin-right: 2px;">
+                                        <span style="--index:0">></span>
+                                        <span style="--index:1">></span>
+                                        <span style="--index:2">></span>
+                                    </div>
+                                    <span v-if="isDown===false"
+                                          style="font-weight:bold;font-style: italic;color: var(--q-primary)">
+                                        {{ terminal }}
+                                    </span>
+                                </div>
+                            </div>
+                        </q-tab-panel>
+                    </q-tab-panels>
                 </div>
 
                 <!-- schedule -->
@@ -73,7 +113,9 @@
 
                             <div class="stop-info-wrapper grey-border-bottom row"
                                  style="height: 40px; border-bottom: 2px solid var(--q-grey-2);font-weight:bold;">
-                                <div class="col-4">{{ t('stopStationName') }}</div>
+                                <div class="col-4">
+                                    <span>{{ t('stopStationName') }}</span>
+                                </div>
                                 <div class="col-2"></div>
                                 <div class="col-3">{{ t('arrTime') }}</div>
                                 <div class="col-3">{{ t('depTime') }}</div>
@@ -85,13 +127,14 @@
                                      :class="stop.statusClass||'ontime'"
                                      :key="stop.stationId">
                                     <div class="col-4 grey-border-bottom">
-                                    <span class="show-text-in-2-line station-name"
-                                          @click="handleClickStationName(stop.stationId)">
-                                        {{ stop.stationName }}
-                                    </span>
+                                        <span class="show-text-in-2-line station-name"
+                                              @click="handleClickStationName(stop.stationId)">
+                                            {{ stop.stationName }}
+                                        </span>
                                     </div>
                                     <div class="col-2"
-                                         style="height: 100%;display: flex;justify-content: center;">
+                                         style="height: 100%;display: flex;justify-content: center;"
+                                         @click="handleShowQuickStationView(stop)">
                                         <span style="height: 100%; flex: 1;" class="grey-border-bottom"></span>
                                         <span
                                             class="line-segment"
@@ -137,11 +180,18 @@ import {smoothScroll} from "src/utils/dom-utils";
 import {useI18n} from "vue-i18n";
 import _ from 'lodash';
 
+const shownHeaderStop = ref(null)
+const headerTabName = ref("short-train-info")
 const primaryColor = computed(() => {
     return getComputedStyle(document.documentElement).getPropertyValue('--q-primary').trim()
 })
 const shownTrainInfo = computed(() => {
     return store.getters['application/shownTrainInfo']
+})
+const isDown = computed(() => {
+    const _trainInfo = trainInfo.value;
+    if (!_trainInfo) return true
+    return _trainInfo.direction / 2 === 0
 })
 const isFromUrl = ref(false)
 const isUpdatingStopStatus = ref(false)
@@ -189,18 +239,39 @@ const schedule = computed(() => {
     }
     return []
 })
+
+const handleShowQuickStationView = (stop) => {
+    if (stop.quickStationImg) {
+        shownHeaderStop.value = stop
+        setTimeout(() => {
+            headerTabName.value = 'quick-station-view'
+        }, 100)
+        return
+    }
+    store.dispatch('resource/checkResourceExist', {path: `quick-station-view/${stop.lineId}_${stop.stationId}.png`})
+        .then(path => {
+            stop.quickStationImg = path
+            shownHeaderStop.value = stop
+            setTimeout(() => {
+                headerTabName.value = 'quick-station-view'
+            }, 100)
+        })
+        .catch(e => {
+            shownHeaderStop.value = null
+        })
+}
 const calcSchedule = (_trainInfo) => {
     if (_trainInfo) {
         const _schedule = _trainInfo.schedule
         const trainVia = _trainInfo.trainVia
-        let reduce = trainVia.reduce((acc, cur) => {
+        const lineMap = trainVia.reduce((acc, cur) => {
             for (let i = cur.fromIndex; i <= cur.toIndex; i++) {
                 acc.set(i, cur.lineId)
             }
             return acc
         }, new Map());
         _schedule.forEach(((it, index) => {
-            it.lineId = reduce.get(index)
+            it.lineId = lineMap.get(index)
             it.arrStr = formatToHHMM(it.arr.toDate())
             it.depStr = formatToHHMM(it.dep.toDate())
         }))
@@ -229,7 +300,8 @@ const scrollToCurrent = (instantly = true) => {
     if (dom.scrollHeight <= dom.clientHeight) {
         return
     }
-    const target = (nextIndex.value * STOP_ROW_HEIGHT)
+    const index = currentIndex.value ? currentIndex.value : nextIndex.value
+    const target = (index * STOP_ROW_HEIGHT)
     if (instantly) {
         stopInfoListView.value.scrollTop = target
     } else {
@@ -390,7 +462,6 @@ watch(stopInfoListView, (newVal, oldValue) => {
 })
 
 watch(() => shownTrainInfo.value, (newVal, oldValue) => {
-    console.log('shownTrainInfo change', newVal)
     if (newVal) {
         if (newVal.id !== trainInfoId.value) {
             trainInfoId.value = newVal.id
@@ -427,11 +498,32 @@ watch(trainInfoId, (newVal, oldValue) => {
         isFirst.value = true
         loadTrainInfo(newVal).then(res => {
             setTimeout(() => {
+                console.log('r', res)
                 trainInfo.value = res
             }, 100)
         })
     }
 })
+
+watch(() => currentIndex.value, (_currentIndex, oldValue) => {
+    if (_currentIndex && oldValue == null) {
+        const currentStop = schedule.value[_currentIndex]
+        if (currentStop) {
+            handleShowQuickStationView(currentStop)
+        }
+    } else if (!_currentIndex && oldValue) {
+        const lastCurrentStop = schedule.value[oldValue]
+        if (shownHeaderStop.value && shownHeaderStop.value.stationId === lastCurrentStop.stationId) {
+            closeQuickStationView()
+        }
+    }
+})
+const closeQuickStationView = () => {
+    headerTabName.value = 'short-train-info'
+    setTimeout(() => {
+        shownHeaderStop.value = null
+    }, 50)
+}
 
 const handleClickStationName = (_stationId) => {
     if (_stationId) {
@@ -440,6 +532,7 @@ const handleClickStationName = (_stationId) => {
 }
 
 const handleCloseSelector = () => {
+    closeQuickStationView()
     display.value = false
 }
 
@@ -584,4 +677,50 @@ const show = () => {
     }
 }
 
+::v-deep .q-expansion-item--popup > .q-expansion-item__container {
+    border: none;
+}
+
+.quick-station-view-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.header-station-info {
+    position: absolute;
+    z-index: 2000;
+    height: 30px;
+    width: 80%;
+    display: flex;
+    justify-content: center;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.color-change-text {
+    display: inline-block;
+    font-weight: bold;
+    white-space: nowrap; /* 防止文字换行 */
+    animation: textColor 4s linear infinite; /* 整体循环动画 */
+    --total-letters: 3; /* 设置字符总数（可以动态调整） */
+}
+
+.color-change-text span {
+    font-size: 14px;
+    line-height: 100%;
+    display: inline-block;
+    animation: letterColor 2s infinite linear;
+    animation-delay: calc(var(--index) * 0.5s); /* 根据索引动态设置延迟 */
+}
+
+/* 动画定义：每个字符颜色变化 */
+@keyframes letterColor {
+    0%, 100% {
+        color: var(--q-grey-2); /* 起始和结束颜色 */
+    }
+    50% {
+        color: var(--q-primary-d); /* 中间颜色 */
+    }
+}
 </style>

@@ -14,6 +14,7 @@
                         <div class="row" style="display: flex;justify-content: space-around;align-items: center;">
                             <div class="col-5">
                                 <q-input filled v-model="fromTime" mask="time" :rules="['time',validateTimeNotEquals]"
+                                         ref="inputFromTimeRef"
                                          :bg-color="isDark?'grey-10':'grey-2'">
                                     <template v-slot:append>
                                         <q-icon name="access_time" class="cursor-pointer">
@@ -33,6 +34,7 @@
                             </div>
                             <div class="col-5">
                                 <q-input filled v-model="toTime" mask="time" :rules="['time',validateTimeNotEquals]"
+                                         ref="inputToTimeRef"
                                          :bg-color="isDark?'grey-10':'grey-2'">
                                     <template v-slot:append>
                                         <q-icon name="access_time" class="cursor-pointer">
@@ -156,6 +158,8 @@ const _weekdays = getWeekdays(lang.value).map(((it, index) => {
         index
     }
 }))
+const inputFromTimeRef = ref(null)
+const inputToTimeRef = ref(null)
 const weekdays = ref(_weekdays)
 const stationMap = ref(new Map())
 const conflictRuleId = ref(null)
@@ -198,12 +202,18 @@ const rules = computed(() => {
     }, new Map())
 
     loadStations(groupByStationId.keys())
-    return Array.from(groupByStationId.entries().map(item => {
-        return {
-            stationId: item[0],
-            rules: item[1],
-        }
-    }))
+    try {
+        const arrayLike = Array.from(groupByStationId.entries()).map(item => {
+            return {
+                stationId: item[0],
+                rules: item[1],
+            }
+        })
+        return Array.from(arrayLike)
+    } catch (e) {
+        $q.notify.error(`加载收藏规则失败, ERROR:${e}`)
+        return []
+    }
 })
 const props = defineProps({
     station: {
@@ -251,7 +261,9 @@ const validateTimeNotEquals = (val) => {
 const handleOk = () => {
     if (!props.station) return
     const selected = weekdays.value.filter(it => it.select).map(it => it.index + 1)
-    if (selected.length === 0) {
+    const isValid = inputFromTimeRef.value.validate() && inputToTimeRef.value.validate() && selected.length > 0
+    if (!isValid) {
+        $q.notify.warn("请设置合法的时间规则")
         return;
     }
     store.dispatch('preference/addFavourStationRule', {

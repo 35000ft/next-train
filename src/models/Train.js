@@ -140,7 +140,7 @@ const trainViaParser = (trainInfo) => {
         }
         const result = []
         for (let s of segments) {
-            const _s = segments[0].split("@")
+            const _s = s.split("@")
             const fromTo = _s[0].split("-")
             result.push({
                 fromIndex: Number(fromTo[0]) - 1,

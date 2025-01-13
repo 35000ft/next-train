@@ -4,6 +4,7 @@ import preference from "src/store/modules/preference";
 import railsystem from "src/store/modules/railsystem";
 import realtime from "src/store/modules/realtime";
 import application from "src/store/modules/application";
+import resource from "src/store/modules/resource";
 
 const store = createStore({
     modules: {
@@ -11,7 +12,8 @@ const store = createStore({
         preference,
         railsystem,
         realtime,
-        application
+        application,
+        resource,
     }
 });
 
