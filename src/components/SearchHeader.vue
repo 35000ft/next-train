@@ -3,8 +3,13 @@
         <q-toolbar>
             <div class="row"
                  style="width: 100% ;display: flex;align-items: center;margin: 0 auto;align-content: space-around">
-                <div class="col-3">
-                    <img src="../assets/logo.png" alt="logo" style="height: 20px;">
+                <div class="col-3" @touchstart.stop>
+                    <LeftDrawer :showDrawerProp="showDrawerProp" @close="()=>showDrawerProp=false">
+                        <template v-slot:show-at-close>
+                            <img src="../assets/logo.png" alt="logo" style="height: 20px;"
+                                 @click="()=>showDrawerProp=true">
+                        </template>
+                    </LeftDrawer>
                 </div>
                 <div class="col-5" style="display: flex;justify-content: center;align-items: center;">
                     <input
@@ -55,7 +60,9 @@ import {computed, ref, toRaw} from 'vue'
 import RailSystemSelector from "components/RailSystemSelector.vue";
 import {i18n, supportedLanguages} from 'src/boot/i18n'
 import {useStore} from "vuex";
+import LeftDrawer from "components/LeftDrawer.vue";
 
+const showDrawerProp = ref(false)
 const {t} = useI18n();
 const store = useStore()
 

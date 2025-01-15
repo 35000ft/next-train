@@ -182,7 +182,6 @@ const lineStationsSelector = ref(null)
 const currentStation = ref(null)
 const currentTrains = ref([])
 const allTrains = ref([])
-const showTrainInfo = ref(null)
 const addFavStation = ref(null)
 const handleClickMap = () => {
     const _station = currentStation.value
@@ -223,20 +222,10 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    init()
+    console.log('srv mouthed')
+    handleChangeStation(props.currentStationIdProp, props.currentLineIdProp, "init")
 })
 
-watch(props, (newVal, oldValue) => {
-    if (!currentStationId.value && newVal.currentStationIdProp) {
-        init()
-    }
-    if (newVal.currentStationIdProp) {
-        if (currentStationId.value !== newVal.currentStationIdProp) {
-            console.log('handle prop station change', newVal.currentStationIdProp, currentStationId.value)
-            handleChangeStation(newVal.currentStationIdProp)
-        }
-    }
-})
 
 const showSkeleton = computed(() => {
     return isLoadingTrains.value && (currentTrains.value && currentTrains.value.length === 0)
@@ -394,19 +383,23 @@ onBeforeUnmount(() => {
 const currentStationId = ref(null)
 const currentLineId = ref(null)
 
-function init() {
-    handleChangeStation(props.currentStationIdProp, props.currentLineIdProp, "init")
-}
 
 const handleChangeStation = (stationId, lineId, source) => {
     console.log('Change station', stationId, lineId, 'source:' + source)
     trainInfoMap.value = new Map()
     allTrains.value = []
-    changeStation(stationId, lineId).then(station => {
+    currentStationId.value = stationId
+    changeStation(stationId, lineId).then(([station, line]) => {
+        if (currentStationId.value !== stationId) {
+            console.log('stationId has changed. now', currentStationId.value, 'old:', stationId)
+            return
+        }
+        console.log('station set', station, line)
         currentStation.value = station
         currentStationId.value = station.id
-        updateCurrentTrains(true)
-        emit('changeStation', station)
+        currentLineId.value = line.id
+
+        emit('changeStation', station,)
     }).finally(_ => {
         isLoadingStation.value = false
     })
@@ -429,9 +422,7 @@ async function changeStation(stationId, lineId) {
     if (!line) {
         line = station.lines[0]
     }
-    currentLineId.value = line.id
-    handleChangeLine(line.id)
-    return station
+    return [station, line]
 }
 
 watch(currentLineId, (lineId, oldValue) => {
@@ -440,7 +431,7 @@ watch(currentLineId, (lineId, oldValue) => {
     }
     currentTrains.value = []
     if (lineId === 'all') {
-        updateCurrentTrains()
+        updateCurrentTrains(true)
         return
     }
     handleChangeLine(lineId)
@@ -454,7 +445,7 @@ const handleChangeLine = (lineId) => {
     loadLineInfo(lineId).then(_line => {
         if (lineId === currentLineId.value) {
             currentLine.value = _line
-            updateCurrentTrains()
+            updateCurrentTrains(true)
         }
     }).catch(err => {
         console.warn('loadLineInfo err:', err)
@@ -549,6 +540,13 @@ const handleClickLineIcon = (event, line) => {
         }
     }
 }
+
+watch(props, (newVal, oldValue) => {
+    console.log('Props change', newVal)
+    if (newVal.currentStationIdProp) {
+        handleChangeStation(newVal.currentStationIdProp, newVal.currentLineIdProp, 'props change')
+    }
+})
 
 watch(currentStationId, (stationId, oldValue) => {
     if (stationId === oldValue || !stationId) {
