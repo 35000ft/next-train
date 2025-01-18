@@ -79,7 +79,7 @@
                     </div>
                     <div class="schedule-area-wrapper">
                         <HorizontalScheduleLayout v-if="scheduleData" :schedule-data="scheduleData"/>
-                        <div v-else style="width: 100%;">
+                        <div v-if="!scheduleData&&loading" style="width: 100%;">
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
                             <q-skeleton height="60px" type="text"></q-skeleton>
@@ -176,10 +176,10 @@ const headerInfo = computed(() => {
                 executeDate: scheduleExecuteDate
             }
         } else if (_curHeader.specifiedDates && _curHeader.specifiedDates.length > 0) {
-            const _scheduleExecuteDates = _curHeader.specifiedDates.join(',')
+            const _scheduleExecuteDates = _curHeader.specifiedDates.map(it => dayjs(it)).map(it => it.format('L')).join(', ')
             return {
                 version: categoryStr,
-                executeDate: _scheduleExecuteDates
+                executeDate: `${t('executeDates')}:${_scheduleExecuteDates}`
             }
         }
     }
@@ -201,6 +201,7 @@ const changeSchedule = (_date) => {
     }
     const lineScheduleHeader = lineScheduleHeaders.value.find(it => isTargetScheduleHeader(it, _date))
     if (!lineScheduleHeader) {
+        loading.value = false
         return
     }
     curHeader.value = lineScheduleHeader
@@ -245,12 +246,6 @@ async function init(stationId, lineId) {
             lineScheduleHeaders.value = _lineScheduleHeaders
             changeSchedule(date)
         })
-        // TODO ROLLBACK VERSION
-        // const _scheduleData = await fetchStationSchedule(stationId, lineId)
-        // const _d = processScheduleData(_scheduleData, _line)
-        // console.log('sok', _d)
-        // scheduleData.value = _d
-        // loading.value = false
     } catch (err) {
         loading.value = false
     }

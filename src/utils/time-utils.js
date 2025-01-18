@@ -2,10 +2,12 @@ import dayjs, {Dayjs} from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import isoWeek from 'dayjs/plugin/isoWeek';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(isoWeek);
+dayjs.extend(localizedFormat);
 export const TIME_FORMATS = {
     DEFAULT: "YYYY-MM-DD HH:mm:ss",
     HMS: "HH:mm:ss",

@@ -3,7 +3,7 @@ import LRU from "src/utils/LRU";
 import {trainScheduleParser, trainViaParser} from "src/models/Train";
 import {reactive} from "vue";
 import {isAfterNow} from "src/utils/time-utils";
-import {fetchScheduleHeader, fetchStationCurrentTrainInfo, fetchTrainInfoById} from "src/apis/reailtime";
+import {fetchScheduleHeader, fetchStationTrainInfo, fetchTrainInfoById} from "src/apis/reailtime";
 
 const state = {
     trainInfoMap: reactive(new LRU(100)),
@@ -49,7 +49,7 @@ const actions = {
                 }
                 commit('SET_LOCK', {key: lockKey})
                 console.log('FetchStationTrain', 'stationId:' + stationId, 'lineId:' + lineId)
-                fetchStationCurrentTrainInfo(stationId, lineId).then(_trains => {
+                fetchStationTrainInfo(stationId, lineId).then(_trains => {
                     commit('SET_STATION_TRAININFO', {trainInfoList: _trains, stationId, lineId})
                     resolve(_trains)
                 }).catch(err => {

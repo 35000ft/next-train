@@ -70,6 +70,7 @@ export default {
     },
     schedule: '時刻表',
     scheduleExecuteDate: "自$date起執行",
+    executeDates: "執行日期",
     cancel: "取消",
     favStationDesc: "設定時間規則, 在指定的時間段內該車站將為首頁預設車站",
     fromTimeCannotBeEqToTime: "起始時間不能等於結束時間",

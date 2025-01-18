@@ -70,6 +70,7 @@ export default {
     },
     schedule: ' Schedule',
     scheduleExecuteDate: "Effective from $date",
+    executeDates: "Effective Dates",
     cancel: "Cancel",
     favStationDesc: "Set default station by time rules",
     fromTimeCannotBeEqToTime: "The start time cannot be equal to the end time",

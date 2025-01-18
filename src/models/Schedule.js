@@ -11,6 +11,7 @@ export function isTargetScheduleHeader(lineScheduleHeader, date) {
     if (date instanceof Object) {
         date = date.format(TIME_FORMATS.DATE)
     }
+    console.log('lineScheduleHeader', lineScheduleHeader.specifiedDates && lineScheduleHeader.specifiedDates.contains(date))
     if (lineScheduleHeader.specifiedDates && lineScheduleHeader.specifiedDates.contains(date)) {
         return true
     }
@@ -20,7 +21,7 @@ export function isTargetScheduleHeader(lineScheduleHeader, date) {
     const fromDate = dayjs(lineScheduleHeader.fromDate)
     const toDate = dayjs(lineScheduleHeader.toDate)
     const _date = dayjs(date)
-    if (_date >= fromDate && _date <= toDate) {
+    if (_date >= fromDate && _date <= toDate && lineScheduleHeader.period) {
         const weekday = _date.day() === 0 ? 7 : _date.day()
         if (lineScheduleHeader.period.contains(weekday)) {
             return true

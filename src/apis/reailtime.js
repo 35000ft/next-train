@@ -1,23 +1,7 @@
 import axios from "src/utils/axios"
 
-export async function fetchScheduledTrainInfo(stationId, lineId, time) {
-    const url = `api/metro-realtime/train-info/scheduled`
-    return await axios
-        .post(url, {
-            stationId: stationId,
-            lineIdList: [lineId],
-            time: time
-        })
-        .then(res => {
-            return res.data.data
-        })
-        .catch(err => {
-            return Promise.reject(err)
-        })
-}
-
-export async function fetchStationCurrentTrainInfo(stationId, lineId) {
-    const url = `api/metro-realtime/station/train-info/${stationId}/${lineId}`
+export async function fetchStationTrainInfo(stationId, lineId) {
+    const url = `api/metro-realtime/station/train-info/v2/${stationId}/${lineId}`
     return await axios
         .post(url)
         .then(res => {
