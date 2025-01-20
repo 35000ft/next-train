@@ -70,3 +70,15 @@ export async function fetchStation(stationId) {
         })
 }
 
+export async function fetchGraph(railsystemCode) {
+    const url = `api/file/railsystem/graphs/${railsystemCode}`
+    return await axios
+        .get(url)
+        .then(res => {
+            return res.data.data || res.data
+        })
+        .catch(err => {
+            return Promise.reject(err)
+        })
+}
+

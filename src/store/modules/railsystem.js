@@ -1,6 +1,6 @@
 import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
-import {fetchLine, fetchLines, fetchStation, fetchStations} from "src/apis/railsystem";
+import {fetchGraph, fetchLine, fetchLines, fetchStation, fetchStations} from "src/apis/railsystem";
 
 
 const railSystems = {
@@ -65,6 +65,9 @@ const actions = {
     async getRailSystem({state, commit}, {code}) {
         return state.railSystems.get(code)
     },
+    async getRailSystemGraph({state, commit}, {code}) {
+        return fetchGraph(code)
+    },
     async getStation({state, commit}, {stationId}) {
         if (!stationId) {
             return Promise.reject(`stationId is undefined:${stationId}`)
@@ -72,12 +75,6 @@ const actions = {
         const isFavourite = await this.dispatch('preference/isFavouriteStation', {stationId})
         let station = state.stations.get(stationId)
         if (!station) {
-            //TODO 缓存策略
-            // const _station = JSON.parse(localStorage.getItem('station:' + stationId))
-            // if (_station) {
-            //     commit('SET_STATION', {_station})
-            //     return _station
-            // }
             return new Promise((resolve, reject) => {
                 fetchStation(stationId).then(station => {
                     commit('SET_STATION', {station})
