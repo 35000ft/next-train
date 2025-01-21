@@ -15,6 +15,11 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, path = []
     visited.set(start, true)
     path.push(start)
 
+    function stopRoute() {
+        path.pop()
+        visited.set(start, false)
+    }
+
     if (path.length >= 3) {
         const n1 = path.slice(-3)[0]
         const n2 = path.slice(-2)[0]
@@ -36,16 +41,20 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, path = []
 
     const transfers = findTransfers(graph, path)
     //如果换乘次数比最小成本方案的换乘次数多2次及以上 则停止查找当前路径
-    if (transfers.length - minCostPlan.transfers.length > 2) {
-        path.pop()
-        visited.set(start, false)
+    let transferCountDiff = transfers.length - minCostPlan.transfers.length;
+    if (transferCountDiff > 2) {
+        stopRoute()
         return
+    } else if (transferCountDiff === 2) {
+        if (currentCost > minCostPlan.distance * 1.05) {
+            stopRoute()
+            return
+        }
     }
 
     //如果当前成本大于最小成本的1.2倍 则停止查找当前路径
     if (currentCost > minCostPlan.distance * 1.2) {
-        path.pop()
-        visited.set(start, false)
+        stopRoute()
         return
     }
 
