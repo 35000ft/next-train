@@ -6,24 +6,57 @@
  * @param {Array} path
  * @param {Map[Number:Boolean]} visited 记录访问过的节点
  * @param cb
- * @returns {Promise<Array>}
+ * @param minCostPlan 最短路径的距离/成本
  */
-let visited
-
-export async function findAllPaths(graph, start, end, cb, path = []) {
+export async function findAllPaths(graph, start, end, cb, minCostPlan, path = [], visited) {
     if (!visited) {
         visited = new Map(Object.keys(graph).map(e => [e.toString(), false]))
     }
     visited.set(start, true)
     path.push(start)
+
+    if (path.length >= 3) {
+        const n1 = path.slice(-3)[0]
+        const n2 = path.slice(-2)[0]
+        const n3 = path.slice(-1)[0]
+        if (graph[n1][n2] === 0 && graph[n2][n3] === 0) {
+            path.pop()
+            visited.set(start, false)
+            return
+        }
+    }
+
+    // 如果当前路径的总代价已经大于最短路径的代价，可以停止
+    const currentCost = path.reduce((acc, node, idx) => {
+        if (idx === 0) return 0
+        const fromNode = path[idx - 1]
+        const d = graph[fromNode][node]
+        return acc + d
+    }, 0)
+
+    const transfers = findTransfers(graph, path)
+    //如果换乘次数比最小成本方案的换乘次数多2次及以上 则停止查找当前路径
+    if (transfers.length - minCostPlan.transfers.length > 2) {
+        path.pop()
+        visited.set(start, false)
+        return
+    }
+
+    //如果当前成本大于最小成本的1.2倍 则停止查找当前路径
+    if (currentCost > minCostPlan.distance * 1.2) {
+        path.pop()
+        visited.set(start, false)
+        return
+    }
+
+
     if (start === end) {
-        console.log('start === end', path)
         cb(path)
     } else if (graph[start]) {
         for (let k of Object.keys(graph[start])) {
             k = k.toString()
             if (!visited.get(k)) {
-                await findAllPaths(graph, k, end, cb, path)
+                await findAllPaths(graph, k, end, cb, minCostPlan, path, visited)
             }
         }
     }
@@ -32,14 +65,27 @@ export async function findAllPaths(graph, start, end, cb, path = []) {
     path.pop()
 }
 
-export function findShortestPath(graph, start, end, via) {
+export function findTransfers(graph, path) {
+    if (path.length <= 2) return []
+    return path.slice(0, -1).reduce((acc, node, idx) => {
+        if (idx < 2) return []
+        const fromNode = path[idx - 1]
+        const d = graph[fromNode][node]
+        if (d === 0) {
+            acc.push([fromNode, node])
+        }
+        return acc
+    }, [])
+}
+
+export function findShortestPath(graph, start, end, via = []) {
     return [...via, end].map(v => {
         const route = dijkstra(graph, start, v)
         start = v
         return route
     }).reduce((e1, e2) => {
         return {
-            distance: e1.distance + e2.distance,
+            distances: e1.distance + e2.distance,
             path: [...e1.path, ...e2.path.slice(1)]
         }
     })
@@ -58,7 +104,6 @@ export function dijkstra(graph, startNode, endNode) {
     // 初始化距离和前驱节点
     const weightings = {}
     const predecessors = {}
-    const transferInfo = {}
     for (let node in graph) {
         weightings[node] = Infinity
         predecessors[node] = null
@@ -71,29 +116,27 @@ export function dijkstra(graph, startNode, endNode) {
         let currentNode = unvisitedNodes.reduce((minNode, node) => {
             return weightings[node] < weightings[minNode] ? node : minNode
         }, unvisitedNodes[0])
-
         // 如果到达终点，则返回最短路径
         if (currentNode === endNode) {
             let path = []
             while (currentNode !== startNode) {
+                if (!currentNode) {
+                    console.warn('currentNode is null ', predecessors, path)
+                    break
+                }
                 path.unshift(currentNode)
                 currentNode = predecessors[currentNode]
             }
             path.unshift(startNode)
             return {
                 distance: weightings[endNode],
-                path: path.map(e => parseInt(e)),
+                path: path,
             }
         }
         // 更新当前节点相邻节点的距离
         unvisitedNodes.splice(unvisitedNodes.indexOf(currentNode), 1)
         for (let neighbor in graph[currentNode]) {
             let weighting = graph[currentNode][neighbor]
-            const transfer = getTransfer(currentNode, predecessors[currentNode], neighbor)
-            if (transfer != null) {
-                weighting += transfer.time
-                transferInfo[currentNode] = transfer
-            }
             let totalDistance = weightings[currentNode] + weighting
             if (totalDistance < weightings[neighbor]) {
                 weightings[neighbor] = totalDistance
