@@ -1,3 +1,5 @@
+import {MAIN_STATION_PREFIX} from "src/utils/route-plan";
+
 const ROUTE_COST_THRESHOLD = {
     0: 1.2,
     1: 1.12,
@@ -9,15 +11,15 @@ const ROUTE_COST_THRESHOLD = {
  * @param {{}} graph
  * @param {String} start
  * @param {String} end
- * @param {Array} path
  * @param {Map[Number:Boolean]} visited 记录访问过的节点
  * @param cb
+ * @param curPlan
  * @param minCostPlan 最短路径的距离/成本
  */
-export async function findAllPaths(graph, start, end, cb, minCostPlan, path = [], visited) {
-    if (!visited) {
-        visited = new Map(Object.keys(graph).map(e => [e.toString(), false]))
-    }
+export async function findAllPaths(graph, start, end, cb, minCostPlan, curPlan = null, visited) {
+    const {path, distance} = curPlan || {path: [], distance: 0}
+    visited = visited || new Map(Object.keys(graph).map(e => [e.toString(), false]))
+
     visited.set(start, true)
     path.push(start)
 
@@ -26,34 +28,28 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, path = []
         visited.set(start, false)
     }
 
-    if (path.length >= 3) {
-        const n1 = path.slice(-3)[0]
-        const n2 = path.slice(-2)[0]
-        const n3 = path.slice(-1)[0]
-        if (graph[n1][n2] === 0 && graph[n2][n3] === 0) {
-            path.pop()
-            visited.set(start, false)
-            return
-        }
-    }
-
     // 如果当前路径的总代价已经大于最短路径的代价，可以停止
-    const currentCost = path.reduce((acc, node, idx) => {
-        if (idx === 0) return 0
-        const fromNode = path[idx - 1]
-        const d = graph[fromNode][node]
-        return acc + d
-    }, 0)
+    let currentDistance
+    if (distance === 0) {
+        currentDistance = path.reduce((acc, node, idx) => {
+            if (idx === 0) return 0
+            const fromNode = path[idx - 1]
+            const d = graph[fromNode][node]
+            return acc + d
+        }, 0)
+    } else {
+        currentDistance = distance + graph[path.slice(-2)[0]][path.slice(-1)[0]]
+    }
 
     const transfers = findTransfers(graph, path)
     //如果换乘次数比最小成本方案的换乘次数多2次及以上 则停止查找当前路径
     let transferCountDiff = transfers.length - minCostPlan.transfers.length
 
     let needToStopRoute = transferCountDiff > 2 ||
-        (transferCountDiff === 0 && currentCost > minCostPlan.distance * ROUTE_COST_THRESHOLD[0]) ||
-        (transferCountDiff === 1 && currentCost > minCostPlan.distance * ROUTE_COST_THRESHOLD[1]) ||
-        (transferCountDiff === 2 && currentCost > minCostPlan.distance * ROUTE_COST_THRESHOLD[2]) ||
-        (transferCountDiff < 0 && ((transfers.length === 0 && currentCost > minCostPlan.distance * 1.5) || (currentCost > minCostPlan.distance * 1.3)))
+        (transferCountDiff === 0 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[0]) ||
+        (transferCountDiff === 1 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[1]) ||
+        (transferCountDiff === 2 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[2]) ||
+        (transferCountDiff < 0 && ((transfers.length === 0 && currentDistance > minCostPlan.distance * 1.5) || (currentDistance > minCostPlan.distance * 1.3)))
     if (needToStopRoute) {
         stopRoute()
         return
@@ -61,12 +57,12 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, path = []
 
 
     if (start === end) {
-        cb(path)
+        cb({path, distance: currentDistance})
     } else if (graph[start]) {
         for (let k of Object.keys(graph[start])) {
             k = k.toString()
             if (!visited.get(k)) {
-                await findAllPaths(graph, k, end, cb, minCostPlan, path, visited)
+                await findAllPaths(graph, k, end, cb, minCostPlan, {path, distance: currentDistance}, visited)
             }
         }
     }
@@ -77,15 +73,7 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, path = []
 
 export function findTransfers(graph, path) {
     if (path.length <= 2) return []
-    return path.slice(0, -1).reduce((acc, node, idx) => {
-        if (idx < 2) return []
-        const fromNode = path[idx - 1]
-        const d = graph[fromNode][node]
-        if (d === 0) {
-            acc.push([fromNode, node])
-        }
-        return acc
-    }, [])
+    return path.slice(1, -1).filter(it => it.startsWith(MAIN_STATION_PREFIX))
 }
 
 export function findShortestPath(graph, start, end, via = []) {
