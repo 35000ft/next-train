@@ -1,3 +1,9 @@
+const ROUTE_COST_THRESHOLD = {
+    0: 1.2,
+    1: 1.12,
+    2: 1.05
+}
+
 /**
  * 找出所有路径
  * @param {{}} graph
@@ -41,19 +47,14 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, path = []
 
     const transfers = findTransfers(graph, path)
     //如果换乘次数比最小成本方案的换乘次数多2次及以上 则停止查找当前路径
-    let transferCountDiff = transfers.length - minCostPlan.transfers.length;
-    if (transferCountDiff > 2) {
-        stopRoute()
-        return
-    } else if (transferCountDiff === 2) {
-        if (currentCost > minCostPlan.distance * 1.05) {
-            stopRoute()
-            return
-        }
-    }
+    let transferCountDiff = transfers.length - minCostPlan.transfers.length
 
-    //如果当前成本大于最小成本的1.2倍 则停止查找当前路径
-    if (currentCost > minCostPlan.distance * 1.2) {
+    let needToStopRoute = transferCountDiff > 2 ||
+        (transferCountDiff === 0 && currentCost > minCostPlan.distance * ROUTE_COST_THRESHOLD[0]) ||
+        (transferCountDiff === 1 && currentCost > minCostPlan.distance * ROUTE_COST_THRESHOLD[1]) ||
+        (transferCountDiff === 2 && currentCost > minCostPlan.distance * ROUTE_COST_THRESHOLD[2]) ||
+        (transferCountDiff < 0 && ((transfers.length === 0 && currentCost > minCostPlan.distance * 1.5) || (currentCost > minCostPlan.distance * 1.3)))
+    if (needToStopRoute) {
         stopRoute()
         return
     }
