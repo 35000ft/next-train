@@ -105,12 +105,12 @@ import LineIcon from "components/LineIcon.vue";
 export default defineComponent({
     components: {LineIcon, BottomModal},
     setup(_0, {emit}) {
+        let event = null
         const display = ref(false)
         const keyword = ref('')
         const {t} = useI18n()
         const loading = ref(true)
         const currentRailSystem = computed(() => store.getters["railsystem/currentRailSystem"])
-        const currentStation = computed(() => store.getters['preference/currentStation'])
         const ALL_STR = t('all')
         const currentSearchGroup = ref(ALL_STR)
         const searchGroups = ref([ALL_STR])
@@ -258,12 +258,9 @@ export default defineComponent({
         }
 
         const handleSelect = (station, line) => {
-            if (station.id === currentStation.value.id && !line) {
-                return
-            }
             const lineId = line ? line.id : null
             store.dispatch('preference/addHistoryStation', station)
-            emit('select', station.id, lineId)
+            emit('select', station.id, lineId, event)
             display.value = false
         }
 
@@ -274,8 +271,11 @@ export default defineComponent({
             }
         }
 
-        const showSelector = () => {
+        const showSelector = (_event) => {
             display.value = true
+            if (_event) {
+                event = _event
+            }
             if (currentSearchGroup.value === ALL_STR) {
                 loading.value = true
                 loadStations(ALL_STR).then(r => {

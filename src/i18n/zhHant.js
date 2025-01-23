@@ -81,4 +81,6 @@ export default {
     delete: "刪除",
     confirmDelete: "確認刪除嗎？",
     frqUsedStation: "常用車站",
+    pleaseSelectArrStation: '请选择到达车站',
+    via: '經由',
 }

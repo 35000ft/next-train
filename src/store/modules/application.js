@@ -2,14 +2,18 @@ import {reactive, toRaw} from "vue";
 import {isEqual} from "lodash";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {generateUUID} from "src/utils/crypto_utils";
+import {LocalStorage} from "quasar";
 
-
+const LOCAL_STORAGE_KEYS = {
+    METRO_GO_CONFIG: 'MetroGoConfig',
+}
 const state = {
     shownStationId: reactive(null),
     overlayStack: reactive([]),
     // 相对当前时间的偏移秒数
     timeOffsetSeconds: 0,
     shownTrainInfo: reactive(null),
+    metroGoViewConfig: null
 };
 const mutations = {
     SET_SHOWN_TRAININFO(state, {trainInfo}) {
@@ -37,13 +41,19 @@ const mutations = {
     POP_OVERLAY(state, {id}) {
         if (state.overlayStack.length > 0) {
             const top = state.overlayStack.slice(-1)[0]
-            console.log('pop ov', top, id)
             if (top.id === id) {
-                console.log('pop overlay, component id:', id)
                 state.overlayStack.splice(state.overlayStack.length - 1, 1)
             }
         }
     },
+    SET_METRO_CONFIG(state, config) {
+        state.metroGoViewConfig = config
+        const value = JSON.stringify(config)
+        console.log('vas json', value)
+        if (value) {
+            localStorage.setItem(LOCAL_STORAGE_KEYS.METRO_GO_CONFIG, value)
+        }
+    }
 };
 
 const actions = {
@@ -61,7 +71,28 @@ const actions = {
     popOverlay({commit, state}, {id}) {
         commit('POP_OVERLAY', {id})
     },
-
+    getMetroGoViewConfig({commit, state}) {
+        if (state.metroGoViewConfig) {
+            return state.metroGoViewConfig
+        }
+        const item = localStorage.getItem(LOCAL_STORAGE_KEYS.METRO_GO_CONFIG);
+        if (item) {
+            const config = JSON.parse(item)
+            commit('SET_METRO_CONFIG', config)
+            return config
+        } else {
+            const currentStation = this.getters['preference/currentStation']
+            if (!currentStation) {
+                const initConfig = {
+                    from: null,
+                    to: null,
+                    depTime: null,
+                }
+                commit('SET_METRO_CONFIG', initConfig)
+                return initConfig
+            }
+        }
+    }
 };
 
 const getters = {
