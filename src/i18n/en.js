@@ -83,4 +83,6 @@ export default {
     frqUsedStation: "Station Shortcut",
     pleaseSelectArrStation: 'Please select your arrival station',
     via: 'Via Station',
+    depart: 'Depart',
+    now: 'Now',
 }

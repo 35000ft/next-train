@@ -40,6 +40,14 @@
                 <div class="sec-lang-station-name" v-if="arrivalStation"> {{ arrivalStation.enName }}</div>
             </div>
 
+            <div class="depart-time-wrapper">
+                    <span @click="handleSetDepTime"
+                          class="depart-time">
+                      {{ depTimeStr }}
+                    </span>
+                {{ t('depart') }}
+            </div>
+
             <div class="go-wrapper" style="margin-top: 30px;">
                 <div @click="handleGo" class="go-btn-wrapper">
                     Go!
@@ -48,18 +56,28 @@
         </div>
     </q-page-container>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
+    <depart-time-selector ref="departTimeSelector" @select="handleSetDepTime"/>
 </template>
 
 <script setup>
 import {useI18n} from "vue-i18n";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import StationSelector from "components/StationSelector.vue";
 import {useStore} from "vuex";
+import DepartTimeSelector from "components/DepartTimeSelector.vue";
 
 defineOptions({
     name: 'MetroGoView'
 })
-
+const depTimeStr = computed(() => {
+    if (depTime.value) {
+        return depTime.value.format('HH:mm')
+    } else {
+        return t('now')
+    }
+})
+const depTime = ref(null)
+const departTimeSelector = ref(null)
 const departStation = ref(null)
 const arrivalStation = ref(null)
 const store = useStore()
@@ -75,7 +93,9 @@ const init = () => {
         }
     })
 }
-
+const handleSetDepTime = () => {
+    departTimeSelector.value.showSelector()
+}
 const stationSelector = ref(null)
 const via = ref([])
 const exchangeDepArr = () => {
@@ -237,12 +257,23 @@ const props = defineProps({})
     line-height: 30px;
     font-weight: bold;
     display: block;
-    color: rgb(54, 89, 143);
+    color: var(--q-primary-d);
 }
 
 .via-station-wrapper .close {
     position: absolute;
     right: 10%;
+}
+
+.depart-time-wrapper {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--q-grey);
+}
+
+.depart-time {
+    color: var(--q-primary-d);
 }
 
 </style>

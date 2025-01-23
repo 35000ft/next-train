@@ -83,4 +83,6 @@ export default {
     frqUsedStation: "常用車站",
     pleaseSelectArrStation: '请选择到达车站',
     via: '經由',
+    depart: '出發',
+    now: '現時',
 }
