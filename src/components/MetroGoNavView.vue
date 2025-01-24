@@ -10,6 +10,9 @@
                 <div class="local-lang-station-name" style="margin-bottom: 10px;" v-if="departStation">
                     {{ departStation.name }}
                 </div>
+                <div style="margin-bottom: 10px;font-size: 28px;text-align: center;" v-else>
+                    {{ t('pleaseSelectDepStation') }}
+                </div>
                 <div class="sec-lang-station-name" v-if="departStation">{{ departStation.enName }}</div>
             </div>
 

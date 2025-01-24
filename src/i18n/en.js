@@ -82,6 +82,7 @@ export default {
     confirmDelete: "Confirm to delete?",
     frqUsedStation: "Station Shortcut",
     pleaseSelectArrStation: 'Please select your arrival station',
+    pleaseSelectDepStation: 'Please select your departure station',
     via: 'Via Station',
     depart: 'Depart',
     now: 'Now',

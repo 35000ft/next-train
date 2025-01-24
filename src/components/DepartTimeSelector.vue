@@ -6,13 +6,11 @@
                 <div style="font-size: 28px;font-weight:bold;color: var(--q-primary-d);text-align: center;">
                     设定出发时间
                 </div>
-                <div @click="changeDepDate" class="date-picker-wrapper">
-                        <span
-                            ref="dateSelector"
-                            @animationend="onAnimationend"
-                            class="switch-icon"></span>
-                    <span>今日</span>
-                    <span>次日</span>
+                <div @click="changeDepDate" class="date-picker-wrapper"
+                     :class="todayDepart ? 'today-depart' : 'tomorrow-depart'">
+                    <span class="switch-icon"></span>
+                    <span class="day-text today-text">今日</span>
+                    <span class="day-text tomorrow-text">次日</span>
                 </div>
                 <div class="time-input-wrapper" style="margin-top: 15px;">
                     <q-input filled mask="time" :rules="['time']"
@@ -65,15 +63,10 @@ export default defineComponent(
         components: {BottomModal},
         setup(_0, {emit}) {
             const dateSelector = ref(null)
-            const onAnimationend = () => {
-                console.log('onAnimationend')
-                showAnimate.value = false
-            }
             const todayDepart = ref(true)
             const display = ref(false)
             const {t} = useI18n()
             const depTime = ref(dayjs())
-            const showAnimate = ref(false)
             const depTimeString = ref(new dayjs().format('HH:mm'))
             const handleCloseSelector = () => {
                 display.value = false
@@ -110,41 +103,24 @@ export default defineComponent(
             const changeDepDate = (event, isNow) => {
                 if (isNow === true) {
                     if (todayDepart.value) return
-                    showAnimate.value = true
                     todayDepart.value = true
                 } else {
-                    showAnimate.value = true
                     todayDepart.value = !todayDepart.value
                 }
             }
-            watch(showAnimate, (_showAnimate, old) => {
-                if (!_showAnimate) {
-                    if (!todayDepart.value) {
-                        dateSelector.value.style.left = "50%"
-                    }
-                } else {
-                    const animationName = todayDepart.value
-                        ? "move-date-selector-transition .3s reverse"
-                        : "move-date-selector-transition .3s";
-                    console.log('d', dateSelector.value.style)
-                    dateSelector.value.style.animation = animationName
-                    console.log('d2', dateSelector.value.style)
-                }
-            })
             return {
                 displaySelector: display,
                 handleCloseSelector,
                 changeDepTime,
                 changeDepDate,
                 handleSelect,
-                onAnimationend,
                 t,
                 depTimeString,
                 showSelector,
                 handleSelectTime,
                 dateSelector,
                 depTime,
-                showAnimate,
+                todayDepart,
             }
         }
     }
@@ -184,7 +160,7 @@ export default defineComponent(
 }
 
 .green-color {
-    color: #008538;
+    color: var(--q-green);
 }
 
 .time-btn {
@@ -197,7 +173,7 @@ export default defineComponent(
     height: 30px;
     margin-left: 3px;
     margin-right: 3px;
-    color: #008538;
+    color: var(--q-green);
     transition: .3s;
 }
 
@@ -224,7 +200,7 @@ export default defineComponent(
     transform: translate(-50%, -50%);
     bottom: 20px;
     transition: .3s;
-    background-color: #008538;
+    background-color: var(--q-green);
     -moz-user-select: none;
 }
 
@@ -257,9 +233,38 @@ export default defineComponent(
     position: absolute;
     width: 50%;
     z-index: 0;
-    background-color: #008538;
+    background-color: var(--q-green);
     height: 100%;
     border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.day-text {
+    color: var(--q-grey-3);
+}
+
+.today-depart {
+    .switch-icon {
+        transform: translateX(0);
+    }
+
+    .today-text {
+        color: #ffffff;
+    }
+}
+
+.tomorrow-depart {
+    .switch-icon {
+        transform: translateX(100%);
+    }
+
+    .tomorrow-text {
+        color: #ffffff;
+    }
+}
+
+.move-right {
+    transform: translateX(100%);
 }
 
 </style>

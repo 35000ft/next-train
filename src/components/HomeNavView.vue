@@ -54,6 +54,7 @@ import FocusTrainsView from "components/FocusTrainsView.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
 import {planRoute} from "src/utils/route-plan";
+import {trainViaParser} from "src/models/Train";
 
 defineOptions({
     name: 'HomeView'
@@ -75,7 +76,7 @@ const currentStationId = computed(() => {
 onMounted(() => {
     loadRuleFavStation()
     store.dispatch('railsystem/getRailSystemGraph', {code: 'NJMTR'}).then(graph => {
-        planRoute(graph, 168, 32)
+        planRoute(graph, 168, 32,)
     })
 })
 const loadRuleFavStation = () => {

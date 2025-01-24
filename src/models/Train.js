@@ -126,7 +126,7 @@ const trainScheduleParser = (schedule, date) => {
  * @param {Object}trainInfo
  * @returns {[{toIndex: number, lineId: string, fromIndex: number}]}
  */
-const trainViaParser = (trainInfo) => {
+const trainLineOfStopParser = (trainInfo) => {
     const {viaCode, schedule} = trainInfo
     let segments = viaCode.split("_")
     if (segments.length > 0) {
@@ -153,12 +153,45 @@ const trainViaParser = (trainInfo) => {
     return []
 }
 
+/**
+ *
+ * @param viaString 1@1D-32@1U
+ * @return [] [{lineId: '1', from:{id:'1', direction:'+'}, to:{id:'32', direction:'-'}}]
+ *
+ */
+const trainViaParser = (viaString) => {
+    let useLines = viaString.split('-')
+    useLines = useLines.reduce((result, value, index) => {
+        if (index === 0) return result
+        if ((index + 1) % 2 === 0) {
+            const [from, to] = useLines.slice(index - 1, index + 1)
+            const [fromId, fromLine] = from.split('@')
+            const [toId, toLine] = to.split('@')
+            const r = {
+                lineId: fromLine.substring(0, fromLine.length - 1),
+                from: {
+                    id: fromId,
+                    direction: fromLine.substring(fromLine.length - 1) === 'D' ? '+' : '-'
+                },
+                to: {
+                    id: toId,
+                    direction: toLine.substring(toLine.length - 1) === 'D' ? '+' : '-'
+                }
+            }
+            result.push(r)
+        }
+        return result
+    }, [])
+    console.log('toLine', useLines)
+    return useLines
+}
 
 export {
     TRAIN_CATEGORY,
     TRAIN_STATUS,
+    trainViaParser,
     calcTrainStatus,
     categoryParser,
-    trainViaParser,
+    trainLineOfStopParser,
     trainScheduleParser
 }

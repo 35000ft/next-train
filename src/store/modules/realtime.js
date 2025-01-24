@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import LRU from "src/utils/LRU";
-import {trainScheduleParser, trainViaParser} from "src/models/Train";
+import {trainScheduleParser, trainLineOfStopParser} from "src/models/Train";
 import {reactive} from "vue";
 import {isAfterNow} from "src/utils/time-utils";
 import {fetchScheduleHeader, fetchStationTrainInfo, fetchTrainInfoById} from "src/apis/reailtime";
@@ -155,7 +155,7 @@ const actions = {
                 return Promise.reject("No such trainInfo. id:" + trainInfoId)
             }
             //TODO 待实现根据车次时刻表设置默认date设置
-            trainInfo.trainVia = trainViaParser(trainInfo)
+            trainInfo.trainVia = trainLineOfStopParser(trainInfo)
             if (!date) {
                 const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
                 const nowTime = this.getters['application/getNowTime'](railsystem.timezone) || dayjs()
