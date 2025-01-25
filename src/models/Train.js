@@ -102,6 +102,18 @@ const categoryParser = (category) => {
     return TRAIN_CATEGORY[category] || TRAIN_CATEGORY.LOCAL
 }
 
+const stopInfoParse = (stopInfo) => {
+    if (stopInfo instanceof Array && stopInfo.length === 5) {
+        return {
+            stationId: stopInfo[0],
+            stationName: stopInfo[1],
+            arr: dayjs(stopInfo[2]),
+            dep: dayjs(stopInfo[3]),
+            platform: stopInfo[4]
+        }
+    }
+}
+
 /**
  *
  * @param {[]}schedule
@@ -116,6 +128,7 @@ const trainScheduleParser = (schedule, date) => {
                 stationName: it[1],
                 arr: dayjs(date).startOf('day').add(it[2], 'seconds'),
                 dep: dayjs(date).startOf('day').add(it[3], 'seconds'),
+                platform: it[4]
             }
         })
     }
@@ -191,6 +204,7 @@ export {
     TRAIN_STATUS,
     trainViaParser,
     calcTrainStatus,
+    stopInfoParse,
     categoryParser,
     trainLineOfStopParser,
     trainScheduleParser

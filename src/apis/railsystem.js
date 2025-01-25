@@ -82,3 +82,14 @@ export async function fetchGraph(railsystemCode) {
         })
 }
 
+export async function fetchTransfers(railsystemCode) {
+    const url = `api/file/railsystem/transfers/${railsystemCode}`
+    return await axios
+        .get(url)
+        .then(res => {
+            return res.data.data || res.data
+        })
+        .catch(err => {
+            return Promise.reject(err)
+        })
+}

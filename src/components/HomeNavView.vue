@@ -55,6 +55,7 @@ import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
 import {planRoute} from "src/utils/route-plan";
 import {trainViaParser} from "src/models/Train";
+import dayjs from "dayjs";
 
 defineOptions({
     name: 'HomeView'
@@ -76,7 +77,12 @@ const currentStationId = computed(() => {
 onMounted(() => {
     loadRuleFavStation()
     store.dispatch('railsystem/getRailSystemGraph', {code: 'NJMTR'}).then(graph => {
-        planRoute(graph, 168, 32,)
+        planRoute(graph, 45, 17, ({stationId, lineId, depTime}) => {
+                return store.dispatch('realtime/fetchStationTrainAtTime', {stationId, lineId, depTime})
+            },
+            () => {
+            }
+            , new dayjs())
     })
 })
 const loadRuleFavStation = () => {

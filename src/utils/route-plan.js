@@ -1,7 +1,10 @@
 import {dijkstra, findAllPaths, findTransfers} from "src/utils/route-algorithm";
 import dayjs from "dayjs";
+import {stopInfoParse} from "src/models/Train";
 
 export const MAIN_STATION_PREFIX = "M"
+// 最短换乘时间 30秒
+const MIN_TRANSFER_TIME = 30
 
 /**
  *
@@ -30,7 +33,7 @@ function initGraph(rawGraph, fromMainId, toMainId) {
                 acc[_mainStationId][toId] = 0
                 acc[toId][_mainStationId] = 0
 
-                const subStationFromId = fromId.replace(/^[+-]/, '')
+                const subStationFromId = fromId.split('-')[0]
                 acc[subStationFromId] = acc[subStationFromId] || {}
                 acc[subStationFromId][_mainStationId] = 0
                 return acc
@@ -40,7 +43,6 @@ function initGraph(rawGraph, fromMainId, toMainId) {
                 lineId
             })
             acc[fromId][toId] = distance
-
             return acc
         }, {})
 
@@ -93,7 +95,7 @@ function parseRoute(subIdToMainMap, path) {
 }
 
 
-export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, depTime = dayjs(), cb) {
+export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
     const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId)
     const start = MAIN_STATION_PREFIX + fromMainId;
     const end = MAIN_STATION_PREFIX + toMainId;
@@ -103,15 +105,19 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, dep
     console.log('path min cost:', shortest)
     await findAllPaths(graph, start, end, ({path, distance}) => {
         const parsedPath = parseRoute(subIdToMainMap, path)
-        planOnePathSolution({
-            distance,
-            physicalPath: path,
-            parsedPath
-        }, depTime, trainGetter).then(solution => {
-            if (cb) {
-                cb(solution)
-            }
-        })
+        planOnePathSolution(
+            {
+                distance,
+                path,
+                parsedPath
+            },
+            depTime,
+            trainGetter,
+            transferInfoGetter,
+            //规划成功回调
+            (solution) => {
+
+            })
     }, shortest,)
 }
 
@@ -122,18 +128,108 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, dep
  * @param {Array<{}>} parsedPath 转为使用各条线路的路径
  * @param {dayjs.Dayjs} depTime 出发时间
  * @param {Function} trainGetter 获取符合条件的车次的函数 接受参数 {lineId,stationId,depTime}
+ * @param transferInfoGetter
+ * @param cb
  */
-async function planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter) {
-
+async function planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter, cb) {
+    const {lineId, stationIds} = parsedPath[0]
+    await trainGetter({lineId, stationId: stationIds[0], depTime}).then(trainInfoList => {
+        console.log('ttr', trainInfoList)
+        const promises = trainInfoList.map(t => recursivePlan(t, parsedPath, depTime, trainGetter, transferInfoGetter, [], cb))
+    })
 }
 
 /**
- * 查找一趟车最多能坐到哪个站
+ *
  * @param {{}} trainInfo
  * @param {Array<{}>} parsedPath
+ * @param lastDepTime
+ * @param trainGetter
+ * @param transferInfoGetter
+ * @param trains
+ * @param cb
+ * @param preTransferInfo 上一个换乘点信息 用于检查车次出发时间是否满足换乘需求
  */
-function findGetOffStation(trainInfo, parsedPath) {
+async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, transferInfoGetter, trains = [], cb, preTransferInfo) {
+    let isFind = false
+    const stopStationIds = trainInfo.schedule.map(it => it[0])
+    let i = 0
+    let getOffIndex = -1
+    let getOnIndex = -1
+    let indexOffset = -1
+    for (; i < parsedPath.length; i++) {
+        const {stationIds} = parsedPath[i]
+        if (i === 0) {
+            getOnIndex = stopStationIds.indexOf(stationIds[0])
+            if (getOnIndex === -1) {
+                break
+            }
+            if (preTransferInfo) {
+                //Check if depart time match transfer require
+                const getOnStop = stopInfoParse(trainInfo.schedule[getOnIndex])
+                const transferCondition = {
+                    fromPlat
+                }
 
+            }
+        }
+        indexOffset = 0
+        const getOffStationId = [...stationIds].reverse().find(item => stopStationIds.includes(item))
+        getOffIndex = stopStationIds.lastIndexOf(getOffStationId)
+        if (getOffIndex <= getOnIndex) {
+            isFind = false
+            break
+        } else {
+            isFind = true
+            indexOffset = stationIds.indexOf(getOffStationId)
+            if (indexOffset < stationIds.length - 1) {
+                break
+            }
+        }
+    }
+    if (isFind && getOnIndex > 0) {
+        const train = {
+            getOnIndex,
+            getOffIndex,
+            trainInfo
+        }
+        trains.push(train)
+        if (parsedPath.length === 1 && indexOffset === parsedPath[0].stationIds.length - 1) {
+            //到达终点
+            console.log('Arrived', trains)
+            cb(trains)
+            return Promise.resolve()
+        }
+        // assert i >= 1
+        if (i < 1) {
+            console.warn('parsedPath index i less then 1!')
+            return
+        }
+        //TODO
+        const nextParsedPath = parsedPath.slice(i)
+        if (indexOffset > 0) {
+            nextParsedPath[nextParsedPath.length - 1].stationIds = nextParsedPath[0].stationIds.slice(indexOffset)
+        }
+        const curLineId = parsedPath[i - 1].lineId
+        const nextLineId = indexOffset > 0 ? curLineId : nextParsedPath[0].lineId
+
+        const getOffStop = stopInfoParse(trainInfo.schedule[getOffIndex])
+        const currentStationId = getOffStop.stationId
+        const transferFromInfo = {
+            platform: getOffStop.platform,
+            stationId: getOffStop.stationId,
+            arrTime: getOffStop.arr
+        }
+        console.log('next', getOffStop, currentStationId, transferFromInfo)
+
+        trainGetter({
+            stationId: currentStationId,
+            lineId: nextLineId,
+            depTime: lastDepTime.add(MIN_TRANSFER_TIME, 'second')
+        })
+
+    }
 }
+
 
 

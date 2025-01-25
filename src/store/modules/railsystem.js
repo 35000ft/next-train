@@ -1,6 +1,6 @@
 import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
-import {fetchGraph, fetchLine, fetchLines, fetchStation, fetchStations} from "src/apis/railsystem";
+import {fetchGraph, fetchLine, fetchLines, fetchStation, fetchStations, fetchTransfers} from "src/apis/railsystem";
 
 
 const railSystems = {
@@ -67,6 +67,9 @@ const actions = {
     },
     async getRailSystemGraph({state, commit}, {code}) {
         return fetchGraph(code)
+    },
+    async getRailSystemTransferInfo({state, commit}, {code}) {
+        return fetchTransfers(code)
     },
     async getStation({state, commit}, {stationId}) {
         if (!stationId) {

@@ -251,7 +251,7 @@ function toDayjs(_date) {
     if (_date instanceof Date) {
         return dayjs(_date)
     }
-    if (_date instanceof dayjs.Dayjs) {
+    if (dayjs.isDayjs(_date)) {
         return _date
     }
     console.warn(`${_date} is neither not string, nor Date, Dayjs!`)
@@ -309,6 +309,11 @@ export function formatToHHMM(_date) {
 function timeStringToMinutes(timeStr) {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
+}
+
+export function toLocalDatetime(_time) {
+    _time = toDayjs(_time)
+    return _time.format('YYYY-MM-DDTHH:mm:ss')
 }
 
 /**

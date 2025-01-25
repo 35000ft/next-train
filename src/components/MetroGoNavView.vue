@@ -43,7 +43,7 @@
                 <div class="sec-lang-station-name" v-if="arrivalStation"> {{ arrivalStation.enName }}</div>
             </div>
 
-            <div class="depart-time-wrapper">
+            <div class="depart-time-wrapper" style="margin-top: 20px;">
                     <span @click="handleSetDepTime"
                           class="depart-time">
                       {{ depTimeStr }}
@@ -68,6 +68,8 @@ import {computed, onMounted, ref} from "vue";
 import StationSelector from "components/StationSelector.vue";
 import {useStore} from "vuex";
 import DepartTimeSelector from "components/DepartTimeSelector.vue";
+import {fetchStationTrainInfoAtTime} from "src/apis/reailtime";
+import dayjs from "dayjs";
 
 defineOptions({
     name: 'MetroGoView'
