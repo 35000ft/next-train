@@ -4,7 +4,19 @@ const routes = [
         component: () => import('layouts/MainLayout.vue'),
         children: [
             {name: 'home', path: '', component: () => import('components/HomeNavView.vue')},
-            {name: 'metro-go', path: 'metro-go', component: () => import('components/MetroGoNavView.vue')},
+            {
+                name: 'metro-go', path: 'metro-go', component: () => import('components/MetroGoNavView.vue'),
+                children: [
+                    {
+                        name: 'route-solution-overview',
+                        path: 'solutions',
+                        component: () => import('components/RouteDispatcher.vue'),
+                        meta: {
+                            componentName: 'RouteSolutionOverview'
+                        }
+                    }
+                ]
+            },
             {name: 'lines', path: 'lines', component: () => import('components/LinesNavView.vue')},
             {
                 name: 'train-info-detail',

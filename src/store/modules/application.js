@@ -82,15 +82,22 @@ const actions = {
             return config
         } else {
             const currentStation = this.getters['preference/currentStation']
+            let initConfig
             if (!currentStation) {
-                const initConfig = {
+                initConfig = {
                     from: null,
                     to: null,
                     depTime: null,
                 }
-                commit('SET_METRO_CONFIG', initConfig)
-                return initConfig
+            } else {
+                initConfig = {
+                    from: currentStation.id,
+                    to: null,
+                    depTime: null,
+                }
             }
+            commit('SET_METRO_CONFIG', initConfig)
+            return initConfig
         }
     }
 };

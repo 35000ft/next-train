@@ -70,6 +70,10 @@ import {useStore} from "vuex";
 import DepartTimeSelector from "components/DepartTimeSelector.vue";
 import {fetchStationTrainInfoAtTime} from "src/apis/reailtime";
 import dayjs from "dayjs";
+import {useQuasar} from "quasar";
+import {getNowByTimezone} from "src/utils/time-utils";
+import {planRoute} from "src/utils/route-plan";
+import {useRouter} from "vue-router";
 
 defineOptions({
     name: 'MetroGoView'
@@ -92,9 +96,19 @@ onMounted(() => {
 
 const init = () => {
     store.dispatch('application/getMetroGoViewConfig').then(config => {
-        const {from, to, depTime} = config
-        if (!from) {
-            departStation.value = store.getters['preference/currentStation']
+        const {from, to} = config
+        if (from) {
+            store.dispatch('railsystem/getStation', {stationId: from}).then(fromStation => {
+                departStation.value = fromStation
+            })
+        }
+        if (to) {
+            store.dispatch('railsystem/getStation', {stationId: to}).then(toStation => {
+                arrivalStation.value = toStation
+            })
+        }
+        if (config.depTime) {
+            depTime.value = dayjs(config.depTime)
         }
     })
 }
@@ -148,7 +162,27 @@ const handleDelVia = (viaStation) => {
         via.value.splice(index, 1)
     }
 }
+const router = useRouter()
+const $q = useQuasar()
 const handleGo = () => {
+    if (!departStation.value || !arrivalStation.value) {
+        $q.notify.info('请先选择出发车站和到达车站')
+        return
+    }
+    const {timezone, railsystemCode} = departStation.value
+    const _depTime = depTime.value || getNowByTimezone(timezone)
+    const fromMainId = departStation.value.id
+    const toMainId = arrivalStation.value.id
+
+    const params = {
+        fromMainId,
+        toMainId,
+        depTime: _depTime.format()
+    }
+    router.push({name: 'route-solution-overview', query: params})
+    store.dispatch('application/pushOverlay', {
+        component: {componentName: "RouteSolutionOverview"}
+    })
 
 }
 const {t} = useI18n()

@@ -97,6 +97,7 @@ export function findShortestPath(graph, start, end, via = []) {
  * @returns {{path: number[], distance: *}|{path: *[], distance: number}}
  */
 export function dijkstra(graph, startNode, endNode) {
+    console.log('graph', graph)
     startNode = startNode.toString()
     endNode = endNode.toString()
     // 初始化距离和前驱节点

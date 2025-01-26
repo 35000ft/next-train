@@ -2,8 +2,7 @@
     <OverlayView name="StationScheduleDetail">
         <template v-slot:header-center>
             <div v-if="lineScheduleHeaders && lineScheduleHeaders.length>0">
-                <q-btn-dropdown color="primary"
-                                unelevated>
+                <q-btn-dropdown color="primary" unelevated>
                     <template v-slot:label>
                         <div style="font-size: 18px;">{{ curDate.format('MM/DD · dddd') }}</div>
                     </template>

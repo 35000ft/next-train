@@ -1,6 +1,7 @@
 import {dijkstra, findAllPaths, findTransfers} from "src/utils/route-algorithm";
 import dayjs from "dayjs";
 import {stopInfoParse} from "src/models/Train";
+import _ from "lodash";
 
 export const MAIN_STATION_PREFIX = "M"
 // 最短换乘时间 30秒
@@ -27,11 +28,12 @@ function initGraph(rawGraph, fromMainId, toMainId) {
             if (transferId) {
                 acc[fromId][_mainStationId] = 0
                 acc[_mainStationId] = acc[_mainStationId] || {}
+                const subStationToId = toId.split('-')[0]
 
-                acc[toId] = acc[toId] || {}
+                acc[subStationToId] = acc[subStationToId] || {}
 
-                acc[_mainStationId][toId] = 0
-                acc[toId][_mainStationId] = 0
+                acc[_mainStationId][subStationToId] = 0
+                acc[subStationToId][_mainStationId] = 0
 
                 const subStationFromId = fromId.split('-')[0]
                 acc[subStationFromId] = acc[subStationFromId] || {}
@@ -76,7 +78,7 @@ function initGraph(rawGraph, fromMainId, toMainId) {
 function parseRoute(subIdToMainMap, path) {
     const result = []
     const {lineId, mainStationId} = subIdToMainMap.get(path[1])
-    result.push({lineId, stationIds: [mainStationId]})
+    result.push({lineId, stationIds: [mainStationId], subStationIds: [path[1]]})
     for (const node of path.slice(2, -1)) {
         const last = result.slice(-1)[0]
         if (node.startsWith(MAIN_STATION_PREFIX)) {
@@ -86,8 +88,9 @@ function parseRoute(subIdToMainMap, path) {
             if (!lineId) continue
             if (last.lineId === lineId) {
                 last.stationIds.push(mainStationId)
+                last.subStationIds.push(node)
             } else {
-                result.push({lineId, stationIds: [mainStationId]})
+                result.push({lineId, stationIds: [mainStationId], subStationIds: [node]})
             }
         }
     }
@@ -103,9 +106,11 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
 
     shortest['transfers'] = findTransfers(graph, shortest['path'])
     console.log('path min cost:', shortest)
+    const planPromises = []
+    const allSolutions = []
     await findAllPaths(graph, start, end, ({path, distance}) => {
         const parsedPath = parseRoute(subIdToMainMap, path)
-        planOnePathSolution(
+        const promise = planOnePathSolution(
             {
                 distance,
                 path,
@@ -116,9 +121,14 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
             transferInfoGetter,
             //规划成功回调
             (solution) => {
-
+                allSolutions.push(solution)
+                cb(solution)
             })
+        planPromises.push(promise)
     }, shortest,)
+    Promise.all(planPromises).then(res => {
+        console.log('All route plans are done', allSolutions)
+    })
 }
 
 /**
@@ -133,10 +143,18 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
  */
 async function planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter, cb) {
     const {lineId, stationIds} = parsedPath[0]
+    const solutions = []
+    const allPromises = []
     await trainGetter({lineId, stationId: stationIds[0], depTime}).then(trainInfoList => {
         console.log('ttr', trainInfoList)
-        const promises = trainInfoList.map(t => recursivePlan(t, parsedPath, depTime, trainGetter, transferInfoGetter, [], cb))
+        const promises = trainInfoList.map(t => recursivePlan(t, parsedPath, depTime, trainGetter, transferInfoGetter, [], (solution) => {
+            solutions.push(solution)
+            cb(solution)
+        }))
+        allPromises.push(...promises)
     })
+    await Promise.all(allPromises)
+    return solutions
 }
 
 /**
@@ -146,8 +164,8 @@ async function planOnePathSolution({distance, path, parsedPath}, depTime, trainG
  * @param lastDepTime
  * @param trainGetter
  * @param transferInfoGetter
- * @param trains
- * @param cb
+ * @param trains 当前使用的列车和换乘
+ * @param cb 成功回调
  * @param preTransferInfo 上一个换乘点信息 用于检查车次出发时间是否满足换乘需求
  */
 async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, transferInfoGetter, trains = [], cb, preTransferInfo) {
@@ -159,77 +177,100 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     let indexOffset = -1
     for (; i < parsedPath.length; i++) {
         const {stationIds} = parsedPath[i]
+
+        const getOffStationId = [...stationIds].reverse().find(item => stopStationIds.includes(item))
+        getOffIndex = stopStationIds.lastIndexOf(getOffStationId)
         if (i === 0) {
             getOnIndex = stopStationIds.indexOf(stationIds[0])
             if (getOnIndex === -1) {
-                break
+                return
+            }
+            if (getOffIndex <= getOnIndex) {
+                return
             }
             if (preTransferInfo) {
-                //Check if depart time match transfer require
+                const {fromPlatform, fromId, arrTime, fromMainId} = preTransferInfo
                 const getOnStop = stopInfoParse(trainInfo.schedule[getOnIndex])
-                const transferCondition = {
-                    fromPlat
+                const transferInfo = await transferInfoGetter({
+                    fromId,
+                    fromPlatform,
+                    fromMainId,
+                    toId: parsedPath[0].subStationIds[0],
+                    toPlatform: getOnStop.platform,
+                    toMainId: getOnStop.stationId
+                })
+                transferInfo.type = 'transfer'
+                if (arrTime.add(transferInfo.needTime, 'second').isAfter(getOnStop.dep)) {
+                    console.warn('Transfer time is not enough', `arrive time:${arrTime.format()}`, `dep time:${getOnStop.dep.format()}`, `transfer need time:${transferInfo.needTime}`)
+                    return
                 }
-
+                trains.push(transferInfo)
             }
         }
         indexOffset = 0
-        const getOffStationId = [...stationIds].reverse().find(item => stopStationIds.includes(item))
-        getOffIndex = stopStationIds.lastIndexOf(getOffStationId)
-        if (getOffIndex <= getOnIndex) {
-            isFind = false
+
+        isFind = true
+        indexOffset = stationIds.indexOf(getOffStationId)
+        if (indexOffset < stationIds.length - 1) {
             break
-        } else {
-            isFind = true
-            indexOffset = stationIds.indexOf(getOffStationId)
-            if (indexOffset < stationIds.length - 1) {
-                break
-            }
         }
+
     }
-    if (isFind && getOnIndex > 0) {
-        const train = {
-            getOnIndex,
-            getOffIndex,
-            trainInfo
-        }
-        trains.push(train)
-        if (parsedPath.length === 1 && indexOffset === parsedPath[0].stationIds.length - 1) {
-            //到达终点
-            console.log('Arrived', trains)
-            cb(trains)
-            return Promise.resolve()
-        }
-        // assert i >= 1
-        if (i < 1) {
-            console.warn('parsedPath index i less then 1!')
-            return
-        }
-        //TODO
-        const nextParsedPath = parsedPath.slice(i)
-        if (indexOffset > 0) {
-            nextParsedPath[nextParsedPath.length - 1].stationIds = nextParsedPath[0].stationIds.slice(indexOffset)
-        }
-        const curLineId = parsedPath[i - 1].lineId
-        const nextLineId = indexOffset > 0 ? curLineId : nextParsedPath[0].lineId
+    if (!isFind) return
+    const train = {
+        getOnIndex,
+        getOffIndex,
+        trainInfo,
+        type: 'train'
+    }
+    trains.push(train)
+    const getOffStop = stopInfoParse(trainInfo.schedule[getOffIndex])
+    const isArrived = parsedPath.length === 1 && getOffStop.stationId === parsedPath[0].stationIds.slice(-1)[0]
+    if (isArrived) {
+        //到达终点
+        console.log('Arrived', trains)
+        cb(trains)
+        return Promise.resolve(trains)
+    }
 
-        const getOffStop = stopInfoParse(trainInfo.schedule[getOffIndex])
-        const currentStationId = getOffStop.stationId
-        const transferFromInfo = {
-            platform: getOffStop.platform,
-            stationId: getOffStop.stationId,
-            arrTime: getOffStop.arr
-        }
-        console.log('next', getOffStop, currentStationId, transferFromInfo)
+    const nextParsedPath = _.cloneDeep(parsedPath.slice(i))
+    let transferFromId
+    const currentPathIndex = i > 0 ? i - 1 : 0
+    if (indexOffset > 0) {
+        //该车次未能到达一段path的终点 需要对该段path进行切割
+        nextParsedPath[nextParsedPath.length - 1].stationIds = nextParsedPath[0].stationIds.slice(indexOffset)
+        nextParsedPath[nextParsedPath.length - 1].subStationIds = nextParsedPath[0].subStationIds.slice(indexOffset)
+        transferFromId = parsedPath[i].subStationIds[indexOffset]
+    } else {
+        transferFromId = parsedPath[currentPathIndex].subStationIds.slice(-1)[0]
+    }
+    const curLineId = parsedPath[currentPathIndex].lineId
+    const nextLineId = indexOffset > 0 ? curLineId : nextParsedPath[0].lineId
 
-        trainGetter({
+    const currentStationId = getOffStop.stationId
+    const transferFromInfo = {
+        fromPlatform: getOffStop.platform,
+        fromId: transferFromId,
+        fromMainId: getOffStop.stationId,
+        arrTime: getOffStop.arr,
+        toId: nextParsedPath[0].subStationIds[0]
+    }
+
+    try {
+        const minTransfer = await transferInfoGetter(transferFromInfo);
+        lastDepTime = getOffStop.arr.add(minTransfer.needTime, 'second')
+        const nextTrainInfoList = await trainGetter({
             stationId: currentStationId,
             lineId: nextLineId,
-            depTime: lastDepTime.add(MIN_TRANSFER_TIME, 'second')
+            depTime: lastDepTime
         })
 
+        const promises = nextTrainInfoList.map(t =>
+            recursivePlan(t, nextParsedPath, lastDepTime, trainGetter, transferInfoGetter, [...trains], cb, transferFromInfo)
+        )
+        await Promise.all(promises)
+    } catch (error) {
+        console.error('Error in recursivePlan:', error)
+        return Promise.resolve(error)
     }
 }
-
-
-

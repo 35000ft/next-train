@@ -20,6 +20,7 @@ const state = {
     railSystems: reactive(new Map(Object.entries(railSystems))),
     stations: reactive(new LRUCache(100)),
     lines: reactive(new LRUCache(50)),
+    transferInfoMap: reactive(new LRUCache(5)),
 }
 
 const mutations = {
@@ -59,6 +60,9 @@ const mutations = {
             localStorage.setItem("station:" + station.id, JSON.stringify(station))
         }
     },
+    SET_TRANSFER_INFO(state, {railsystemCode, transferInfo}) {
+        state.transferInfoMap.set(railsystemCode, transferInfo)
+    }
 }
 
 const actions = {
@@ -68,8 +72,49 @@ const actions = {
     async getRailSystemGraph({state, commit}, {code}) {
         return fetchGraph(code)
     },
-    async getRailSystemTransferInfo({state, commit}, {code}) {
-        return fetchTransfers(code)
+    async getTransferInfo({state, commit}, {fromId, fromPlatform, toId, toPlatform, fromMainId}) {
+        const DEFAULT_TRANSFER_INFO = {
+            needTime: 30,
+            distance: 5,
+            category: 'SAME_PLATFORM'
+        }
+        if (fromId === toId && fromPlatform === toPlatform) {
+            return DEFAULT_TRANSFER_INFO
+        }
+        const fromStation = await this.dispatch('railsystem/getStation', {stationId: fromMainId})
+        const transferInfo = await this.dispatch('railsystem/getRailSystemTransferInfo', {railsystemCode: fromStation.railsystemCode})
+        const stationTransferInfo = transferInfo.filter(it => it.mainStationId.toString() === fromMainId)
+            .filter(it => it.fromId.startsWith(fromId))
+        if (!toPlatform) {
+            const temp = stationTransferInfo.filter(it => it.toId.startsWith(toId))
+            if (temp.length === 0) {
+                return DEFAULT_TRANSFER_INFO
+            } else {
+                return temp.sort((o1, o2) => o1.needTime - o2.needTime)[0]
+            }
+        }
+        const target = stationTransferInfo.find(it => it.fromId === fromId && it.toId === toId)
+            || stationTransferInfo.find(it => it.fromId === fromId && it.toId === `${toId}-${toPlatform}`)
+            || stationTransferInfo.find(it => it.fromId === `${fromId}-${fromPlatform}` && it.toId === toId)
+            || stationTransferInfo.find(it => it.fromId === `${fromId}-${fromPlatform}` && it.toId === toId)
+            || stationTransferInfo.find(it => it.fromId === `${fromId}-${fromPlatform}` && it.toId === `${toId}-${toPlatform}`)
+
+        if (!target) {
+            return DEFAULT_TRANSFER_INFO
+        }
+        return target
+    },
+    async getRailSystemTransferInfo({state, commit}, {railsystemCode}) {
+        const transferInfo = state.transferInfoMap.get(railsystemCode)
+        if (transferInfo) {
+            return transferInfo
+        }
+        return fetchTransfers(railsystemCode).then(transferInfo => {
+            commit('SET_TRANSFER_INFO', {railsystemCode, transferInfo})
+            return transferInfo
+        }).catch(err => {
+            console.error(`Fetch transfer info error. railsystemCode:${railsystemCode} err:`, err)
+        })
     },
     async getStation({state, commit}, {stationId}) {
         if (!stationId) {

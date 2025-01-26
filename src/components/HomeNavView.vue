@@ -76,14 +76,6 @@ const currentStationId = computed(() => {
 })
 onMounted(() => {
     loadRuleFavStation()
-    store.dispatch('railsystem/getRailSystemGraph', {code: 'NJMTR'}).then(graph => {
-        planRoute(graph, 45, 17, ({stationId, lineId, depTime}) => {
-                return store.dispatch('realtime/fetchStationTrainAtTime', {stationId, lineId, depTime})
-            },
-            () => {
-            }
-            , new dayjs())
-    })
 })
 const loadRuleFavStation = () => {
     store.dispatch('preference/getRuleFavourStation').then(_favStation => {
