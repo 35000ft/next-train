@@ -9,6 +9,13 @@
                 </div>
             </div>
         </template>
+        <template v-slot:default>
+            <div>
+                <div v-for="(solution,index) in solutions" :key="index">
+                    <OneSolutionOverview :solution="solution"></OneSolutionOverview>
+                </div>
+            </div>
+        </template>
     </OverlayView>
 </template>
 <script setup>
@@ -19,6 +26,7 @@ import {planRoute} from "src/utils/route-plan";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
+import OneSolutionOverview from "components/OneSolutionOverview.vue";
 
 const route = useRoute()
 
@@ -31,6 +39,7 @@ onMounted(() => {
 })
 const store = useStore()
 const $q = useQuasar()
+const solutions = ref([])
 
 async function init() {
     const params = route.query
@@ -55,6 +64,7 @@ async function init() {
                 })
             },
             _depTime, (solution) => {
+                solutions.value.push(solution)
                 console.log('sds', solution)
             }).then(allSolutions => {
             $q.notify.ok('全部方案已加载完成')

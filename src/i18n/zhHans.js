@@ -86,4 +86,5 @@ export default {
     via: '经由',
     depart: '出发',
     now: '现在',
+    kilometer: '公里',
 }

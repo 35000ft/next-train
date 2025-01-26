@@ -99,7 +99,6 @@ function parseRoute(subIdToMainMap, path) {
 
 
 export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
-    console.log('')
     const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId)
     const start = MAIN_STATION_PREFIX + fromMainId;
     const end = MAIN_STATION_PREFIX + toMainId;
@@ -121,7 +120,9 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
             trainGetter,
             transferInfoGetter,
             //规划成功回调
-            (solution) => {
+            (trains) => {
+                const solution = toSolution(trains)
+                solution.distance = distance
                 allSolutions.push(solution)
                 cb(solution)
             })
@@ -219,6 +220,20 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     }
     if (!isFind) return
     const train = {
+        get depTime() {
+            return this.depStop.dep
+        },
+        get arrTime() {
+            return this.arrStop.arr
+        },
+        get arrStationName() {
+            return this.depStop.stationName
+        },
+        get depStationName() {
+            return this.depStop.stationName
+        },
+        depStop: stopInfoParse(trainInfo.schedule[getOnIndex]),
+        arrStop: stopInfoParse(trainInfo.schedule[getOffIndex]),
         getOnIndex,
         getOffIndex,
         trainInfo,
@@ -273,5 +288,19 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     } catch (error) {
         console.error('Error in recursivePlan:', error)
         return Promise.resolve(error)
+    }
+}
+
+function toSolution(trains) {
+    const transfers = trains.filter(it => it.type === 'transfer')
+    const walkDistance = transfers.reduce((acc, cur) => {
+        return acc + cur.distance
+    }, 0)
+    return {
+        transferTimes: transfers.length,
+        walkDistance,
+        trains: trains,
+        depTime: trains[0].depTime,
+        arrTime: trains.slice(-1)[0].arrTime
     }
 }

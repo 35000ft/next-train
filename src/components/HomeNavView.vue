@@ -53,9 +53,6 @@ import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
-import {planRoute} from "src/utils/route-plan";
-import {trainViaParser} from "src/models/Train";
-import dayjs from "dayjs";
 
 defineOptions({
     name: 'HomeView'

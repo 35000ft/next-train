@@ -68,11 +68,9 @@ import {computed, onMounted, ref} from "vue";
 import StationSelector from "components/StationSelector.vue";
 import {useStore} from "vuex";
 import DepartTimeSelector from "components/DepartTimeSelector.vue";
-import {fetchStationTrainInfoAtTime} from "src/apis/reailtime";
 import dayjs from "dayjs";
 import {useQuasar} from "quasar";
 import {getNowByTimezone} from "src/utils/time-utils";
-import {planRoute} from "src/utils/route-plan";
 import {useRouter} from "vue-router";
 
 defineOptions({

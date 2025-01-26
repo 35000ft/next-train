@@ -239,7 +239,7 @@ const actions = {
 const getters = {
     currentRailSystem: state => state.currentRailSystem,
     lines: state => state.lines,
-    railsystemGetter: state => (code) => state.railSystems.get(code)
+    railsystemGetter: state => (code) => state.railSystems.get(code),
 }
 
 export default {

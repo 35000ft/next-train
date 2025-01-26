@@ -86,4 +86,5 @@ export default {
     via: '經由',
     depart: '出發',
     now: '現時',
+    kilometer: '公里',
 }

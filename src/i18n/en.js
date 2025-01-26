@@ -86,4 +86,5 @@ export default {
     via: 'Via Station',
     depart: 'Depart',
     now: 'Now',
+    kilometer: 'km',
 }
