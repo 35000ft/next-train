@@ -99,6 +99,7 @@ function parseRoute(subIdToMainMap, path) {
 
 
 export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
+    console.log('')
     const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId)
     const start = MAIN_STATION_PREFIX + fromMainId;
     const end = MAIN_STATION_PREFIX + toMainId;

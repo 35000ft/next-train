@@ -18,10 +18,10 @@ import {useRoute} from "vue-router";
 import {planRoute} from "src/utils/route-plan";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {useStore} from "vuex";
+import {useQuasar} from "quasar";
 
 const route = useRoute()
-const fromMainId = ref(null)
-const toMainId = ref(null)
+
 const depTime = ref(null)
 
 const departStation = ref(null)
@@ -30,23 +30,21 @@ onMounted(() => {
     init()
 })
 const store = useStore()
+const $q = useQuasar()
 
 async function init() {
     const params = route.query
-    fromMainId.value = params.fromMainId
-    toMainId.value = params.toMainId
+    const {fromMainId, toMainId} = params
     depTime.value = params.depTime
-    departStation.value = await store.dispatch('railsystem/getStation', {stationId: params.fromMainId})
-    store.dispatch('railsystem/getStation', {stationId: toMainId.value}).then(station => {
+    departStation.value = await store.dispatch('railsystem/getStation', {stationId: fromMainId})
+    store.dispatch('railsystem/getStation', {stationId: toMainId}).then(station => {
         arrivalStation.value = station
     })
     const {timezone, railsystemCode} = departStation.value
     const _depTime = depTime.value || getNowByTimezone(timezone)
-
     store.dispatch('railsystem/getRailSystemGraph', {code: railsystemCode}).then(graph => {
-        planRoute(graph, fromMainId, toMainId, ({stationId, lineId, depTime}) => {
-                return store.dispatch('realtime/fetchStationTrainAtTime', {stationId, lineId, depTime})
-            },
+        planRoute(graph, fromMainId, toMainId, ({stationId, lineId, depTime}) =>
+                store.dispatch('realtime/fetchStationTrainAtTime', {stationId, lineId, depTime}),
             ({fromId, fromPlatform, toId, toPlatform, fromMainId}) => {
                 return store.dispatch('railsystem/getTransferInfo', {
                     fromId,
@@ -59,7 +57,7 @@ async function init() {
             _depTime, (solution) => {
                 console.log('sds', solution)
             }).then(allSolutions => {
-
+            $q.notify.ok('全部方案已加载完成')
         })
     })
 }
