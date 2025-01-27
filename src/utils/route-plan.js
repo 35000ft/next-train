@@ -232,9 +232,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         get depStationName() {
             return this.depStop.stationName
         },
-        get terminal() {
-            return this.stops.slice(-1)[0]
-        },
+        terminal: stopInfoParse(trainInfo.schedule.slice(-1)[0]),
         isFirstStop: getOnIndex === 0,
         get depStop() {
             return this.stops[0]
