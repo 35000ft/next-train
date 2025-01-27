@@ -53,7 +53,6 @@ import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
-import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 
 defineOptions({
     name: 'HomeView'
