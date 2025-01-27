@@ -76,18 +76,6 @@ export function findTransfers(graph, path) {
     return path.slice(1, -1).filter(it => it.startsWith(MAIN_STATION_PREFIX))
 }
 
-export function findShortestPath(graph, start, end, via = []) {
-    return [...via, end].map(v => {
-        const route = dijkstra(graph, start, v)
-        start = v
-        return route
-    }).reduce((e1, e2) => {
-        return {
-            distances: e1.distance + e2.distance,
-            path: [...e1.path, ...e2.path.slice(1)]
-        }
-    })
-}
 
 /**
  * @author: ChatGPT 3.5

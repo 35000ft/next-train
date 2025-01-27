@@ -4,9 +4,8 @@ import {stopInfoParse} from "src/models/Train";
 import _ from "lodash";
 
 export const MAIN_STATION_PREFIX = "M"
-// 最短换乘时间 30秒
-const MIN_TRANSFER_TIME = 30
 
+// 最短换乘时间 30秒
 /**
  *
  * @param {{}} rawGraph
@@ -148,7 +147,7 @@ async function planOnePathSolution({distance, path, parsedPath}, depTime, trainG
     const solutions = []
     const allPromises = []
     await trainGetter({lineId, stationId: stationIds[0], depTime}).then(trainInfoList => {
-        console.log('ttr', trainInfoList)
+        console.log('Candidate trainInfoList:', trainInfoList)
         const promises = trainInfoList.map(t => recursivePlan(t, parsedPath, depTime, trainGetter, transferInfoGetter, [], (solution) => {
             solutions.push(solution)
             cb(solution)
@@ -297,6 +296,22 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         console.error('Error in recursivePlan:', error)
         return Promise.resolve(error)
     }
+}
+
+export function planShortestSolution(rawGraph, fromMainId, toMainId, via = [], trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
+    const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId)
+    const {path, distance} = [...via, toMainId].map(v => {
+        const route = dijkstra(graph, fromMainId, v)
+        fromMainId = v
+        return route
+    }).reduce((e1, e2) => {
+        return {
+            distance: e1.distance + e2.distance,
+            path: [...e1.path, ...e2.path.slice(1)]
+        }
+    })
+    const parsedPath = parseRoute(subIdToMainMap, path)
+    return planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter, cb)
 }
 
 function toSolution(trains) {

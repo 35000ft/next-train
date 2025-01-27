@@ -178,17 +178,17 @@ const handleGo = () => {
     const _depTime = depTime.value || getNowByTimezone(timezone)
     const fromMainId = departStation.value.id
     const toMainId = arrivalStation.value.id
-
+    const viaIds = via.value.map(it => it.id).join(',')
     const params = {
         fromMainId,
         toMainId,
+        viaIds,
         depTime: _depTime.format()
     }
     router.push({name: 'route-solution-overview', query: params})
     store.dispatch('application/pushOverlay', {
         component: {componentName: "RouteSolutionOverview"}
     })
-
 }
 const {t} = useI18n()
 const props = defineProps({})

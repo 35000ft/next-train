@@ -12,7 +12,7 @@
             </div>
             <div style="height: 10px;"></div>
             <div class="solution-content">
-                <div v-if="trains">
+                <div v-if="trains&&!loading">
                       <span v-for="(train,index) in trains" :key="train.id">
                           <span v-if="index>0 && trains[index-1].arrStationName!==train.depStationName">
                               {{ train.depStationName }}
@@ -43,7 +43,7 @@
     </div>
 </template>
 <script setup>
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {diff} from "src/utils/time-utils";
 import {useI18n} from "vue-i18n";
 import {useStore} from "vuex";
@@ -88,6 +88,8 @@ const initTrains = () => {
     })
     Promise.all(promises).then(_trains => {
         trains.value = _trains
+    }).finally(_ => {
+        loading.value = false
     })
 }
 const emit = defineEmits(['select'])

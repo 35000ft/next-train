@@ -20,6 +20,9 @@
                     <q-skeleton height="80px" style="margin-bottom: 2px;"/>
                     <q-skeleton height="80px" style="margin-bottom: 2px;"/>
                 </div>
+                <div v-if="!loading&&solutions.length===0" style="display: flex;justify-content: center;">
+                    <h4>暂无可用方案</h4>
+                </div>
             </div>
         </template>
     </OverlayView>
@@ -28,7 +31,7 @@
 import OverlayView from "components/OverlayView.vue";
 import {onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {planRoute} from "src/utils/route-plan";
+import {planRoute, planShortestSolution} from "src/utils/route-plan";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
@@ -51,7 +54,8 @@ const solutions = ref([])
 
 async function init() {
     const params = route.query
-    const {fromMainId, toMainId} = params
+    const {fromMainId, toMainId, viaIds} = params
+    const via = (viaIds && viaIds.split(',')) || []
     depTime.value = params.depTime
     loading.value = true
     departStation.value = await store.dispatch('railsystem/getStation', {stationId: fromMainId})
@@ -60,28 +64,34 @@ async function init() {
     })
     const {timezone, railsystemCode} = departStation.value
     const _depTime = depTime.value || getNowByTimezone(timezone)
+    const oneSolutionCb = (solution) => {
+        solutions.value.push(solution)
+        console.log('Push solution', solution, new dayjs().format())
+    }
+    const trainGetter = ({stationId, lineId, depTime}) =>
+        store.dispatch('realtime/fetchStationTrainAtTime', {stationId, lineId, depTime})
+    const transferInfoGetter = ({fromId, fromPlatform, toId, toPlatform, fromMainId}) => {
+        return store.dispatch('railsystem/getTransferInfo', {
+            fromId,
+            fromPlatform,
+            toId,
+            toPlatform,
+            fromMainId,
+        })
+    }
     store.dispatch('railsystem/getRailSystemGraph', {code: railsystemCode}).then(graph => {
-        planRoute(graph, fromMainId, toMainId, ({stationId, lineId, depTime}) =>
-                store.dispatch('realtime/fetchStationTrainAtTime', {stationId, lineId, depTime}),
-            ({fromId, fromPlatform, toId, toPlatform, fromMainId}) => {
-                return store.dispatch('railsystem/getTransferInfo', {
-                    fromId,
-                    fromPlatform,
-                    toId,
-                    toPlatform,
-                    fromMainId,
-                })
-            },
-            _depTime, (solution) => {
-                solutions.value.push(solution)
-                console.log('push solution', solution, new dayjs().format())
-            })
-            .then(allSolutions => {
-                loading.value = false
-                solutions.value.sort((o1, o2) => o1.arrTime.format().localeCompare(o2.arrTime.format()))
-                console.log('全部方案已加载完成', allSolutions)
-                $q.notify.ok('全部方案已加载完成')
-            })
+        let promise
+        if (via.length === 0) {
+            promise = planRoute(graph, fromMainId, toMainId, trainGetter, transferInfoGetter, _depTime, oneSolutionCb)
+        } else {
+            promise = planShortestSolution(graph, fromMainId, toMainId, via, trainGetter, transferInfoGetter, _depTime, oneSolutionCb)
+        }
+        promise.then(allSolutions => {
+            loading.value = false
+            solutions.value.sort((o1, o2) => o1.arrTime.format().localeCompare(o2.arrTime.format()))
+            console.log('全部方案已加载完成', allSolutions)
+            $q.notify.ok('全部方案已加载完成')
+        })
     })
 }
 

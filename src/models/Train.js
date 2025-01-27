@@ -1,4 +1,4 @@
-import {diffFromNow} from "src/utils/time-utils";
+import {diff, diffFromNow} from "src/utils/time-utils";
 import dayjs from "dayjs";
 
 const TRAIN_CATEGORY = {
@@ -90,13 +90,18 @@ const categoryParser = (category) => {
 
 const stopInfoParse = (stopInfo) => {
     if (stopInfo instanceof Array && stopInfo.length === 5) {
-        return {
+        const temp = {
             stationId: stopInfo[0],
             stationName: stopInfo[1],
             arr: dayjs(stopInfo[2]),
             dep: dayjs(stopInfo[3]),
             platform: stopInfo[4]
         }
+        const _diff = diff(temp.arr, temp.dep, 'second')
+        if (_diff < 0) {
+            temp.arr = temp.arr.add(1, 'day')
+        }
+        return temp
     }
 }
 
