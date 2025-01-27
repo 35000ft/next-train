@@ -219,13 +219,13 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
 
     }
     if (!isFind) return
+    if (getOffIndex <= getOnIndex) {
+        return
+    }
+    const stops = trainInfo.schedule.slice(getOnIndex, getOffIndex + 1).map(it => stopInfoParse(it))
     const train = {
-        get depTime() {
-            return this.depStop.dep
-        },
-        get arrTime() {
-            return this.arrStop.arr
-        },
+        depTime: stops[0].dep,
+        arrTime: stops.slice(-1)[0].arr,
         get arrStationName() {
             return this.arrStop.stationName
         },
@@ -240,7 +240,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         get arrStop() {
             return this.stops.slice(-1)[0]
         },
-        stops: trainInfo.schedule.slice(getOnIndex, getOffIndex + 1).map(it => stopInfoParse(it)),
+        stops: stops,
         getOnIndex,
         getOffIndex,
         trainInfo,
