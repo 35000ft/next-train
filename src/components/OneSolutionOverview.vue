@@ -1,20 +1,43 @@
 <template>
-    <div style="padding-left: 10px;padding-right: 10px;padding-bottom: 10px;">
-        <q-card style="height:80px;padding: 5px;background-color: var(--q-background-grey-2);">
+    <div style="padding-left: 10px;padding-right: 10px;padding-bottom: 10px;" @click="handleClick">
+        <q-card style="height:93px;padding: 5px;background-color: var(--q-background-grey-2);">
             <div class="solution-title">
                 <span class="wrap-over-float-text" style="background-color: var(--q-green);">
-                    {{ solution.depTime.format('HH:mm') }} 发</span>
+                    {{ solution.depTime.format('HH:mm') }}
+                </span>
                 <span class="wrap-over-float-text">{{ totalTime }}</span>
-                <span class="wrap-over-float-text" style="background-color: var(--q-red);"
-                >{{ solution.arrTime.format('HH:mm') }} 到</span>
+                <span class="wrap-over-float-text" style="background-color: var(--q-red);">
+                    {{ solution.arrTime.format('HH:mm') }}
+                </span>
             </div>
+            <div style="height: 10px;"></div>
             <div class="solution-content">
                 <div v-if="trains">
                       <span v-for="(train,index) in trains" :key="train.id">
+                          <span v-if="index>0 && trains[index-1].arrStationName!==train.depStationName">
+                              {{ train.depStationName }}
+                          </span>
                           <LineIcon v-for="line in train.lines" :key="line.lineId" :line="line.line"/>
-                          <span v-if="index<trains.length-1">{{ train.arrStationName }}</span>
+                          <span v-if="index<trains.length-1"
+                                style="margin-left: 4px;margin-right: 4px;">
+                              {{ train.arrStationName }}
+                          </span>
                       </span>
                 </div>
+            </div>
+            <div style="height: 3px;"></div>
+            <div class="transfer-times">
+                <span v-if="solution.transferTimes>0"
+                      style="margin-right: 5px;">
+                    {{ t('transferTimes').replace('$times', solution.transferTimes) }}
+                </span>
+                <span v-show="solution.transferTimes===0" class="tag-text">
+                    无需换乘
+                </span>
+                <span v-show="solution.transferTimes>0">
+                    <q-icon name="fa-solid fa-person-walking"/>
+                    {{ solution.walkDistance }}米
+                </span>
             </div>
         </q-card>
     </div>
@@ -26,6 +49,8 @@ import {useI18n} from "vue-i18n";
 import {useStore} from "vuex";
 import {trainLineOfStopParser} from "src/models/Train";
 import LineIcon from "components/LineIcon.vue";
+
+const loading = ref(true)
 
 const {t} = useI18n()
 const props = defineProps({
@@ -48,6 +73,7 @@ const totalTime = computed(() => {
 })
 const trains = ref(null)
 const initTrains = () => {
+    loading.value = true
     const _trains = props.solution.trains.filter(it => it.type === 'train')
     const promises = _trains.map(async it => {
         it.lines = trainLineOfStopParser(it.trainInfo)
@@ -63,6 +89,10 @@ const initTrains = () => {
     Promise.all(promises).then(_ => {
         trains.value = _trains
     })
+}
+const emit = defineEmits(['select'])
+const handleClick = () => {
+    emit('select', props.solution)
 }
 </script>
 
@@ -81,12 +111,25 @@ const initTrains = () => {
     border-radius: 5px;
     color: white;
     background-color: var(--q-primary-d);
-    padding-left: 4px;
-    padding-right: 4px;
+    padding-left: 6px;
+    padding-right: 6px;
 }
 
 .solution-content {
-    height: 20px;
+    height: 30px;
     overflow-x: auto;
+    white-space: nowrap;
+    font-family: "Helvetica Neue", Helvetica, "Lucida Grande", Arial, "Hiragino Sans GB", "Microsoft Yahei", "WenQuanYi Micro Hei", sans-serif;
+}
+
+.tag-text {
+    color: white;
+    background-color: var(--q-primary);
+    border-radius: 3px;
+    padding: 1px 5px;
+}
+
+.transfer-times {
+    color: var(--q-normal);
 }
 </style>

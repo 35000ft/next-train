@@ -11,8 +11,14 @@
         </template>
         <template v-slot:default>
             <div>
+                <div style="height: 10px;"></div>
                 <div v-for="(solution,index) in solutions" :key="index">
-                    <OneSolutionOverview :solution="solution"></OneSolutionOverview>
+                    <OneSolutionOverview :solution="solution" @select="handleShowSolutionDetail"/>
+                </div>
+                <div v-if="loading">
+                    <q-skeleton height="80px" style="margin-bottom: 2px;"/>
+                    <q-skeleton height="80px" style="margin-bottom: 2px;"/>
+                    <q-skeleton height="80px" style="margin-bottom: 2px;"/>
                 </div>
             </div>
         </template>
@@ -21,13 +27,15 @@
 <script setup>
 import OverlayView from "components/OverlayView.vue";
 import {onMounted, ref} from "vue";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {planRoute} from "src/utils/route-plan";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import OneSolutionOverview from "components/OneSolutionOverview.vue";
+import dayjs from "dayjs";
 
+const loading = ref(true)
 const route = useRoute()
 
 const depTime = ref(null)
@@ -45,6 +53,7 @@ async function init() {
     const params = route.query
     const {fromMainId, toMainId} = params
     depTime.value = params.depTime
+    loading.value = true
     departStation.value = await store.dispatch('railsystem/getStation', {stationId: fromMainId})
     store.dispatch('railsystem/getStation', {stationId: toMainId}).then(station => {
         arrivalStation.value = station
@@ -65,10 +74,21 @@ async function init() {
             },
             _depTime, (solution) => {
                 solutions.value.push(solution)
-                console.log('sds', solution)
-            }).then(allSolutions => {
-            $q.notify.ok('全部方案已加载完成')
-        })
+                console.log('push solution', solution, new dayjs().format())
+            })
+            .then(allSolutions => {
+                loading.value = false
+                console.log('all done')
+                $q.notify.ok('全部方案已加载完成')
+            })
+    })
+}
+
+const router = useRouter()
+const handleShowSolutionDetail = (_solution) => {
+    router.push({name: 'route-solution-detail'})
+    store.dispatch('application/pushOverlay', {
+        component: {componentName: "RouteSolutionDetailView", props: {solution: _solution}}
     })
 }
 

@@ -46,10 +46,9 @@ const mutations = {
             }
         }
     },
-    SET_METRO_CONFIG(state, config) {
+    SET_METRO_GO_CONFIG(state, config) {
         state.metroGoViewConfig = config
         const value = JSON.stringify(config)
-        console.log('vas json', value)
         if (value) {
             localStorage.setItem(LOCAL_STORAGE_KEYS.METRO_GO_CONFIG, value)
         }
@@ -78,7 +77,7 @@ const actions = {
         const item = localStorage.getItem(LOCAL_STORAGE_KEYS.METRO_GO_CONFIG);
         if (item) {
             const config = JSON.parse(item)
-            commit('SET_METRO_CONFIG', config)
+            commit('SET_METRO_GO_CONFIG', config)
             return config
         } else {
             const currentStation = this.getters['preference/currentStation']
@@ -96,7 +95,7 @@ const actions = {
                     depTime: null,
                 }
             }
-            commit('SET_METRO_CONFIG', initConfig)
+            commit('SET_METRO_GO_CONFIG', initConfig)
             return initConfig
         }
     }

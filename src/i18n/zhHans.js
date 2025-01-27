@@ -87,4 +87,5 @@ export default {
     depart: '出发',
     now: '现在',
     kilometer: '公里',
+    transferTimes: '换乘$times次'
 }

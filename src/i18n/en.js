@@ -87,4 +87,5 @@ export default {
     depart: 'Depart',
     now: 'Now',
     kilometer: 'km',
+    transferTimes: 'Transfer $times time(s)'
 }

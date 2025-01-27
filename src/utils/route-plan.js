@@ -128,8 +128,8 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
             })
         planPromises.push(promise)
     }, shortest,)
-    Promise.all(planPromises).then(res => {
-        console.log('All route plans are done', allSolutions)
+    return Promise.all(planPromises).then(res => {
+        return allSolutions
     })
 }
 
@@ -227,16 +227,26 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
             return this.arrStop.arr
         },
         get arrStationName() {
-            return this.depStop.stationName
+            return this.arrStop.stationName
         },
         get depStationName() {
             return this.depStop.stationName
         },
-        depStop: stopInfoParse(trainInfo.schedule[getOnIndex]),
-        arrStop: stopInfoParse(trainInfo.schedule[getOffIndex]),
+        get terminal() {
+            return this.stops.slice(-1)[0]
+        },
+        isFirstStop: getOnIndex === 0,
+        get depStop() {
+            return this.stops[0]
+        },
+        get arrStop() {
+            return this.stops.slice(-1)[0]
+        },
+        stops: trainInfo.schedule.slice(getOnIndex, getOffIndex + 1).map(it => stopInfoParse(it)),
         getOnIndex,
         getOffIndex,
         trainInfo,
+        category: trainInfo.category,
         type: 'train'
     }
     trains.push(train)

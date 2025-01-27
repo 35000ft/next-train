@@ -84,20 +84,6 @@ function calcTrainStatus({dep, arr}) {
     }
 }
 
-/**
- *
- * @param {Array[4]} stopInfo
- * @returns {{ stationName: String,stationId: String, dep: dayjs.Dayjs, arr: dayjs.Dayjs}}
- */
-const stopInfoParser = (stopInfo) => {
-    return {
-        stationId: stopInfo[0],
-        stationName: stopInfo[1],
-        arr: dayjs(stopInfo[2]),
-        dep: dayjs(stopInfo[3]),
-    }
-}
-
 const categoryParser = (category) => {
     return TRAIN_CATEGORY[category] || TRAIN_CATEGORY.LOCAL
 }

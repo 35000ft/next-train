@@ -6,13 +6,13 @@
             <transition name="right-in-right-out">
                 <div class="full-height full-width container" style=" z-index: 1000;overflow: hidden;"
                      v-if="firstComponent&&showComponentKey===0">
-                    <component :is="firstComponent" :key="firstComponentId"/>
+                    <component :is="firstComponent" :key="firstComponentId" v-bind="firstProps"/>
                 </div>
             </transition>
             <transition name="right-in">
                 <div class="full-height full-width container" style=" z-index: 1000;"
                      v-if="secondComponent&&showComponentKey===1">
-                    <component :is="secondComponent" :key="secondComponentId"/>
+                    <component :is="secondComponent" :key="secondComponentId" v-bind="secondProps"/>
                 </div>
             </transition>
         </div>
@@ -30,6 +30,8 @@ const firstComponent = shallowRef(null)
 const secondComponent = shallowRef(null)
 const firstComponentId = shallowRef(null)
 const secondComponentId = shallowRef(null)
+const firstProps = shallowRef(null)
+const secondProps = shallowRef(null)
 const store = useStore()
 const initTime = ref(null)
 const overlayComponentStack = computed(() => store.getters['application/overlayComponentStack'])
@@ -49,6 +51,8 @@ watch(shownComponent, (newVal, oldVal) => {
                             firstComponentId.value = lastComponent.id
                             secondComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
                             firstComponent.value = defineAsyncComponent(() => import(`../components/${lastComponent.componentName}.vue`))
+                            secondProps.value = newVal.props || null
+                            firstProps.value = lastComponent.props || null
                         }, 0)
                     } else if (showComponentKey.value === 1) {
                         // Now component2 is shown, change to component1
@@ -58,6 +62,8 @@ watch(shownComponent, (newVal, oldVal) => {
                             secondComponentId.value = lastComponent.id
                             firstComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
                             secondComponent.value = defineAsyncComponent(() => import(`../components/${lastComponent.componentName}.vue`))
+                            firstProps.value = newVal.props || null
+                            secondProps.value = lastComponent.props || null
                         }, 0)
                     }
                 }

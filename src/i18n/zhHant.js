@@ -87,4 +87,5 @@ export default {
     depart: '出發',
     now: '現時',
     kilometer: '公里',
+    transferTimes: '轉車$times次'
 }

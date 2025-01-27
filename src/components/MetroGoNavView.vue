@@ -110,6 +110,14 @@ const init = () => {
         }
     })
 }
+const saveConfig = () => {
+    const config = {
+        from: (departStation.value && departStation.value.id) || null,
+        to: (arrivalStation.value && arrivalStation.value.id) || null,
+        depTime: (depTime.value && depTime.value.format()) || null
+    }
+    store.commit('application/SET_METRO_GO_CONFIG', config)
+}
 const handleSetDepTime = () => {
     departTimeSelector.value.showSelector()
 }
@@ -133,9 +141,7 @@ const handleSetArrivalStation = () => {
     stationSelector.value.showSelector('setArrivalStation')
 }
 const handleSelectStation = async (stationId, lineId, event) => {
-    console.log('handleSelectStation', stationId, lineId, event)
     const station = await store.dispatch('railsystem/getStation', {stationId})
-    console.log('station', station)
     if (!station) return
     switch (event) {
         case 'addVia': {
@@ -153,6 +159,7 @@ const handleSelectStation = async (stationId, lineId, event) => {
             break
         }
     }
+    saveConfig()
 }
 const handleDelVia = (viaStation) => {
     if (via.value && viaStation) {

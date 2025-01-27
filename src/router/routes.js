@@ -14,6 +14,14 @@ const routes = [
                         meta: {
                             componentName: 'RouteSolutionOverview'
                         }
+                    },
+                    {
+                        name: 'route-solution-detail',
+                        path: 'solutions/detail',
+                        component: () => import('components/RouteDispatcher.vue'),
+                        meta: {
+                            componentName: 'RouteSolutionDetailView'
+                        }
                     }
                 ]
             },
