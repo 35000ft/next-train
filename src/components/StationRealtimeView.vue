@@ -232,8 +232,7 @@ watch(props, (newVal, oldValue) => {
     }
     if (newVal.currentStationIdProp) {
         if (currentStationId.value !== newVal.currentStationIdProp) {
-            console.log('handle prop station change', newVal.currentStationIdProp, currentStationId.value)
-            handleChangeStation(newVal.currentStationIdProp)
+            currentStationId.value = newVal.currentStationIdProp
         }
     }
 })
@@ -399,10 +398,15 @@ function init() {
 }
 
 const handleChangeStation = (stationId, lineId, source) => {
-    console.log('Change station', stationId, lineId, 'source:' + source)
+    const timestamp = new Date().getTime()
+    console.log('HandleChangeStation', 'timestamp:' + timestamp)
     trainInfoMap.value = new Map()
     allTrains.value = []
     changeStation(stationId, lineId).then(station => {
+        if (checkIsChanged(stationId)) {
+            return
+        }
+        console.log('Emit changeStation', 'timestamp:' + timestamp, station)
         currentStation.value = station
         currentStationId.value = station.id
         updateCurrentTrains(true)
