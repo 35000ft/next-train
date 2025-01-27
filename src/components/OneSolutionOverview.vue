@@ -86,7 +86,7 @@ const initTrains = () => {
         it.lines = await Promise.all(promises)
         return it
     })
-    Promise.all(promises).then(_ => {
+    Promise.all(promises).then(_trains => {
         trains.value = _trains
     })
 }

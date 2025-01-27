@@ -12,7 +12,7 @@
         <template v-slot:default>
             <div>
                 <div style="height: 10px;"></div>
-                <div v-for="(solution,index) in solutions" :key="index">
+                <div v-for="solution in solutions" :key="solution.id">
                     <OneSolutionOverview :solution="solution" @select="handleShowSolutionDetail"/>
                 </div>
                 <div v-if="loading">
@@ -78,7 +78,8 @@ async function init() {
             })
             .then(allSolutions => {
                 loading.value = false
-                console.log('all done')
+                solutions.value.sort((o1, o2) => o1.arrTime.format().localeCompare(o2.arrTime.format()))
+                console.log('全部方案已加载完成', allSolutions)
                 $q.notify.ok('全部方案已加载完成')
             })
     })

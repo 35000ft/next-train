@@ -301,10 +301,12 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
 
 function toSolution(trains) {
     const transfers = trains.filter(it => it.type === 'transfer')
+    const solutionId = trains.filter(it => it.type === 'train').map(it => it.trainInfo.id).join('-')
     const walkDistance = transfers.reduce((acc, cur) => {
         return acc + cur.distance
     }, 0)
     return {
+        id: solutionId,
         transferTimes: transfers.length,
         walkDistance,
         trains: trains,
