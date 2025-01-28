@@ -97,7 +97,7 @@ const stopInfoParse = (stopInfo) => {
             dep: dayjs(stopInfo[3]),
             platform: stopInfo[4]
         }
-        const _diff = diff(temp.arr, temp.dep, 'second')
+        const _diff = temp.dep.diff(temp.arr, 'second')
         if (_diff < 0) {
             temp.arr = temp.arr.add(1, 'day')
         }

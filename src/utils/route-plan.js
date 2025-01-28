@@ -5,15 +5,15 @@ import _ from "lodash";
 
 export const MAIN_STATION_PREFIX = "M"
 
-// 最短换乘时间 30秒
 /**
  *
  * @param {{}} rawGraph
  * @param {Number|String} fromMainId
  * @param {Number|String} toMainId
+ * @param viaIds
  * @returns {{}}
  */
-function initGraph(rawGraph, fromMainId, toMainId) {
+function initGraph(rawGraph, fromMainId, toMainId, viaIds = []) {
     const subIdToMainMap = new Map()
     const graph = Object.entries(rawGraph)
         .map(([k, v]) => {
@@ -48,21 +48,28 @@ function initGraph(rawGraph, fromMainId, toMainId) {
         }, {})
 
     // Prefix "M" stands it is a main station id
-    const _fromMainId = MAIN_STATION_PREFIX + fromMainId
-    // Construct the start route from departure station
-    Array.from(new Set(rawGraph[fromMainId].map(it => it[0]))).forEach(it => {
-        graph[_fromMainId] = graph[_fromMainId] || {}
-        graph[_fromMainId][it] = 0
-    })
-    const _toMainId = MAIN_STATION_PREFIX + toMainId
-    // Construct the end route to arrival station
-    Array.from(new Set(rawGraph[toMainId].map(it => it[0]))).forEach(it => {
-        graph[_toMainId] = graph[_toMainId] || {}
-        graph[_toMainId][it] = 0
+    const toMainStationIds = [toMainId, ...viaIds]
+    for (const mainStationId of toMainStationIds) {
+        const _toMainId = MAIN_STATION_PREFIX + mainStationId
+        Array.from(new Set(rawGraph[mainStationId].map(it => it[0]))).forEach(it => {
+            graph[_toMainId] = graph[_toMainId] || {}
+            graph[_toMainId][it] = 0
 
-        graph[it] = graph[it] || {}
-        graph[it][_toMainId] = 0
-    })
+            graph[it] = graph[it] || {}
+            graph[it][_toMainId] = 0
+        })
+    }
+
+    // Construct the start route from departure station
+    const fromMainStationIds = [fromMainId, ...viaIds]
+    for (const mainStationId of fromMainStationIds) {
+        const _fromMainId = MAIN_STATION_PREFIX + mainStationId
+        Array.from(new Set(rawGraph[mainStationId].map(it => it[0]))).forEach(it => {
+            graph[_fromMainId] = graph[_fromMainId] || {}
+            graph[_fromMainId][it] = 0
+        })
+    }
+
     return {
         graph,
         subIdToMainMap
@@ -76,6 +83,7 @@ function initGraph(rawGraph, fromMainId, toMainId) {
  */
 function parseRoute(subIdToMainMap, path) {
     const result = []
+    console.log('parse', path[1], subIdToMainMap)
     const {lineId, mainStationId} = subIdToMainMap.get(path[1])
     result.push({lineId, stationIds: [mainStationId], subStationIds: [path[1]]})
     for (const node of path.slice(2, -1)) {
@@ -120,8 +128,7 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
             transferInfoGetter,
             //规划成功回调
             (trains) => {
-                const solution = toSolution(trains)
-                solution.distance = distance
+                const solution = toSolution(trains, distance)
                 allSolutions.push(solution)
                 cb(solution)
             })
@@ -298,10 +305,13 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     }
 }
 
-export function planShortestSolution(rawGraph, fromMainId, toMainId, via = [], trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
-    const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId)
-    const {path, distance} = [...via, toMainId].map(v => {
-        const route = dijkstra(graph, fromMainId, v)
+export function planShortestSolution(rawGraph, fromMainId, toMainId, viaIds = [], trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
+    const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId, viaIds)
+
+    const {path, distance} = [...viaIds, toMainId].map(v => {
+        const _fromMainId = MAIN_STATION_PREFIX + fromMainId
+        const _toMainId = MAIN_STATION_PREFIX + v
+        const route = dijkstra(graph, _fromMainId, _toMainId)
         fromMainId = v
         return route
     }).reduce((e1, e2) => {
@@ -311,10 +321,13 @@ export function planShortestSolution(rawGraph, fromMainId, toMainId, via = [], t
         }
     })
     const parsedPath = parseRoute(subIdToMainMap, path)
-    return planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter, cb)
+    return planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter, (trains) => {
+        const solution = toSolution(trains, distance)
+        cb(solution)
+    })
 }
 
-function toSolution(trains) {
+function toSolution(trains, distance) {
     const transfers = trains.filter(it => it.type === 'transfer')
     const solutionId = trains.filter(it => it.type === 'train').map(it => it.trainInfo.id).join('-')
     const walkDistance = transfers.reduce((acc, cur) => {
@@ -324,6 +337,7 @@ function toSolution(trains) {
         id: solutionId,
         transferTimes: transfers.length,
         walkDistance,
+        distance,
         trains: trains,
         depTime: trains[0].depTime,
         arrTime: trains.slice(-1)[0].arrTime
