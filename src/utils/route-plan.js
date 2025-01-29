@@ -84,7 +84,6 @@ function initGraph(rawGraph, fromMainId, toMainId, viaIds = []) {
  */
 function parseRoute(subIdToMainMap, path) {
     const result = []
-    console.log('parse', path[1], subIdToMainMap)
     const {lineId, mainStationId} = subIdToMainMap.get(path[1])
     result.push({lineId, stationIds: [mainStationId], subStationIds: [path[1]]})
     for (const node of path.slice(2, -1)) {
@@ -298,7 +297,13 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         return Promise.resolve(trains)
     }
 
-    const nextParsedPath = _.cloneDeep(parsedPath.slice(i))
+    let nextParsedPath
+    if (i > 0) {
+        nextParsedPath = _.cloneDeep(parsedPath.slice(i))
+    } else {
+        nextParsedPath = _.cloneDeep(parsedPath[0])
+    }
+
     let transferFromId
     const currentPathIndex = i > 0 ? i - 1 : 0
     if (indexOffset > 0) {
