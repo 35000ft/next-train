@@ -377,7 +377,8 @@ async function updateCurrentTrains(force = false) {
 
 const handleSelectStation = (stationId, lineId) => {
     if (stationId) {
-        handleChangeStation(stationId, lineId, "handleSelectStation")
+        currentLineId.value = lineId
+        currentStationId.value = stationId
     }
 }
 
@@ -397,9 +398,9 @@ function init() {
     handleChangeStation(props.currentStationIdProp, props.currentLineIdProp, "init")
 }
 
-const handleChangeStation = (stationId, lineId, source) => {
+const handleChangeStation = (stationId, lineId, source, changeCurStationId) => {
     const timestamp = new Date().getTime()
-    console.log('HandleChangeStation', 'timestamp:' + timestamp)
+    console.log('HandleChangeStation', 'stationId:' + stationId, 'timestamp:' + timestamp, 'source:' + source)
     trainInfoMap.value = new Map()
     allTrains.value = []
     changeStation(stationId, lineId).then(station => {
