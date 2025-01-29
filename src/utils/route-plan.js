@@ -1,7 +1,8 @@
 import {dijkstra, findAllPaths, findTransfers} from "src/utils/route-algorithm";
 import dayjs from "dayjs";
-import {stopInfoParse} from "src/models/Train";
+import {stopInfoParse, trainLineOfStopParser} from "src/models/Train";
 import _ from "lodash";
+import {diff} from "src/utils/time-utils";
 
 export const MAIN_STATION_PREFIX = "M"
 
@@ -112,12 +113,13 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
     const shortest = dijkstra(graph, start, end)
 
     shortest['transfers'] = findTransfers(graph, shortest['path'])
-    console.log('path min cost:', shortest)
+    console.log('Shortest Route:', shortest)
     const planPromises = []
     const allSolutions = []
-    await findAllPaths(graph, start, end, ({path, distance}) => {
+
+    const pathCb = ({path, distance}) => {
         const parsedPath = parseRoute(subIdToMainMap, path)
-        const promise = planOnePathSolution(
+        const onePathPromise = planOnePathSolution(
             {
                 distance,
                 path,
@@ -126,14 +128,17 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
             depTime,
             trainGetter,
             transferInfoGetter,
-            //规划成功回调
-            (trains) => {
-                const solution = toSolution(trains, distance)
-                allSolutions.push(solution)
+        ).then(solutions => {
+            allSolutions.push(...solutions)
+            for (const solution of solutions) {
                 cb(solution)
-            })
-        planPromises.push(promise)
-    }, shortest,)
+            }
+            return solutions
+        })
+        planPromises.push(onePathPromise)
+    }
+    pathCb(shortest)
+    await findAllPaths(graph, start, end, pathCb, shortest)
     return Promise.all(planPromises).then(res => {
         return allSolutions
     })
@@ -147,22 +152,39 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
  * @param {dayjs.Dayjs} depTime 出发时间
  * @param {Function} trainGetter 获取符合条件的车次的函数 接受参数 {lineId,stationId,depTime}
  * @param transferInfoGetter
- * @param cb
  */
-async function planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter, cb) {
+async function planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter) {
     const {lineId, stationIds} = parsedPath[0]
-    const solutions = []
+    const solutions = new Set()
     const allPromises = []
     await trainGetter({lineId, stationId: stationIds[0], depTime}).then(trainInfoList => {
         console.log('Candidate trainInfoList:', trainInfoList)
-        const promises = trainInfoList.map(t => recursivePlan(t, parsedPath, depTime, trainGetter, transferInfoGetter, [], (solution) => {
-            solutions.push(solution)
-            cb(solution)
-        }))
+        const promises = trainInfoList.map(t => recursivePlan(t, parsedPath, depTime, trainGetter, transferInfoGetter, [],
+            (trains) => {
+                const solution = toSolution(trains, distance)
+                if (solutions.size === 0) {
+                    solutions.add(solution)
+                    return
+                }
+                const toDeleteSolutions = Array.from(solutions)
+                    .filter(it => it.arrTime.isAfter(solution.arrTime)
+                        && diff(it.depTime, solution.depTime) >= 0)
+                if (toDeleteSolutions.length > 0) {
+                    toDeleteSolutions.forEach(it => solutions.delete(it))
+                    solutions.add(solution)
+                } else {
+                    const betterSolutions = Array.from(solutions).filter(it => diff(solution.depTime, it.depTime) === 0 && diff(solution.arrTime, it.arrTime) > 0)
+                    if (betterSolutions.length === 0) {
+                        solutions.add(solution)
+                    }
+                }
+            }))
         allPromises.push(...promises)
     })
     await Promise.all(allPromises)
-    return solutions
+
+    console.log('One Path Solutions', parsedPath, solutions)
+    return Array.from(solutions)
 }
 
 /**
@@ -183,6 +205,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     let getOffIndex = -1
     let getOnIndex = -1
     let indexOffset = -1
+    const trainStopLines = trainLineOfStopParser(trainInfo)
     for (; i < parsedPath.length; i++) {
         const {stationIds} = parsedPath[i]
 
@@ -208,11 +231,18 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
                     toMainId: getOnStop.stationId
                 })
                 transferInfo.type = 'transfer'
+                transferInfo.depStationId = fromMainId
+                transferInfo.arrStationId = getOnStop.stationId
                 if (arrTime.add(transferInfo.needTime, 'second').isAfter(getOnStop.dep)) {
                     console.warn('Transfer time is not enough', `arrive time:${arrTime.format()}`, `dep time:${getOnStop.dep.format()}`, `transfer need time:${transferInfo.needTime}`)
                     return
                 }
                 trains.push(transferInfo)
+            }
+            if (trainStopLines.length <= 1) {
+                isFind = true
+                i += 1
+                break
             }
         }
         indexOffset = 0
@@ -222,7 +252,6 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         if (indexOffset < stationIds.length - 1) {
             break
         }
-
     }
     if (!isFind) return
     if (getOffIndex <= getOnIndex) {
@@ -237,6 +266,12 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         },
         get depStationName() {
             return this.depStop.stationName
+        },
+        get depStationId() {
+            return this.depStop.stationId
+        },
+        get arrStationId() {
+            return this.arrStop.stationId
         },
         terminal: stopInfoParse(trainInfo.schedule.slice(-1)[0]),
         isFirstStop: getOnIndex === 0,
@@ -321,25 +356,52 @@ export function planShortestSolution(rawGraph, fromMainId, toMainId, viaIds = []
         }
     })
     const parsedPath = parseRoute(subIdToMainMap, path)
-    return planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter, (trains) => {
-        const solution = toSolution(trains, distance)
-        cb(solution)
-    })
+    return planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter)
+        .then(solutions => {
+            for (const solution of solutions) {
+                cb(solution)
+            }
+            return solutions
+        })
 }
 
-function toSolution(trains, distance) {
-    const transfers = trains.filter(it => it.type === 'transfer')
-    const solutionId = trains.filter(it => it.type === 'train').map(it => it.trainInfo.id).join('-')
+function toSolution(segments, distance) {
+    const transfers = segments.filter(it => it.type === 'transfer')
+    const solutionId = segments.filter(it => it.type === 'train').map(it => it.trainInfo.id).join('-')
     const walkDistance = transfers.reduce((acc, cur) => {
         return acc + cur.distance
     }, 0)
+
+    const _trains = []
+    if (segments[0].type === 'train') {
+        _trains.push(segments[0])
+    }
+    for (let i = 1; i < segments.length; i++) {
+        if (segments[i].type === 'train') {
+            if (segments[i - 1].type === 'transfer') {
+                const transfer = segments[i - 1]
+                if (transfer.depStationId !== transfer.arrStationId) {
+                    segments[i].outerTransfer = transfer
+                } else {
+                    segments[i].transfer = transfer
+                }
+            }
+            _trains.push(segments[i])
+        }
+    }
+    const depTime = segments[0].depTime
+    const arrTime = segments.slice(-1)[0].arrTime
+
     return {
         id: solutionId,
         transferTimes: transfers.length,
         walkDistance,
         distance,
-        trains: trains,
-        depTime: trains[0].depTime,
-        arrTime: trains.slice(-1)[0].arrTime
+        totalTime: diff(arrTime, depTime),
+        trains: _trains,
+        depTime,
+        arrTime,
+        depStationId: segments[0].depStationId,
+        arrStationId: segments.slice(-1)[0].arrStationId,
     }
 }

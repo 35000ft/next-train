@@ -87,5 +87,22 @@ export default {
     depart: 'Depart',
     now: 'Now',
     kilometer: 'km',
-    transferTimes: 'Transfer $times time(s)'
+    meterShort: 'm',
+    transferTimes: 'Transfer $times time(s)',
+    boundFor: 'For $terminal',
+    stop: 'Stop(s)',
+    transferCategory: {
+        EXIT: 'Exit',
+        NODE: 'Node',
+        HALL: 'Hall',
+        PASSAGE: 'Passage',
+        SAME_PLTF: 'Same Pltf.',
+    },
+    solutionTags: {
+        LEAST_TIME: 'Shortest Time',
+        NO_TRANSFER: 'No Transfer',
+        LEAST_TRANSFER: 'Least Transfer',
+        FIRST_ARRIVED: 'First Arrival',
+    }
+
 }

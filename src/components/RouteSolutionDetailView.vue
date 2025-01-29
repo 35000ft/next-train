@@ -1,12 +1,34 @@
 <template>
-    <OverlayView name="RouteSolutionDetailView">
+    <OverlayView name="RouteSolutionDetailView" @close="handleClose" :manage-by-overlay="false">
         <template v-slot:default>
-            <div v-if="solution && solution.trains">
+            <div v-if="solution && solution.trains" style="overflow-y: auto;height: 90vh;">
                 <div v-for="(train,index) in solution.trains" :key="index">
-                    <div class="train-wrapper" v-if="train.type==='train'">
+                    <!-- TODO 出站换乘-->
+                    <div class="transfer-info-wrapper"
+                         v-if="train.outerTransfer">
+                    </div>
+                    <div class="train-wrapper">
                         <div class="station-name-wrapper">
-                            <span class="station-name"> {{ train.depStationName }}</span>
+                            <span class="station-name auto-scroll-container">
+                                <span v-overflow-auto-scroll>{{ train.depStationName }}</span>
+                            </span>
                             <span class="first-stop" v-show="train.isFirstStop">本站始发</span>
+                            <div class="transfer-info" v-if="train.transfer">
+                                <div style="height: 50%;width: 100%;" class="auto-scroll-container">
+                                    <div v-overflow-auto-scroll>
+                                        <q-icon name="fa-solid fa-person-walking"/>
+                                        <span>
+                                           {{ Math.round(train.transfer.needTime / 60) }}
+                                            {{ t('time.minute') }} ({{ train.transfer.distance + t('meterShort') }})
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style="height: 50%;width: 100%;" class="auto-scroll-container">
+                                    <span v-overflow-auto-scroll>
+                                        {{ t(`transferCategory.${train.transfer.category}`) }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                         <div class="through-station-wrapper">
                             <div class="stop-info-wrapper">
@@ -14,14 +36,15 @@
                                         {{ train.depTime.format('HH:mm') }}
                                 </span>
                                 <span style="top: 25px;font-size: 14px">
-<!--                                        {{ train.arrTime.diff(train.depTime, 'm') }}分钟-->
+                                    {{ Math.ceil(train.arrTime.diff(train.depTime, 's') / 60) }}
+                                    {{ t('time.minute') }}
                                 </span>
                                 <span style="bottom: 0">
                                         {{ train.arrTime.format('HH:mm') }}
                                 </span>
                             </div>
 
-                            <div class="stop-line-wrapper">
+                            <div class="stop-line-wrapper" v-if="train.lines">
                                 <span :class="calcLineClass(train,lineIndex)"
                                       :key="lineIndex"
                                       :style="{backgroundColor:line.color, height:calcLineHeight(train,lineIndex)}"
@@ -33,8 +56,8 @@
                                               v-for="(item,index) in train.stops.slice(1,-1)"
                                               v-show="train.showStopInfo">
                                             <span class="dep-arr-time-wrapper">
-                                               <b>{{ item.arr.format('HH:mm') }}</b> 到<br>
-                                                <b>{{ item.dep.format('HH:mm') }}</b> 发
+                                               <b>{{ item.arr.format('HH:mm') }}</b><br>
+                                                <b>{{ item.dep.format('HH:mm') }}</b>
                                             </span>
                                             <span @click="handleChangeDepStation(item.stationId)"
                                                   class="station-name-wrapper station-name">
@@ -56,24 +79,24 @@
                                             <TrainCategory :category="train.category"/>
                                         </span>
                                     </div>
-                                    <span>开往
-                                        <b style="color: var(--q-primary)">{{ train.terminal.stationName }}</b>
+                                    <span>
+                                        <b style="color: var(--q-primary)">
+                                            {{ t('boundFor').replace('$terminal', train.terminal.stationName) }}</b>
                                     </span>
                                 </div>
                                 <div @click="handleFoldStopInfo(train)" class="item-wrapper stop-count-wrapper"
                                      v-show="train.stops.length>2">
-                                    <!--                                    <img alt="get off" src="./assets/get-off-icon.svg">-->
-                                    <b>{{ train.stops.length - 1 }}站</b>
+                                    <span style="color: var(--q-normal);margin-right: 4px;">
+                                        {{ train.stops.length - 1 }} {{ t('stop') }}</span>
                                     <i :class="[train.showStopInfo?'fa fa-angle-up':'fa fa-angle-down']"></i>
                                 </div>
-                                <!--                                <div class="item-wrapper transfer-info-wrapper"-->
-                                <!--                                     v-if="train.transferInfo!==undefined">-->
-                                <!--&lt;!&ndash;                                    <img alt="transfer" src="./assets/transfer-icon.svg">&ndash;&gt;-->
-                                <!--                                    {{ train.transferInfo.displayStr }}-->
-                                <!--                                </div>-->
                             </div>
                         </div>
-
+                        <div class="station-name-wrapper" v-if="index===solution.trains.length-1||train.outerTransfer">
+                            <span class="station-name">
+                                {{ train.arrStationName }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -94,6 +117,9 @@ const props = defineProps({
 })
 const STOP_ROW_HEIGHT = 80
 const trainNameGetter = (train) => {
+    if (!train.lines) {
+        console.warn('lines is undefined', JSON.stringify(train))
+    }
     const lines = train.lines.map(it => it.line)
     const lineName = lines.map(it => it.name).join('·')
     const color = lines[0].color || 'var(--q-primary)'
@@ -113,6 +139,12 @@ const calcLineHeight = (trainInfo, lineIndex) => {
         return isTransLine ? initHeight / 2 + 'px' : initHeight + 'px'
     }
 }
+const transferInfoGetter = (index) => {
+    if (index === 0) {
+        return null
+    }
+
+}
 const calcLineClass = (trainInfo, lineIndex) => {
     let length = trainInfo.lines.length;
     const isTransLine = length > 1
@@ -127,30 +159,64 @@ const handleClickStationName = (stationId) => {
 const handleShowQuickStationView = (stop) => {
 
 }
+
+const handleFoldStopInfo = (train) => {
+    train.showStopInfo = !train.showStopInfo;
+}
 onMounted(() => {
     console.log('RouteSolutionDetailView.vue mounted', props.solution)
 })
-
+const emit = defineEmits(['close'])
+const handleClose = () => {
+    emit('close')
+}
 </script>
 <style scoped>
 .train-wrapper .station-name-wrapper {
     width: 90%;
     margin: 0 auto;
     display: flex;
-    height: 40px;
+    height: 50px;
     border-bottom: 1px solid #cecdcd;
     border-top: 1px solid #cecdcd;
     position: relative;
 }
 
+.train-wrapper .station-name-wrapper {
+    .transfer-info {
+        position: absolute;
+        right: 0;
+        align-self: center;
+        width: 40%;
+        height: 100%;
+        font-size: 16px;
+        color: var(--q-normal);
+    }
+
+    .transfer-info div {
+        height: 50%;
+        text-align: right;
+    }
+}
+
+.transfer-info-wrapper {
+    width: 90%;
+    margin: 0 auto;
+    display: flex;
+    height: 80px;
+    border-top: 1px solid #cdcdcd;
+}
+
 .train-wrapper .station-name-wrapper .station-name {
     position: absolute;
     left: 80px;
+    width: 40%;
     text-align: left;
     display: block;
     font-weight: bold;
     font-size: 24px;
     color: #656f8c;
+    align-self: center;
 }
 
 .train-wrapper .station-name-wrapper .first-stop {
@@ -203,7 +269,7 @@ onMounted(() => {
     position: absolute;
     font-size: 20px;
     width: 100%;
-    text-align: center;
+    text-align: right;
     color: var(--q-primary);
     font-weight: bold;
 }
@@ -234,19 +300,19 @@ onMounted(() => {
 
 .station-circle-wrapper .dep-arr-time-wrapper {
     position: absolute;
-    left: -55px;
+    left: -40px;
     top: -10px;
-    color: #8a8a8a;
+    color: var(--q-grey-3);
 }
 
 .station-circle-wrapper .station-name-wrapper {
     position: absolute;
-    left: 35px;
+    left: 40px;
     font-weight: normal;
     font-size: 18px;
     width: 100px;
     text-align: left;
-    color: #8a8a8a;
+    color: var(--q-grey-3);
     border: 0;
 }
 

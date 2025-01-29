@@ -30,7 +30,7 @@ const mutations = {
         }
     },
     SET_STATION_TRAININFO_DETAIL(state, {trainInfoList, key}) {
-        if (stationId && lineId && trainInfoList) {
+        if (key && trainInfoList) {
             state.stationTrainInfoDetailMap.set(key, trainInfoList)
         }
     },
@@ -84,14 +84,16 @@ const actions = {
                     return
                 }
                 if (state.LOCK.has(lockKey)) {
-                    resolve(_oldTrains || [])
+                    setTimeout(() => {
+                        resolve(this.dispatch('realtime/fetchStationTrainAtTime', {stationId, lineId, depTime}))
+                    }, 1000)
                     return
                 }
                 //Add Lock
                 commit('SET_LOCK', {key: lockKey})
                 console.log('FetchStationTrainAtTime', 'stationId:' + stationId, 'lineId:' + lineId, 'time:' + depTime)
                 fetchStationTrainInfoAtTime(stationId, lineId, depTime).then(_trains => {
-                    commit('SET_STATION_TRAININFO', {trainInfoList: _trains, key: lockKey})
+                    commit('SET_STATION_TRAININFO_DETAIL', {trainInfoList: _trains, key: lockKey})
                     resolve(_trains)
                 }).catch(err => {
                     reject(err)

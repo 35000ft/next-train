@@ -87,5 +87,21 @@ export default {
     depart: '出发',
     now: '现在',
     kilometer: '公里',
-    transferTimes: '换乘$times次'
+    meterShort: '米',
+    transferTimes: '换乘$times次',
+    boundFor: '开往 $terminal',
+    stop: '站',
+    transferCategory: {
+        EXIT: '出站换乘',
+        NODE: '节点换乘',
+        HALL: '站厅换乘',
+        PASSAGE: '通道换乘',
+        SAME_PLTF: '同台换乘',
+    },
+    solutionTags: {
+        LEAST_TIME: '时间短',
+        NO_TRANSFER: '无需换乘',
+        LEAST_TRANSFER: '少换乘',
+        FIRST_ARRIVED: '早到达',
+    }
 }

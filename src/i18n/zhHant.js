@@ -87,5 +87,22 @@ export default {
     depart: '出發',
     now: '現時',
     kilometer: '公里',
-    transferTimes: '轉車$times次'
+    meterShort: '米',
+    transferTimes: '轉車$times次',
+    boundFor: '開往 $terminal',
+    stop: '站',
+    transferCategory: {
+        EXIT: '出站轉乘',
+        NODE: '節點轉乘',
+        HALL: '站廳轉乘',
+        PASSAGE: '通道轉乘',
+        SAME_PLTF: '同台轉乘',
+    },
+    solutionTags: {
+        LEAST_TIME: '時間短',
+        NO_TRANSFER: '無需轉車',
+        LEAST_TRANSFER: '少轉車',
+        FIRST_ARRIVED: '早到達',
+    }
+
 }

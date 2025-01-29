@@ -1,4 +1,5 @@
 import {MAIN_STATION_PREFIX} from "src/utils/route-plan";
+import {findLongestCommonSubarray} from "src/utils/array-utils";
 
 const ROUTE_COST_THRESHOLD = {
     0: 1.2,
@@ -42,6 +43,16 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, curPlan =
     }
 
     const transfers = findTransfers(graph, path)
+
+    if (path.length > minCostPlan.path.length * 0.7) {
+        const samePath = findLongestCommonSubarray(path, minCostPlan.path)
+        //重复路径过多
+        if (samePath.length / minCostPlan.path.length >= 0.5) {
+            stopRoute()
+            return
+        }
+    }
+
     //如果换乘次数比最小成本方案的换乘次数多2次及以上 则停止查找当前路径
     let transferCountDiff = transfers.length - minCostPlan.transfers.length
 
@@ -85,7 +96,6 @@ export function findTransfers(graph, path) {
  * @returns {{path: number[], distance: *}|{path: *[], distance: number}}
  */
 export function dijkstra(graph, startNode, endNode) {
-    console.log('graph', graph)
     startNode = startNode.toString()
     endNode = endNode.toString()
     // 初始化距离和前驱节点

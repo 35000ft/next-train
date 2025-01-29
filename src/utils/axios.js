@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const publicPath = process.env.PUBLIC_URL || '/';
-const apiBaseUrl = process.env.API_BASE_URL || 'http://111.229.192.148';
+const apiBaseUrl = process.env.API_BASE_URL;
 
 function isAbsoluteURL(url) {
     return /^(?:[a-z]+:)?\/\//i.test(url);

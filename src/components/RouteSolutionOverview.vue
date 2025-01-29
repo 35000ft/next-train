@@ -1,5 +1,5 @@
 <template>
-    <OverlayView name="RouteSolutionOverview">
+    <OverlayView name="RouteSolutionOverview" v-show="!currentSolution">
         <template v-slot:header-center>
             <div style="width: 50vw;max-width: 300px;margin:0 auto;" class="auto-scroll-container">
                 <div v-if="departStation&&arrivalStation" v-overflow-auto-scroll style="text-align: center;">
@@ -26,21 +26,36 @@
             </div>
         </template>
     </OverlayView>
+
+    <transition name="right-in-right-out">
+        <div v-if="currentSolution&&showDetail">
+            <RouteSolutionDetailView :solution="currentSolution" @close="handleCloseDetail"/>
+        </div>
+    </transition>
 </template>
 <script setup>
 import OverlayView from "components/OverlayView.vue";
 import {onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {planRoute, planShortestSolution} from "src/utils/route-plan";
-import {getNowByTimezone} from "src/utils/time-utils";
+import {diff, getNowByTimezone} from "src/utils/time-utils";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import OneSolutionOverview from "components/OneSolutionOverview.vue";
-import dayjs from "dayjs";
+import RouteSolutionDetailView from "components/RouteSolutionDetailView.vue";
+import {trainLineOfStopParser} from "src/models/Train";
+import {tagSolutions} from "src/models/RouteSolution";
 
+const showDetail = ref(false)
+const handleCloseDetail = () => {
+    showDetail.value = false
+    setTimeout(() => {
+        currentSolution.value = null
+    }, 400)
+}
 const loading = ref(true)
 const route = useRoute()
-
+const currentSolution = ref(null)
 const depTime = ref(null)
 
 const departStation = ref(null)
@@ -64,9 +79,34 @@ async function init() {
     })
     const {timezone, railsystemCode} = departStation.value
     const _depTime = depTime.value || getNowByTimezone(timezone)
-    const oneSolutionCb = (solution) => {
-        solutions.value.push(solution)
-        console.log('Push solution', solution, new dayjs().format())
+    const oneSolutionCb = async (solution) => {
+        for (const train of solution.trains) {
+            if (train.type !== 'train') continue
+            train.lines = trainLineOfStopParser(train.trainInfo)
+            const promises = train.lines.map(async line => {
+                return store.dispatch('railsystem/getLine', {lineId: line.lineId}).then(_line => {
+                    line.line = _line
+                    return line
+                })
+            })
+            train.lines = await Promise.all(promises)
+        }
+
+        let tempSolutions = [...solutions.value, solution]
+        tempSolutions = tempSolutions.sort((o1, o2) => {
+            const arrCompare = diff(o1.arrTime, o2.arrTime)
+            const transferTimesCompare = o1.transferTimes - o2.transferTimes
+            if (arrCompare === 0) {
+                if (transferTimesCompare !== 0) {
+                    return transferTimesCompare
+                }
+                return diff(o2.depTime, o1.depTime)
+            } else {
+                return arrCompare
+            }
+        })
+        const index = tempSolutions.findIndex(it => it.id === solution.id)
+        solutions.value.splice(index, 0, solution)
     }
     const trainGetter = ({stationId, lineId, depTime}) =>
         store.dispatch('realtime/fetchStationTrainAtTime', {stationId, lineId, depTime})
@@ -88,8 +128,8 @@ async function init() {
         }
         promise.then(allSolutions => {
             loading.value = false
-            solutions.value.sort((o1, o2) => o1.arrTime.format().localeCompare(o2.arrTime.format()))
-            console.log('全部方案已加载完成', allSolutions)
+            tagSolutions(solutions.value)
+            console.log('全部方案已加载完成', solutions.value)
             $q.notify.ok('全部方案已加载完成')
         })
     })
@@ -97,10 +137,8 @@ async function init() {
 
 const router = useRouter()
 const handleShowSolutionDetail = (_solution) => {
-    router.push({name: 'route-solution-detail'})
-    store.dispatch('application/pushOverlay', {
-        component: {componentName: "RouteSolutionDetailView", props: {solution: _solution}}
-    })
+    currentSolution.value = _solution
+    showDetail.value = true
 }
 
 </script>

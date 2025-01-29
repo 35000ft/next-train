@@ -31,13 +31,19 @@ const props = defineProps({
         type: String,
         default: "OverlayView"
     },
-    componentId: {
-        type: String
+    manageByOverlay: {
+        type: Boolean,
+        default: true
     }
 })
+const emit = defineEmits(['close'])
 const eventBus = inject('eventBus');
 const router = useRouter()
 const handleClose = (event) => {
+    if (!props.manageByOverlay) {
+        emit('close')
+        return
+    }
     if (window.history.length === 1) {
         if (eventBus) {
             eventBus.handleBack({from: window.history.state.current, to: '/'})

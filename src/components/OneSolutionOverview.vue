@@ -12,7 +12,7 @@
             </div>
             <div style="height: 10px;"></div>
             <div class="solution-content">
-                <div v-if="trains&&!loading">
+                <div v-if="trains">
                       <span v-for="(train,index) in trains" :key="train.id">
                           <span v-if="index>0 && trains[index-1].arrStationName!==train.depStationName">
                               {{ train.depStationName }}
@@ -31,8 +31,9 @@
                       style="margin-right: 5px;">
                     {{ t('transferTimes').replace('$times', solution.transferTimes) }}
                 </span>
-                <span v-show="solution.transferTimes===0" class="tag-text">
-                    无需换乘
+                <span v-for="tag in solution.tags" :key="tag.code" :style="{backgroundColor:tag.color}"
+                      class="tag-text">
+                    {{ t(`solutionTags.${tag.code}`) }}
                 </span>
                 <span v-show="solution.transferTimes>0">
                     <q-icon name="fa-solid fa-person-walking"/>
@@ -50,7 +51,6 @@ import {useStore} from "vuex";
 import {trainLineOfStopParser} from "src/models/Train";
 import LineIcon from "components/LineIcon.vue";
 
-const loading = ref(true)
 
 const {t} = useI18n()
 const props = defineProps({
@@ -73,24 +73,26 @@ const totalTime = computed(() => {
 })
 const trains = ref(null)
 const initTrains = () => {
-    loading.value = true
     const _trains = props.solution.trains.filter(it => it.type === 'train')
-    const promises = _trains.map(async it => {
-        it.lines = trainLineOfStopParser(it.trainInfo)
-        const promises = it.lines.map(async line => {
-            return store.dispatch('railsystem/getLine', {lineId: line.lineId}).then(_line => {
-                line.line = _line
-                return line
-            })
-        })
-        it.lines = await Promise.all(promises)
-        return it
-    })
-    Promise.all(promises).then(_trains => {
-        trains.value = _trains
-    }).finally(_ => {
-        loading.value = false
-    })
+    console.log('trains', _trains)
+    trains.value = _trains
+    // const promises = _trains.map(async it => {
+    //     it.lines = trainLineOfStopParser(it.trainInfo)
+    //     console.log('it lines', it.lines)
+    //     const promises = it.lines.map(async line => {
+    //         return store.dispatch('railsystem/getLine', {lineId: line.lineId}).then(_line => {
+    //             line.line = _line
+    //             return line
+    //         })
+    //     })
+    //     it.lines = await Promise.all(promises)
+    //     return it
+    // })
+    // Promise.all(promises).then(_trains => {
+    //     trains.value = _trains
+    // }).finally(_ => {
+    //     loading.value = false
+    // })
 }
 const emit = defineEmits(['select'])
 const handleClick = () => {
@@ -129,6 +131,7 @@ const handleClick = () => {
     background-color: var(--q-primary);
     border-radius: 3px;
     padding: 1px 5px;
+    margin-right: 2px;
 }
 
 .transfer-times {
