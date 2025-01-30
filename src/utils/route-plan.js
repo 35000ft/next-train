@@ -204,6 +204,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     let getOffIndex = -1
     let getOnIndex = -1
     let curPathStationOffset
+    const trainStopLines = trainLineOfStopParser(trainInfo)
     for (let i = 0; i < parsedPath.length; i++) {
         // 当前路径的主车站id列表
         const {stationIds} = parsedPath[i]
@@ -257,6 +258,11 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
                     return
                 }
                 trains.push(transferInfo)
+            }
+
+            if (trainStopLines.length === 1) {
+                isFind = true
+                break
             }
         }
 
