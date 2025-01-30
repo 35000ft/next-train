@@ -31,13 +31,15 @@
                       style="margin-right: 5px;">
                     {{ t('transferTimes').replace('$times', solution.transferTimes) }}
                 </span>
+
+                <span v-show="solution.transferTimes>0" style="margin-right: 4px;">
+                    <q-icon name="fa-solid fa-person-walking"/>
+                    {{ solution.walkDistance }} {{ t('meterShort') }}
+                </span>
+
                 <span v-for="tag in solution.tags" :key="tag.code" :style="{backgroundColor:tag.color}"
                       class="tag-text">
                     {{ t(`solutionTags.${tag.code}`) }}
-                </span>
-                <span v-show="solution.transferTimes>0">
-                    <q-icon name="fa-solid fa-person-walking"/>
-                    {{ solution.walkDistance }}米
                 </span>
             </div>
         </q-card>
@@ -48,7 +50,6 @@ import {computed, onMounted, ref} from "vue";
 import {diff} from "src/utils/time-utils";
 import {useI18n} from "vue-i18n";
 import {useStore} from "vuex";
-import {trainLineOfStopParser} from "src/models/Train";
 import LineIcon from "components/LineIcon.vue";
 
 
@@ -76,23 +77,6 @@ const initTrains = () => {
     const _trains = props.solution.trains.filter(it => it.type === 'train')
     console.log('trains', _trains)
     trains.value = _trains
-    // const promises = _trains.map(async it => {
-    //     it.lines = trainLineOfStopParser(it.trainInfo)
-    //     console.log('it lines', it.lines)
-    //     const promises = it.lines.map(async line => {
-    //         return store.dispatch('railsystem/getLine', {lineId: line.lineId}).then(_line => {
-    //             line.line = _line
-    //             return line
-    //         })
-    //     })
-    //     it.lines = await Promise.all(promises)
-    //     return it
-    // })
-    // Promise.all(promises).then(_trains => {
-    //     trains.value = _trains
-    // }).finally(_ => {
-    //     loading.value = false
-    // })
 }
 const emit = defineEmits(['select'])
 const handleClick = () => {
@@ -131,7 +115,7 @@ const handleClick = () => {
     background-color: var(--q-primary);
     border-radius: 3px;
     padding: 1px 5px;
-    margin-right: 2px;
+    margin-right: 3px;
 }
 
 .transfer-times {

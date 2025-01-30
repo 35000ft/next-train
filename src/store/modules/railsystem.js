@@ -76,7 +76,7 @@ const actions = {
         const DEFAULT_TRANSFER_INFO = {
             needTime: 30,
             distance: 5,
-            category: 'SAME_PLATFORM'
+            category: 'SAME_PLTF'
         }
         if (fromId === toId && fromPlatform === toPlatform) {
             return DEFAULT_TRANSFER_INFO

@@ -44,7 +44,7 @@
             </div>
 
             <div class="depart-time-wrapper" style="margin-top: 20px;">
-                    <span @click="handleSetDepTime"
+                    <span @click="showDepTimeSelector"
                           class="depart-time">
                       {{ depTimeStr }}
                     </span>
@@ -59,7 +59,7 @@
         </div>
     </q-page-container>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
-    <depart-time-selector ref="departTimeSelector" @select="handleSetDepTime"/>
+    <depart-time-selector ref="departTimeSelector" @select="handleSelectDepTime"/>
 </template>
 
 <script setup>
@@ -118,8 +118,14 @@ const saveConfig = () => {
     }
     store.commit('application/SET_METRO_GO_CONFIG', config)
 }
-const handleSetDepTime = () => {
+const showDepTimeSelector = () => {
     departTimeSelector.value.showSelector()
+}
+const handleSelectDepTime = (_depTime, nowGo) => {
+    depTime.value = _depTime
+    if (nowGo) {
+        handleGo()
+    }
 }
 const stationSelector = ref(null)
 const via = ref([])

@@ -200,21 +200,41 @@ async function planOnePathSolution({distance, path, parsedPath}, depTime, trainG
 async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, transferInfoGetter, trains = [], cb, preTransferInfo) {
     let isFind = false
     const stopStationIds = trainInfo.schedule.map(it => it[0])
-    let i = 0
+    let currentPathIndex = -1
     let getOffIndex = -1
     let getOnIndex = -1
-    let indexOffset = -1
-    const trainStopLines = trainLineOfStopParser(trainInfo)
-    for (; i < parsedPath.length; i++) {
+    let curPathStationOffset
+    for (let i = 0; i < parsedPath.length; i++) {
+        // 当前路径的主车站id列表
         const {stationIds} = parsedPath[i]
 
+        // 查找下车站id
         const getOffStationId = [...stationIds].reverse().find(item => stopStationIds.includes(item))
-        getOffIndex = stopStationIds.lastIndexOf(getOffStationId)
+        //如果下车站id不为空
+        if (getOffStationId !== undefined) {
+            const _curPathStationOffset = stationIds.indexOf(getOffStationId)
+            if (_curPathStationOffset > 0) {
+                // 查找下车站id在当前路径主车站id列表的位置
+                curPathStationOffset = _curPathStationOffset
+
+                //更新当前路径index
+                currentPathIndex = i
+
+                // 查找下车站在列车时刻表的index
+                getOffIndex = stopStationIds.lastIndexOf(getOffStationId)
+            }
+        }
+
+        //第一次循环获取上车站索引
         if (i === 0) {
+            //查找上车站在列车时刻表的index 只需要在第一次查找 但下车站index需要查找多次
             getOnIndex = stopStationIds.indexOf(stationIds[0])
+
+            //找不到上车站index 不能搭乘该列车 return
             if (getOnIndex === -1) {
                 return
             }
+            //下车站index小于等于上车站index 不能搭乘该列车 return
             if (getOffIndex <= getOnIndex) {
                 return
             }
@@ -238,55 +258,16 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
                 }
                 trains.push(transferInfo)
             }
-            if (trainStopLines.length <= 1) {
-                isFind = true
-                i += 1
-                break
-            }
         }
-        indexOffset = 0
 
+        //通过第一次循环的检查后 可以搭乘该列车
         isFind = true
-        indexOffset = stationIds.indexOf(getOffStationId)
-        if (indexOffset < stationIds.length - 1) {
-            break
-        }
     }
     if (!isFind) return
     if (getOffIndex <= getOnIndex) {
         return
     }
-    const stops = trainInfo.schedule.slice(getOnIndex, getOffIndex + 1).map(it => stopInfoParse(it))
-    const train = {
-        depTime: stops[0].dep,
-        arrTime: stops.slice(-1)[0].arr,
-        get arrStationName() {
-            return this.arrStop.stationName
-        },
-        get depStationName() {
-            return this.depStop.stationName
-        },
-        get depStationId() {
-            return this.depStop.stationId
-        },
-        get arrStationId() {
-            return this.arrStop.stationId
-        },
-        terminal: stopInfoParse(trainInfo.schedule.slice(-1)[0]),
-        isFirstStop: getOnIndex === 0,
-        get depStop() {
-            return this.stops[0]
-        },
-        get arrStop() {
-            return this.stops.slice(-1)[0]
-        },
-        stops: stops,
-        getOnIndex,
-        getOffIndex,
-        trainInfo,
-        category: trainInfo.category,
-        type: 'train'
-    }
+    const train = buildTrain(trainInfo, getOnIndex, getOffIndex)
     trains.push(train)
     const getOffStop = stopInfoParse(trainInfo.schedule[getOffIndex])
     const isArrived = parsedPath.length === 1 && getOffStop.stationId === parsedPath[0].stationIds.slice(-1)[0]
@@ -298,24 +279,23 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     }
 
     let nextParsedPath
-    if (i > 0) {
-        nextParsedPath = _.cloneDeep(parsedPath.slice(i))
-    } else {
-        nextParsedPath = _.cloneDeep(parsedPath[0])
-    }
-
     let transferFromId
-    const currentPathIndex = i > 0 ? i - 1 : 0
-    if (indexOffset > 0) {
-        //该车次未能到达一段path的终点 需要对该段path进行切割
-        nextParsedPath[nextParsedPath.length - 1].stationIds = nextParsedPath[0].stationIds.slice(indexOffset)
-        nextParsedPath[nextParsedPath.length - 1].subStationIds = nextParsedPath[0].subStationIds.slice(indexOffset)
-        transferFromId = parsedPath[i].subStationIds[indexOffset]
+
+    const needSplit = curPathStationOffset < parsedPath[currentPathIndex].stationIds.length - 1
+    if (needSplit) {
+        // 计算下一个parsedPath 为parsedPath的切片 因为需要切割所以从currentPathIndex开始
+        nextParsedPath = _.cloneDeep(parsedPath.slice(currentPathIndex))
+        //需要对nextParsedPath进行切割
+        nextParsedPath[0].stationIds = nextParsedPath[0].stationIds.slice(curPathStationOffset)
+        nextParsedPath[0].subStationIds = nextParsedPath[0].subStationIds.slice(curPathStationOffset)
+        transferFromId = parsedPath[currentPathIndex].subStationIds[curPathStationOffset]
     } else {
+        // 计算下一个parsedPath 为parsedPath的切片 因为不需要切割所以从currentPathIndex+1开始
+        nextParsedPath = _.cloneDeep(parsedPath.slice(currentPathIndex + 1))
         transferFromId = parsedPath[currentPathIndex].subStationIds.slice(-1)[0]
     }
     const curLineId = parsedPath[currentPathIndex].lineId
-    const nextLineId = indexOffset > 0 ? curLineId : nextParsedPath[0].lineId
+    const nextLineId = needSplit ? curLineId : nextParsedPath[0].lineId
 
     const currentStationId = getOffStop.stationId
     const transferFromInfo = {
@@ -328,6 +308,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
 
     try {
         const minTransfer = await transferInfoGetter(transferFromInfo);
+
         lastDepTime = getOffStop.arr.add(minTransfer.needTime, 'second')
         const nextTrainInfoList = await trainGetter({
             stationId: currentStationId,
@@ -408,5 +389,39 @@ function toSolution(segments, distance) {
         arrTime,
         depStationId: segments[0].depStationId,
         arrStationId: segments.slice(-1)[0].arrStationId,
+    }
+}
+
+function buildTrain(trainInfo, getOnIndex, getOffIndex) {
+    const stops = trainInfo.schedule.slice(getOnIndex, getOffIndex + 1).map(it => stopInfoParse(it))
+    return {
+        depTime: stops[0].dep,
+        arrTime: stops.slice(-1)[0].arr,
+        get arrStationName() {
+            return this.arrStop.stationName
+        },
+        get depStationName() {
+            return this.depStop.stationName
+        },
+        get depStationId() {
+            return this.depStop.stationId
+        },
+        get arrStationId() {
+            return this.arrStop.stationId
+        },
+        terminal: stopInfoParse(trainInfo.schedule.slice(-1)[0]),
+        isFirstStop: getOnIndex === 0,
+        get depStop() {
+            return this.stops[0]
+        },
+        get arrStop() {
+            return this.stops.slice(-1)[0]
+        },
+        stops: stops,
+        getOnIndex,
+        getOffIndex,
+        trainInfo,
+        category: trainInfo.category,
+        type: 'train'
     }
 }

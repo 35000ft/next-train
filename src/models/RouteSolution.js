@@ -5,6 +5,8 @@ import {diff} from "src/utils/time-utils";
  * @param solutions
  */
 export function tagSolutions(solutions) {
+    const solutionsLength = solutions.length
+    const minPercentage = 0.3
     const tagSolution = (_solutions, _tag) => {
         _solutions.forEach(it => {
             const tags = it.tags || []
@@ -14,16 +16,23 @@ export function tagSolutions(solutions) {
     }
     const leastTime = solutions.sort((o1, o2) => o1.totalTime - o2.totalTime)[0].totalTime
     const leastTimeSolutions = solutions.filter(it => it.totalTime === leastTime)
-    tagSolution(leastTimeSolutions, SOLUTION_TAGS.LEAST_TIME)
+    if (leastTimeSolutions.length / solutionsLength < minPercentage) {
+        tagSolution(leastTimeSolutions, SOLUTION_TAGS.LEAST_TIME)
+    }
 
     const firstArrivedTime = solutions.sort((o1, o2) => diff(o1.arrTime, o2.arrTime))[0].arrTime
     const firstArriveSolutions = solutions.filter(it => diff(firstArrivedTime, it.arrTime) === 0)
-    tagSolution(firstArriveSolutions, SOLUTION_TAGS.FIRST_ARRIVED)
+    if (firstArriveSolutions.length < solutionsLength) {
+        tagSolution(firstArriveSolutions, SOLUTION_TAGS.FIRST_ARRIVED)
+    }
+
 
     const leastTransferTimes = solutions.sort((o1, o2) => o1.transferTimes - o2.transferTimes)[0].transferTimes
     const leastTransferSolutions = solutions.filter(it => it.transferTimes === leastTransferTimes)
     const leastTransferTag = leastTransferTimes === 0 ? SOLUTION_TAGS.NO_TRANSFER : SOLUTION_TAGS.LEAST_TRANSFER
-    tagSolution(leastTransferSolutions, leastTransferTag)
+    if (leastTransferSolutions.length < solutionsLength) {
+        tagSolution(leastTransferSolutions, leastTransferTag)
+    }
 }
 
 export const SOLUTION_TAGS = {

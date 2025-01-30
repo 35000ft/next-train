@@ -44,7 +44,7 @@
                 </span>
                     <i class="green-color fa fa-angle-right"></i>
                 </div>
-                <div @click="handleSelect" class="confirm">
+                <div @click="handleSelect(false)" class="confirm">
                     选定
                 </div>
             </div>
@@ -86,11 +86,14 @@ export default defineComponent(
                 depTimeString.value = temp.add(val, 'minute').format('HH:mm')
             }
             const handleSelect = (nowGo) => {
-                if (nowGo) {
+                let _depTime = dayjs().add(todayDepart.value ? 0 : 1, 'day').format('YYYY-MM-DD') + ' ' + depTimeString.value
+                _depTime = dayjs(_depTime)
+                if (nowGo === true) {
                     emit('select', null, true)
-                } else {
-                    emit('select', depTime.value, false)
+                } else if (nowGo === false) {
+                    emit('select', _depTime, false)
                 }
+                handleCloseSelector()
             }
             const handleSelectTime = (newDate, newTime) => {
                 const temp = new dayjs(`${newDate} ${newTime}`)

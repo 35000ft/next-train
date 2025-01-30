@@ -128,7 +128,11 @@ async function init() {
         }
         promise.then(allSolutions => {
             loading.value = false
-            tagSolutions(solutions.value)
+            setTimeout(() => {
+                if (solutions.value.length > 0) {
+                    tagSolutions(solutions.value)
+                }
+            }, 10)
             console.log('全部方案已加载完成', solutions.value)
             $q.notify.ok('全部方案已加载完成')
         })
