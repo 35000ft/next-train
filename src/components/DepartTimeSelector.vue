@@ -44,8 +44,10 @@
                 </span>
                     <i class="green-color fa fa-angle-right"></i>
                 </div>
-                <div @click="handleSelect(false)" class="confirm">
-                    选定
+                <div class="confirm-wrapper">
+                    <div class="confirm" @click="handleSelect(false)">
+                        选定
+                    </div>
                 </div>
             </div>
         </template>
@@ -188,6 +190,13 @@ export default defineComponent(
     font-size: 20px;
 }
 
+.confirm-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+}
+
 .confirm {
     height: 40px;
     width: 100px;
@@ -198,10 +207,6 @@ export default defineComponent(
     color: #ffffff;
     text-align: center;
     line-height: 40px;
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    bottom: 20px;
     transition: .3s;
     background-color: var(--q-green);
     -moz-user-select: none;

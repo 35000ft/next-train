@@ -94,8 +94,13 @@ function parseRoute(subIdToMainMap, path) {
             const {lineId, mainStationId} = subIdToMainMap.get(node)
             if (!lineId) continue
             if (last.lineId === lineId) {
-                last.stationIds.push(mainStationId)
-                last.subStationIds.push(node)
+                const preStationId = last.stationIds[last.stationIds.length - 1]
+                if (preStationId !== mainStationId) {
+                    last.stationIds.push(mainStationId)
+                    last.subStationIds.push(node)
+                } else {
+                    result.push({lineId, stationIds: [mainStationId], subStationIds: [node]})
+                }
             } else {
                 result.push({lineId, stationIds: [mainStationId], subStationIds: [node]})
             }
