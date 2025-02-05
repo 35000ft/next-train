@@ -44,7 +44,7 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, curPlan =
 
     const transfers = findTransfers(graph, path)
 
-    if (path.length > minCostPlan.path.length * 0.7) {
+    if (transfers.length > 0 && path.length > minCostPlan.path.length * 0.7) {
         const samePath = findLongestCommonSubarray(path, minCostPlan.path)
         //重复路径过多
         if (samePath.length / minCostPlan.path.length >= 0.5) {
@@ -54,16 +54,22 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, curPlan =
     }
 
     //如果换乘次数比最小成本方案的换乘次数多2次及以上 则停止查找当前路径
-    let transferCountDiff = transfers.length - minCostPlan.transfers.length
-
-    let needToStopRoute = transferCountDiff > 2 ||
-        (transferCountDiff === 0 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[0]) ||
-        (transferCountDiff === 1 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[1]) ||
-        (transferCountDiff === 2 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[2]) ||
-        (transferCountDiff < 0 && ((transfers.length === 0 && currentDistance > minCostPlan.distance * 1.5) || (currentDistance > minCostPlan.distance * 1.3)))
-    if (needToStopRoute) {
-        stopRoute()
-        return
+    if (transfers.length > 0) {
+        let transferCountDiff = transfers.length - minCostPlan.transfers.length
+        let tooMuchTransfer = transferCountDiff > 2 ||
+            (transferCountDiff === 0 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[0]) ||
+            (transferCountDiff === 1 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[1]) ||
+            (transferCountDiff === 2 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[2]) ||
+            (transferCountDiff < 0 && ((transfers.length === 0 && currentDistance > minCostPlan.distance * 1.5) || (currentDistance > minCostPlan.distance * 1.3)))
+        if (tooMuchTransfer) {
+            stopRoute()
+            return
+        }
+    } else {
+        if (currentDistance > minCostPlan.distance * 1.8) {
+            stopRoute()
+            return
+        }
     }
 
 
