@@ -124,7 +124,9 @@ const showDepTimeSelector = () => {
 const handleSelectDepTime = (_depTime, nowGo) => {
     depTime.value = _depTime
     if (nowGo) {
-        handleGo()
+        setTimeout(() => {
+            handleGo()
+        }, 10)
     }
 }
 const stationSelector = ref(null)
@@ -191,6 +193,7 @@ const handleGo = () => {
         viaIds,
         depTime: _depTime.format()
     }
+    saveConfig()
     router.push({name: 'route-solution-overview', query: params})
     store.dispatch('application/pushOverlay', {
         component: {componentName: "RouteSolutionOverview"}
