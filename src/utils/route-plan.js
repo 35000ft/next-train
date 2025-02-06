@@ -123,6 +123,7 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
 
     const pathCb = ({path, distance}) => {
         const parsedPath = parseRoute(subIdToMainMap, path)
+        console.log('parsed', path, parsedPath)
         const onePathPromise = planOnePathSolution(
             {
                 distance,
@@ -141,7 +142,6 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
         })
         planPromises.push(onePathPromise)
     }
-    pathCb(shortest)
     await findAllPaths(graph, start, end, pathCb, shortest)
     return Promise.all(planPromises).then(res => {
         return allSolutions
