@@ -72,6 +72,7 @@ import dayjs from "dayjs";
 import {useQuasar} from "quasar";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {useRouter} from "vue-router";
+import {arr2Map} from "src/utils/array-utils";
 
 defineOptions({
     name: 'MetroGoView'
@@ -108,13 +109,20 @@ const init = () => {
         if (config.depTime) {
             depTime.value = dayjs(config.depTime)
         }
+        if (config.viaIds && config.viaIds.length > 0) {
+            store.dispatch('railsystem/getStationByIds', {stationIds: config.viaIds}).then(stations => {
+                const stationMap = arr2Map(stations, 'id')
+                via.value = config.viaIds.map(it => stationMap.get(it)).filter(it => it !== undefined)
+            })
+        }
     })
 }
 const saveConfig = () => {
     const config = {
         from: (departStation.value && departStation.value.id) || null,
         to: (arrivalStation.value && arrivalStation.value.id) || null,
-        depTime: (depTime.value && depTime.value.format()) || null
+        depTime: (depTime.value && depTime.value.format()) || null,
+        viaIds: via.value.map(it => it.id)
     }
     store.commit('application/SET_METRO_GO_CONFIG', config)
 }
@@ -173,6 +181,7 @@ const handleDelVia = (viaStation) => {
     if (via.value && viaStation) {
         const index = via.value.findIndex(it => it.id === viaStation.id)
         via.value.splice(index, 1)
+        saveConfig()
     }
 }
 const router = useRouter()
