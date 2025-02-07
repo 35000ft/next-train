@@ -9,7 +9,7 @@
                     </div>
                     <div class="train-wrapper">
                         <div class="station-name-wrapper">
-                            <span class="station-name auto-scroll-container">
+                            <span class="station-name auto-scroll-container" style="width: 50%;text-overflow:ellipsis;">
                                 <span v-overflow-auto-scroll>{{ train.depStationName }}</span>
                             </span>
                             <span class="first-stop" v-show="train.isFirstStop">本站始发</span>
@@ -27,6 +27,7 @@
                                     <span v-overflow-auto-scroll>
                                         {{ t(`transferCategory.${train.transfer.category}`) }}
                                     </span>
+                                    <TrainTransferDirector :transfer-info="train.transfer"/>
                                 </div>
                             </div>
                         </div>
@@ -59,8 +60,7 @@
                                                <b>{{ item.arr.format('HH:mm') }}</b><br>
                                                 <b>{{ item.dep.format('HH:mm') }}</b>
                                             </span>
-                                            <span @click="handleChangeDepStation(item.stationId)"
-                                                  class="station-name-wrapper station-name">
+                                            <span class="station-name-wrapper station-name">
                                                 {{ item.stationName }}
                                             </span>
                                             <svg class="normal" height="20px" width="20px"
@@ -108,6 +108,7 @@ import OverlayView from "components/OverlayView.vue";
 import {useI18n} from "vue-i18n";
 import {onMounted} from "vue";
 import TrainCategory from "components/TrainCategory.vue";
+import TrainTransferDirector from "components/TrainTransferDirector.vue";
 
 const {t} = useI18n()
 const props = defineProps({
@@ -210,10 +211,10 @@ const handleClose = () => {
 .train-wrapper .station-name-wrapper .station-name {
     position: absolute;
     left: 80px;
-    width: 40%;
     text-align: left;
     display: block;
     font-weight: bold;
+    white-space: nowrap;
     font-size: 24px;
     color: #656f8c;
     align-self: center;

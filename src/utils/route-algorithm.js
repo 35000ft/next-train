@@ -43,8 +43,9 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, curPlan =
     }
 
     const transfers = findTransfers(graph, path)
+    let transferCountDiff = transfers.length - minCostPlan.transfers.length
 
-    if (transfers.length > 0 && path.length > minCostPlan.path.length * 0.7) {
+    if (transfers.length > 0 && transferCountDiff > 0 && path.length > minCostPlan.path.length * 0.7) {
         const samePath = findLongestCommonSubarray(path, minCostPlan.path)
         //重复路径过多
         if (samePath.length / minCostPlan.path.length >= 0.5) {
@@ -55,7 +56,6 @@ export async function findAllPaths(graph, start, end, cb, minCostPlan, curPlan =
 
     //如果换乘次数比最小成本方案的换乘次数多2次及以上 则停止查找当前路径
     if (transfers.length > 0) {
-        let transferCountDiff = transfers.length - minCostPlan.transfers.length
         let tooMuchTransfer = transferCountDiff > 2 ||
             (transferCountDiff === 0 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[0]) ||
             (transferCountDiff === 1 && currentDistance > minCostPlan.distance * ROUTE_COST_THRESHOLD[1]) ||

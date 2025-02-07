@@ -123,7 +123,6 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
 
     const pathCb = ({path, distance}) => {
         const parsedPath = parseRoute(subIdToMainMap, path)
-        console.log('parsed', path, parsedPath)
         const onePathPromise = planOnePathSolution(
             {
                 distance,
@@ -245,7 +244,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
                 return
             }
             if (preTransferInfo) {
-                const {fromPlatform, fromId, arrTime, fromMainId} = preTransferInfo
+                const {fromPlatform, fromId, arrTime, fromMainId, fromLineId} = preTransferInfo
                 const getOnStop = stopInfoParse(trainInfo.schedule[getOnIndex])
                 const transferInfo = await transferInfoGetter({
                     fromId,
@@ -257,6 +256,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
                 })
                 transferInfo.type = 'transfer'
                 transferInfo.depStationId = fromMainId
+                transferInfo.fromLineId = fromLineId
                 transferInfo.arrStationId = getOnStop.stationId
                 if (arrTime.add(transferInfo.needTime, 'second').isAfter(getOnStop.dep)) {
                     console.warn('Transfer time is not enough', `arrive time:${arrTime.format()}`, `dep time:${getOnStop.dep.format()}`, `transfer need time:${transferInfo.needTime}`)
@@ -314,7 +314,8 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         fromId: transferFromId,
         fromMainId: getOffStop.stationId,
         arrTime: getOffStop.arr,
-        toId: nextParsedPath[0].subStationIds[0]
+        toId: nextParsedPath[0].subStationIds[0],
+        fromLineId: curLineId,
     }
 
     try {
