@@ -5,12 +5,16 @@
         </q-toolbar>
     </q-header>
     <q-page-container>
-        <h4>{{ t('developing') }}</h4>
+        <div>
+            <LineRealtimeView></LineRealtimeView>
+        </div>
     </q-page-container>
+
 </template>
 
 <script setup>
 import {useI18n} from "vue-i18n";
+import LineRealtimeView from "components/LineRealtimeView.vue";
 
 defineOptions({
     name: 'LinesNavView'

@@ -83,29 +83,51 @@ function initGraph(rawGraph, fromMainId, toMainId, viaIds = []) {
  * @param {Array} path 如 ['M180','193', '194', '195', '196', 'M65'] 代表卸甲甸到泰冯路
  */
 function parseRoute(subIdToMainMap, path) {
-    const result = []
+    let result = []
     const {lineId, mainStationId} = subIdToMainMap.get(path[1])
     result.push({lineId, stationIds: [mainStationId], subStationIds: [path[1]]})
-    for (const node of path.slice(2, -1)) {
+    for (const subStationId of path.slice(2, -1)) {
         const last = result.slice(-1)[0]
-        if (node.startsWith(MAIN_STATION_PREFIX)) {
+        if (subStationId.startsWith(MAIN_STATION_PREFIX)) {
             //TODO
         } else {
-            const {lineId, mainStationId} = subIdToMainMap.get(node)
+            const {lineId, mainStationId} = subIdToMainMap.get(subStationId)
             if (!lineId) continue
             if (last.lineId === lineId) {
                 const preStationId = last.stationIds[last.stationIds.length - 1]
                 if (preStationId !== mainStationId) {
                     last.stationIds.push(mainStationId)
-                    last.subStationIds.push(node)
+                    last.subStationIds.push(subStationId)
                 } else {
-                    result.push({lineId, stationIds: [mainStationId], subStationIds: [node]})
+                    result.push({lineId, stationIds: [mainStationId], subStationIds: [subStationId]})
                 }
             } else {
-                result.push({lineId, stationIds: [mainStationId], subStationIds: [node]})
+                result.push({lineId, stationIds: [mainStationId], subStationIds: [subStationId]})
             }
         }
     }
+    // Merge Line
+    result = result.reduce((acc, cur) => {
+        if (acc.length === 0) {
+            acc.push(cur)
+        } else {
+            const last = acc.slice(-1)[0]
+            if (last.lineId === cur.lineId) {
+                if (last.stationIds.length < 2 || cur.stationIds.length < 2) {
+                    throw new Error(`Invalid station sequence: last.stationIds (${last.stationIds}) or cur.stationIds (${cur.stationIds}) length is less than 2.`)
+                }
+                // 如果相邻两段的lineId相同 判断是否可以顺向接续 即前一段的倒数第二站id与后一段的第二站id是否相同 不相同则可以接续
+                if (last.stationIds[last.stationIds.length - 2] !== cur.stationIds[1]) {
+                    last.stationIds.push(...cur.stationIds.slice(1))
+                } else {
+                    acc.push(cur)
+                }
+            } else {
+                acc.push(cur)
+            }
+        }
+        return acc
+    }, [])
     return result
 }
 
