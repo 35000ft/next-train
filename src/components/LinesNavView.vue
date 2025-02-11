@@ -4,9 +4,10 @@
             <q-toolbar-title>Next Train</q-toolbar-title>
         </q-toolbar>
     </q-header>
+
     <q-page-container>
+        <LineRealtimeView></LineRealtimeView>
         <div>
-            <LineRealtimeView></LineRealtimeView>
         </div>
     </q-page-container>
 

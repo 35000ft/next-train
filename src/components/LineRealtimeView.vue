@@ -1,6 +1,6 @@
 <template>
-    <div ref="container" class="container">
-        <canvas id="metroCanvas" width="300" height="800"></canvas>
+    <div ref="container" class="container" style="position:absolute;z-index:10;left:0;">
+        <canvas ref="metroCanvas" id="metroCanvas" width="360" height="800" @click="handleCanvasClick"></canvas>
     </div>
 </template>
 
@@ -8,8 +8,10 @@
 import {onMounted, ref} from "vue";
 import {useStore} from "vuex";
 import {drawRoundedLShape, drawRoundedRect} from "src/utils/canvas-utils";
+import _ from "lodash";
 
 const store = useStore()
+const metroCanvas = ref(null)
 
 function resizeCanvas(canvas, {width, height}) {
     if (typeof width === "number" && width > 0) {
@@ -57,7 +59,13 @@ const lineInfoLoader = async (lineId) => {
         return await store.dispatch('railsystem/getLine', {lineId})
     }
 }
+const xPadding = 10
+const yPadding = 50
+const positions = []
 
+function addClickableArea(rect, callBack) {
+
+}
 
 /**
  * 获取分支站点列表
@@ -98,7 +106,7 @@ async function drawMetroLine(canvas, config) {
 
         const isLeft = position.x === 0
         // 矩形框位置：在 `to` 点上方
-        const rectX = isLeft ? 1 : position.x - textWidth;
+        const rectX = isLeft ? xPadding : position.x - textWidth - xPadding;
         const rectY = isLeft ? position.y + 10 : position.y - textHeight - 10; // 适当上移，避免重叠
         // 画圆角矩形
         _ctx.beginPath();
@@ -111,7 +119,10 @@ async function drawMetroLine(canvas, config) {
 
         // 填充文本
         _ctx.fillStyle = '#ffffff';
-        _ctx.fillText(name, isLeft ? textWidth / 2 : position.x - textWidth / 2, rectY + textHeight / 2);
+        const textStartX = isLeft ? (textWidth / 2) + xPadding : (position.x - textWidth / 2 - xPadding)
+        const textStartY = rectY + textHeight / 2
+        _ctx.fillText(name, textStartX, textStartY)
+        addClickableArea({from: {x: textStartX, y: textStartY}});
     }
 
     function drawStationName(_ctx, station, position) {
@@ -140,7 +151,6 @@ async function drawMetroLine(canvas, config) {
     const lineInfo = await lineInfoLoader(config.lineId);
     const stations = lineInfo.stations;
     const lineColor = lineInfo.color;
-    const padding = 50;
     const width = canvas.width / 2;
     const lineWidth = 10;
     const SEGMENT_LENGTH = 100; // 站点间距
@@ -150,7 +160,7 @@ async function drawMetroLine(canvas, config) {
     const stationPositions = {};
     stations.forEach((station, index) => {
         const x = width;
-        const y = padding + index * SEGMENT_LENGTH;
+        const y = yPadding + index * SEGMENT_LENGTH;
         stationPositions[station.id] = {x, y, index};
     });
 
@@ -186,8 +196,18 @@ async function drawMetroLine(canvas, config) {
         }
     }
 
-    canvas.height = lineHeight + padding;
+    canvas.height = lineHeight + yPadding;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const segmentsCount = lineHeight / SEGMENT_LENGTH
+    for (let i = 0; i < segmentsCount; i++) {
+        if (i % 2 === 0) {
+            ctx.fillStyle = "#efefef";
+        } else {
+            ctx.fillStyle = '#ffffff'
+        }
+        ctx.fillRect(0, yPadding + (i * SEGMENT_LENGTH), canvas.width, SEGMENT_LENGTH); // (x, y, width, height)
+    }
 
     const stationCirclesToDraw = []
 
@@ -235,16 +255,16 @@ async function drawMetroLine(canvas, config) {
                 const stationY = intersectionPoint.y + i * SEGMENT_LENGTH
                 stationCirclesToDraw.push([mainLineX, stationY, extraColor])
                 if (extraLineConfig.type === 'TROUGH') {
-                    drawStationName(ctx, station, {x: 0, y: stationY + 16})
+                    drawStationName(ctx, station, {x: xPadding, y: stationY + 16})
                 }
             })
         }
     }
 
     // **绘制主线**
-    drawLine(ctx, lineInfo, lineWidth, {x: width, y: padding}, {
+    drawLine(ctx, lineInfo, lineWidth, {x: width, y: yPadding}, {
         x: width,
-        y: padding + (stations.length - 1) * SEGMENT_LENGTH
+        y: yPadding + (stations.length - 1) * SEGMENT_LENGTH
     })
 
     stationCirclesToDraw.forEach(params => {
@@ -253,9 +273,9 @@ async function drawMetroLine(canvas, config) {
     // **绘制主线站点**
     stations.forEach((station, index) => {
         const isIntersection = intersections.has(station.id)
-        const stationY = padding + index * SEGMENT_LENGTH
+        const stationY = yPadding + index * SEGMENT_LENGTH
         drawStation(ctx, width, stationY, lineColor, isIntersection);
-        drawStationName(ctx, station, {x: 0, y: stationY + 16})
+        drawStationName(ctx, station, {x: xPadding, y: stationY + 16})
     });
 }
 
@@ -305,8 +325,20 @@ onMounted(() => {
     const canvasId = 'metroCanvas'
     const canvas = document.getElementById(canvasId)
     drawMetroLine(canvas, drawConfig)
-    resizeCanvas(canvas, {width: container.value.clientWidth})
+    const canvasWidth = window.innerWidth >= 350 ? window.innerWidth : 358
+    resizeCanvas(canvas, {width: canvasWidth})
 })
+
+const handleCanvasClick = _.debounce((event) => {
+    if (!metroCanvas.value) return
+    const canvas = metroCanvas.value
+    const rect = canvas.getBoundingClientRect()
+
+    // 获取点击位置（相对于 canvas 内部）
+    const clickX = event.clientX - rect.left
+    const clickY = event.clientY - rect.top
+
+}, 100)
 </script>
 
 <style scoped>
