@@ -1,9 +1,10 @@
 import dayjs from "dayjs";
 import LRU from "src/utils/LRU";
-import {trainScheduleParser, trainLineOfStopParser} from "src/models/Train";
+import {trainScheduleParser, trainLineOfStopParser, stopInfoParse} from "src/models/Train";
 import {reactive} from "vue";
-import {isAfterNow, toLocalDatetime} from "src/utils/time-utils";
+import {diff, isAfterNow, toLocalDatetime} from "src/utils/time-utils";
 import {
+    fetchLineOnServiceTrains,
     fetchScheduleHeader,
     fetchStationTrainInfo,
     fetchStationTrainInfoAtTime,
@@ -16,6 +17,7 @@ const state = {
     stationTrainInfoDetailMap: reactive(new LRU(10)),
     LOCK: reactive(new Map()),
     lineScheduleHeaderMap: reactive(new LRU(20)),
+    lineOnServiceTrainMap: reactive(new LRU(5)),
 }
 const mutations = {
     SET_TRAININFO(state, {trainInfoId, trainInfo}) {
@@ -45,6 +47,12 @@ const mutations = {
     UNLOCK(state, {key}) {
         state.LOCK.delete(key)
     },
+    SET_LINE_ON_SERVICE_TRAINS(state, {lineId, trains}) {
+        state.lineOnServiceTrainMap.set(lineId, {
+            trains,
+            time: dayjs()
+        })
+    }
 }
 
 const actions = {
@@ -179,6 +187,21 @@ const actions = {
             _result = [..._result.slice(1), _result[0]]
         }
         return _result
+    },
+    async getLineOnServiceTrains({commit}, {lineId}) {
+        const data = state.lineOnServiceTrainMap.get(lineId)
+        if (data) {
+            const delay = diff(dayjs(), data.time, 'second')
+            if (delay <= 60) {
+                return data.trains
+            }
+        }
+        const trains = await fetchLineOnServiceTrains(lineId)
+        trains.forEach(trainInfo => {
+            trainInfo.schedule = trainInfo.schedule.map(it => stopInfoParse(it))
+        })
+        commit('SET_LINE_ON_SERVICE_TRAINS', {lineId, trains})
+        return trains
     },
 
     /**

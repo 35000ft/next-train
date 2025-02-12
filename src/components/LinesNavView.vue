@@ -6,9 +6,8 @@
     </q-header>
 
     <q-page-container>
-        <LineRealtimeView></LineRealtimeView>
-        <div>
-        </div>
+        <LineRealtimeView :line-id-prop="'51'"/>
+        <div></div>
     </q-page-container>
 
 </template>
