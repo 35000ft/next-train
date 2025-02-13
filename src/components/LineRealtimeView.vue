@@ -2,40 +2,99 @@
     <div ref="container" class="container" style="position:absolute;z-index:10;left:0;">
         <canvas ref="metroCanvas" id="metroCanvas" width="360" height="800" @click="handleCanvasClick"></canvas>
         <span @click="handleShowTrainInfoDetail(train)"
-              class="pentagon"
-              style="width: 80px;position: absolute;display: flex;justify-content: center;align-items: center;"
-              v-for="train in downTrains" :key="train.id"
-              :style="{top:train.yPosition+'px',height:TRAIN_ICON_HEIGHT+'px',left:trainXPosition+'px'}">
-                <span>
-                    <svg class="icon" viewBox="0 0 1024 1024"
-                         xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              class="pentagon down-pentagon"
+              style="width: 80px;position: absolute;display: flex;justify-content: center;"
+              v-for="train in upTrains" :key="train.id"
+              :style="{top:train.yPosition+'px',height:TRAIN_ICON_HEIGHT+'px',right:train.xPosition+'px'}">
+            <span>
+                <svg width="25" height="40" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="icon"
+                     version="1.1">
+                    <g>
                         <path
-                            d="M824.11102 0c58.806857 0 106.496 47.438367 106.496 105.931755v659.121633a106.119837 106.119837 0 0 1-92.682449 105.033143L992.653061 1024h-100.414694l-153.829877-153.014857h-452.858776L131.740735 1024H31.346939l155.982367-155.167347a106.119837 106.119837 0 0 1-84.992-103.779265V105.952653C102.337306 47.417469 150.047347 0 208.833306 0h615.277714z m35.505633 576.741878H173.327673v188.31151c0 19.497796 15.882449 35.317551 35.505633 35.317551h615.277714c19.602286 0 35.505633-15.819755 35.505633-35.317551v-188.31151z m-556.115592 70.614204c16.906449 0 32.538122 8.986122 40.980898 23.531102a46.874122 46.874122 0 0 1 0 47.083102 47.375673 47.375673 0 0 1-40.980898 23.552 47.20849 47.20849 0 0 1-47.333877-47.083102 47.20849 47.20849 0 0 1 47.333877-47.083102z m425.963102 0c16.906449 0 32.538122 8.986122 40.980898 23.531102a46.874122 46.874122 0 0 1 0 47.083102 47.375673 47.375673 0 0 1-40.980898 23.552 47.20849 47.20849 0 0 1-47.333877-47.083102 47.20849 47.20849 0 0 1 47.333877-47.083102z m-248.476734-400.195919H173.306776v258.946613h307.638857v-258.925715z m378.629224 0H551.977796v258.946613h307.617959v-258.925715zM824.11102 70.635102H208.833306c-19.602286 0-35.505633 15.819755-35.505633 35.317551v70.635102h686.28898v-70.635102c0-19.497796-15.882449-35.317551-35.505633-35.317551z"
-                            fill="#111111">
-                        </path>
-                    </svg>
-                </span>
+                            d="m824.11102,0c58.80686,0 106.496,47.43837 106.496,105.93175l0,659.12164a106.11984,106.11984 0 0 1 -92.68245,105.03314l154.72849,153.91347l-100.41469,0l-153.82988,-153.01486l-452.85878,0l-153.80897,153.01486l-100.3938,0l155.98237,-155.16735a106.11984,106.11984 0 0 1 -84.992,-103.77926l0,-659.10074c0,-58.53518 47.71004,-105.95265 106.496,-105.95265l615.27771,0zm35.50563,576.74188l-686.28898,0l0,188.31151c0,19.49779 15.88245,35.31755 35.50564,35.31755l615.27771,0c19.60229,0 35.50563,-15.81976 35.50563,-35.31755l0,-188.31151zm-556.11559,70.6142c16.90645,0 32.53812,8.98612 40.9809,23.5311a46.87412,46.87412 0 0 1 0,47.08311a47.37567,47.37567 0 0 1 -40.9809,23.552a47.20849,47.20849 0 0 1 -47.33388,-47.08311a47.20849,47.20849 0 0 1 47.33388,-47.0831zm425.9631,0c16.90645,0 32.53813,8.98612 40.9809,23.5311a46.87412,46.87412 0 0 1 0,47.08311a47.37567,47.37567 0 0 1 -40.9809,23.552a47.20849,47.20849 0 0 1 -47.33387,-47.08311a47.20849,47.20849 0 0 1 47.33387,-47.0831zm-248.47673,-400.19592l-307.68065,0l0,258.94662l307.63885,0l0,-258.92572l0.0418,-0.0209zm378.62922,0l-307.63885,0l0,258.94662l307.61796,0l0,-258.92572l0.02089,-0.0209zm-35.50563,-176.52506l-615.27771,0c-19.60229,0 -35.50564,15.81976 -35.50564,35.31755l0,70.63511l686.28898,0l0,-70.63511c0,-19.49779 -15.88245,-35.31755 -35.50563,-35.31755z"
+                            fill="#111111" id="svg_1"/>
+                        <rect id="svg_2" height="260.99999" width="309.99999" y="244.89238" x="173.2361"
+                              :fill="train.lineColor"/>
+                        <rect id="svg_3" height="260.99999" width="309.99999" y="244.89238" x="551.2361"
+                              :fill="train.lineColor"/>
+                    </g>
+                </svg>
+            </span>
+            <span
+                class="show-in-2-lines train-direction-info-text"
+                style="bottom: 0;
+                   padding-top:1px;
+                   border-bottom-left-radius: 15px;
+                   border-bottom-right-radius: 15px"
+                :style="{backgroundColor:train.lineColor}"
+            >
+                {{
+                    t(`trainCategory.${TRAIN_CATEGORY[train.category].code}`)
+                }} · {{ train.schedule.slice(-1)[0].stationName }}
+            </span>
         </span>
 
         <span @click="handleShowTrainInfoDetail(train)"
-              style="width: 80px;position: absolute;background-color: #00b0ff;display: block;"
-              v-for="train in upTrains" :key="train.id"
-              :style="{top:train.yPosition+'px',height:TRAIN_ICON_HEIGHT+'px',right:trainXPosition+'px'}">
-                TEST
+              class="pentagon up-pentagon"
+              style="width: 80px;position: absolute;display: flex;justify-content: center;"
+              v-for="train in downTrains" :key="train.id"
+              :style="{top:train.yPosition+'px',height:TRAIN_ICON_HEIGHT+'px',left:train.xPosition+'px'}">
+            <span
+                class="show-in-2-lines train-direction-info-text"
+                style="padding-top: 3px;
+                top: 0;
+                border-top-left-radius: 15px;
+                border-top-right-radius: 15px"
+                :style="{backgroundColor:train.lineColor}">
+                {{
+                    t(`trainCategory.${TRAIN_CATEGORY[train.category].code}`)
+                }} · {{ train.schedule.slice(-1)[0].stationName }}
+            </span>
+
+            <span style="margin-top: 30px;">
+                <svg width="25" height="40" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="icon"
+                     version="1.1">
+                    <g>
+                        <path
+                            d="m824.11102,0c58.80686,0 106.496,47.43837 106.496,105.93175l0,659.12164a106.11984,106.11984 0 0 1 -92.68245,105.03314l154.72849,153.91347l-100.41469,0l-153.82988,-153.01486l-452.85878,0l-153.80897,153.01486l-100.3938,0l155.98237,-155.16735a106.11984,106.11984 0 0 1 -84.992,-103.77926l0,-659.10074c0,-58.53518 47.71004,-105.95265 106.496,-105.95265l615.27771,0zm35.50563,576.74188l-686.28898,0l0,188.31151c0,19.49779 15.88245,35.31755 35.50564,35.31755l615.27771,0c19.60229,0 35.50563,-15.81976 35.50563,-35.31755l0,-188.31151zm-556.11559,70.6142c16.90645,0 32.53812,8.98612 40.9809,23.5311a46.87412,46.87412 0 0 1 0,47.08311a47.37567,47.37567 0 0 1 -40.9809,23.552a47.20849,47.20849 0 0 1 -47.33388,-47.08311a47.20849,47.20849 0 0 1 47.33388,-47.0831zm425.9631,0c16.90645,0 32.53813,8.98612 40.9809,23.5311a46.87412,46.87412 0 0 1 0,47.08311a47.37567,47.37567 0 0 1 -40.9809,23.552a47.20849,47.20849 0 0 1 -47.33387,-47.08311a47.20849,47.20849 0 0 1 47.33387,-47.0831zm-248.47673,-400.19592l-307.68065,0l0,258.94662l307.63885,0l0,-258.92572l0.0418,-0.0209zm378.62922,0l-307.63885,0l0,258.94662l307.61796,0l0,-258.92572l0.02089,-0.0209zm-35.50563,-176.52506l-615.27771,0c-19.60229,0 -35.50564,15.81976 -35.50564,35.31755l0,70.63511l686.28898,0l0,-70.63511c0,-19.49779 -15.88245,-35.31755 -35.50563,-35.31755z"
+                            fill="#111111" id="svg_1"/>
+                        <rect id="svg_2" height="260.99999" width="309.99999" y="244.89238" x="173.2361"
+                              :fill="train.lineColor"/>
+                        <rect id="svg_3" height="260.99999" width="309.99999" y="244.89238" x="551.2361"
+                              :fill="train.lineColor"/>
+                    </g>
+                </svg>
+            </span>
         </span>
     </div>
 
+    <span class="tool-wrapper"
+          style="z-index: 20;position: absolute;right: 20px;bottom: 150px;font-size: 32px;color: var(--q-primary)">
+        <q-icon name="update"></q-icon>
+    </span>
 </template>
 
 <script setup>
-import {computed, onMounted, ref} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref} from "vue";
 import {useStore} from "vuex";
 import {drawRoundedLShape, drawRoundedRect} from "src/utils/canvas-utils";
 import _ from "lodash";
 import {diff, getNowByTimezone} from "src/utils/time-utils";
+import {categoryParser, TRAIN_CATEGORY, trainLineOfStopParser} from "../models/Train";
+import {useI18n} from "vue-i18n";
 
 const store = useStore()
 const metroCanvas = ref(null)
+const {t} = useI18n()
+const calcTrainLineColor = (train, lineInfo) => {
+    if (!train) return '#6c6c6c'
+    const trainLines = trainLineOfStopParser(train)
+    if (trainLines.length === 1) {
+        return lineInfo.color || '#6c6c6c'
+    } else {
+        return TRAIN_CATEGORY[categoryParser(train.category)].bgColor
+    }
+}
 
 function resizeCanvas(canvas, {width, height}) {
     if (typeof width === "number" && width > 0) {
@@ -63,37 +122,31 @@ const trainXPosition = computed(() => {
 const container = ref(null)
 
 const downTrains = computed(() => {
-    return onServiceTrains.value.filter(it => it.direction === 0)
+    if (__drawConfig.value) {
+        const direction = __drawConfig.value.reverse ? 1 : 0
+        return Array.from(Object.values(onServiceTrains.value)).filter(it => it.direction === direction)
+    } else {
+        return []
+    }
 })
 const upTrains = computed(() => {
-    return onServiceTrains.value.filter(it => it.direction === 1)
+    if (__drawConfig.value) {
+        const direction = __drawConfig.value.reverse ? 0 : 1
+        return Array.from(Object.values(onServiceTrains.value)).filter(it => it.direction === direction)
+    } else {
+        return []
+    }
 })
 const drawConfig = {
-    "lineId": "51",
+    "lineId": "3",
     "railsystemCode": "NJMTR",
-    "reverse": false,
-    "extraLines": [
-        {
-            "lineId": "57",
-            "type": "TROUGH",
-            "showAll": true
-        },
-        {
-            "lineId": "59",
-            "type": "BRANCH",
-            "direction": "DOWN-RIGHT"
-        },
-        {
-            "lineId": "53",
-            "type": "BRANCH",
-            "direction": "DOWN-LEFT"
-        },
-        {
-            "lineId": "5",
-            "type": "INTERSECTION",
-            "direction": "RIGHT"
-        },
-    ]
+    "reverse": true,
+    "extraLines": [{
+        "lineId": "1",
+        "type": "X-INTERSECTION",
+        "intersectionId": "21",
+        "direction": "LEFT-DOWN-RIGHT-UP",
+    }]
 }
 
 const lineInfoLoader = async (lineId) => {
@@ -102,10 +155,11 @@ const lineInfoLoader = async (lineId) => {
     }
 }
 const xPadding = 10
-const yPadding = 50
+const yPadding = 80
 const positions = []
 const stationMap = ref(new Map())
 const TRAIN_ICON_HEIGHT = 70
+const TRAIN_ICON_WEIGHT = 80
 const SEGMENT_LENGTH = 160 // 站点间距
 
 function addClickableArea(rect, callBack, ...params) {
@@ -126,51 +180,91 @@ function getBranchStations(stations, intersectionId, showAll) {
 }
 
 function handleClicKStation(station) {
-    console.log('click station', station)
+    if (station && station.id) {
+        store.dispatch('application/showStationRealtimeModal', {stationId: station.id})
+    }
 }
 
 function handleClicKLine(lineId) {
     console.log('click line', lineId)
 }
 
-const onServiceTrains = ref([])
+const onServiceTrains = ref({})
+const positionMap = new Map()
 
-
-async function initTrains() {
-
-    const lineId = props.lineIdProp
-    if (!lineId) return
-    const lineInfo = await lineInfoLoader(lineId)
+async function calcTrainPosition(train) {
+    const lineInfo = await lineInfoLoader(train.lineId)
     const currentTime = getNowByTimezone(lineInfo.stations[0].timezone)
-    const trains = await store.dispatch('realtime/getLineOnServiceTrains', {lineId})
-
-
-    function calcTrainPosition(train) {
-        const nextStopIndex = train.schedule.map(stop => diff(stop.arr, currentTime))
-            .sort((a, b) => a - b).findIndex(it => it > 0)
-        if (nextStopIndex > 0) {
-            const nextStop = train.schedule[nextStopIndex]
-            train.nextStop = nextStop
-            const lastStop = train.schedule[nextStopIndex - 1]
-            let rawYPosition
-            if (diff(currentTime, lastStop.dep) > 0) {
-                //在lastStop和nextStop之间
-                rawYPosition = (stationMap.value.get(lastStop.stationId).yPosition
-                    + stationMap.value.get(nextStop.stationId).yPosition) / 2
-            } else {
-                //停在lastStop
-                train.currentStop = lastStop
-                rawYPosition = stationMap.value.get(lastStop.stationId).yPosition
-            }
-            train.yPosition = rawYPosition - TRAIN_ICON_HEIGHT / 2
+    const nextStopIndex = train.schedule.map(stop => diff(stop.arr, currentTime))
+        .sort((a, b) => a - b).findIndex(it => it > 0)
+    if (nextStopIndex > 0) {
+        const nextStop = train.schedule[nextStopIndex]
+        train.nextStop = nextStop
+        const lastStop = train.schedule[nextStopIndex - 1]
+        let rawYPosition
+        if (diff(currentTime, lastStop.dep) > 0) {
+            //在lastStop和nextStop之间
+            rawYPosition = (stationMap.value.get(lastStop.stationId).yPosition
+                + stationMap.value.get(nextStop.stationId).yPosition) / 2
+        } else {
+            //停在lastStop
+            train.currentStop = lastStop
+            rawYPosition = stationMap.value.get(lastStop.stationId).yPosition
         }
+        const position = {}
+        position.yPosition = rawYPosition - TRAIN_ICON_HEIGHT / 2
+        position.xPosition = trainXPosition.value
+        const key = `${train.direction}-${position.xPosition}-${position.yPosition}`
+        const positionTrain = positionMap.get(key)
+        if (!positionTrain) {
+            positionMap.set(key, train)
+        } else if (positionTrain.id !== train.id) {
+            //位置冲突
+            console.log('conflict', positionTrain, train)
+            position.xPosition = position.xPosition - TRAIN_ICON_WEIGHT - 5
+        }
+        return position
+    } else {
+        return null
     }
+}
 
-    trains.forEach(t => {
-        calcTrainPosition(t)
+const updateTrainPositions = () => {
+    Array.from(Object.values(onServiceTrains.value)).forEach(t => {
+        calcTrainPosition(t).then(position => {
+            if (!position) {
+                if (onServiceTrains.value[t.id]) {
+                    delete onServiceTrains.value[t.id]
+                }
+            } else {
+                t.yPosition = position.yPosition
+                t.xPosition = position.xPosition
+            }
+        })
     })
+}
 
-    onServiceTrains.value = trains
+async function loadTrains(lineIds) {
+    for (const lineId of lineIds) {
+        if (!lineId) return
+        const lineInfo = await lineInfoLoader(lineId)
+        const trains = await store.dispatch('realtime/getLineOnServiceTrains', {lineId})
+        trains.forEach(t => {
+            t.lineId = lineId
+            t.lineColor = calcTrainLineColor(t, lineInfo)
+            calcTrainPosition(t).then(position => {
+                if (!position) {
+                    if (onServiceTrains.value[t.id]) {
+                        delete onServiceTrains.value[t.id]
+                    }
+                } else {
+                    t.yPosition = position.yPosition
+                    t.xPosition = position.xPosition
+                    onServiceTrains.value[t.id] = t
+                }
+            })
+        })
+    }
 }
 
 async function drawMetroLine(canvas, config) {
@@ -228,16 +322,16 @@ async function drawMetroLine(canvas, config) {
 
     function drawStationName(_ctx, station, position) {
         const {name} = station
-        const fontSize = 14;
+        const fontSize = 15;
 
-        _ctx.font = `${fontSize}px Arial`;
+        _ctx.font = `bold ${fontSize}px Helvetica Neue`;
         _ctx.textBaseline = "middle";
         _ctx.textAlign = "left";
         const textWidth = _ctx.measureText(name).width
         const textHeight = fontSize
 
         // 填充文本
-        _ctx.fillStyle = 'black';
+        _ctx.fillStyle = '#4f716f';
         _ctx.fillText(name, position.x, position.y)
 
         const textStartX = position.x
@@ -258,8 +352,9 @@ async function drawMetroLine(canvas, config) {
         _ctx.stroke();
     }
 
-    const lineInfo = await lineInfoLoader(config.lineId);
-    const mainLineStations = lineInfo.stations;
+    const lineInfo = await lineInfoLoader(config.lineId)
+
+    const mainLineStations = config.reverse ? lineInfo.stations.reverse() : lineInfo.stations;
     const lineColor = lineInfo.color;
     const width = canvas.width / 2;
     const lineWidth = 10;
@@ -290,7 +385,13 @@ async function drawMetroLine(canvas, config) {
             const extraStations = extraLineData.stations;
 
             // 找到交汇站点
-            const intersection = extraStations.find(s => stationPositions[s.id]);
+            const intersection = extraStations.find(s => {
+                if (extra.intersectionId) {
+                    return s.id === extra.intersectionId
+                } else {
+                    return stationPositions[s.id]
+                }
+            })
             if (!intersection) continue;
             intersections.add(intersection.id)
             const intersectionPoint = stationPositions[intersection.id];
@@ -305,7 +406,7 @@ async function drawMetroLine(canvas, config) {
         }
     }
 
-    canvas.height = lineHeight + yPadding;
+    canvas.height = lineHeight + 2 * yPadding;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const segmentsCount = lineHeight / SEGMENT_LENGTH
@@ -443,13 +544,44 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    const canvasId = 'metroCanvas'
-    const canvas = document.getElementById(canvasId)
-    drawMetroLine(canvas, drawConfig)
-    const canvasWidth = window.innerWidth >= 350 && window.innerWidth <= 600 ? window.innerWidth : 358
-    resizeCanvas(canvas, {width: canvasWidth})
+    init()
+})
 
-    initTrains()
+async function loadDrawConfig(lineId) {
+    //TODO
+    return drawConfig
+}
+
+const __drawConfig = ref(null)
+
+function initTrains() {
+    console.log('Init Trains...')
+    if (__drawConfig.value) {
+        const throughLineIds = __drawConfig.value.extraLines.filter(it => it.type === 'TROUGH').map(it => it.lineId)
+        loadTrains([props.lineIdProp, ...throughLineIds])
+    }
+}
+
+let updateTrainInterval
+
+function init() {
+    updateTrainInterval = setInterval(() => {
+        initTrains()
+        updateTrainPositions()
+    }, 16000)
+
+    loadDrawConfig(props.lineIdProp).then(_drawConfig => {
+        __drawConfig.value = drawConfig
+        const canvas = metroCanvas.value
+        const canvasWidth = window.innerWidth >= 350 && window.innerWidth <= 600 ? window.innerWidth : 358
+        resizeCanvas(canvas, {width: canvasWidth})
+        drawMetroLine(canvas, drawConfig)
+        initTrains()
+    })
+}
+
+onBeforeUnmount(() => {
+    clearInterval(updateTrainInterval)
 })
 
 const handleCanvasClick = _.debounce((event) => {
@@ -486,13 +618,16 @@ const handleCanvasClick = _.debounce((event) => {
 
 .pentagon {
     position: relative;
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
     background-color: var(--q-background);
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3); /* 给五边形添加阴影 */
 }
 
-.pentagon::before {
+.down-pentagon {
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+.down-pentagon::before {
     content: '';
     position: absolute;
     top: -20px; /* 三角形的位置 */
@@ -500,6 +635,58 @@ const handleCanvasClick = _.debounce((event) => {
     transform: translateX(-50%);
     border-left: 40px solid transparent; /* 左侧透明边 */
     border-right: 40px solid transparent; /* 右侧透明边 */
-    border-bottom: 20px solid var(--q-background); /* 三角形的高度 */
+    border-bottom: 20px solid var(--q-background-grey); /* 三角形的高度 */
+}
+
+.up-pentagon {
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.up-pentagon::before {
+    content: '';
+    position: absolute;
+    bottom: -20px; /* 三角形的位置 */
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 40px solid transparent; /* 左侧透明边 */
+    border-right: 40px solid transparent; /* 右侧透明边 */
+    border-top: 20px solid var(--q-background-grey); /* 三角形的高度 */
+}
+
+.train-direction-info-text {
+    position: absolute;
+    font-weight: bold;
+    height: 30px;
+    color: white;
+    font-size: 12px;
+    padding-left: 3px;
+    padding-right: 3px;
+    line-height: 14px;
+    width: 100%;
+    text-align: center;
+
+}
+
+.tool-wrapper {
+    color: var(--q-normal);
+    background-color: var(--q-background);
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: absolute;
+    right: 0;
+    bottom: 40px;
+    transition: 0.5s;
+    opacity: 50%;
+}
+
+.tool-wrapper:active {
+    opacity: 100%;
+
 }
 </style>

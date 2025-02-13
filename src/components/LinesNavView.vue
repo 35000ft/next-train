@@ -6,7 +6,7 @@
     </q-header>
 
     <q-page-container>
-        <LineRealtimeView :line-id-prop="'51'"/>
+        <LineRealtimeView :line-id-prop="'3'"/>
         <div></div>
     </q-page-container>
 
