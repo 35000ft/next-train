@@ -14,9 +14,10 @@ export function drawRoundedRect(ctx, x, y, width, height, radius) {
 
 export function drawRoundedLShape(_ctx, color, lineWidth, from, to, config = {cornerRadius: 30}) {
     const {cornerRadius} = config
-    const isRight = to.x > from.x; // 是否向右绘制
-    const midX = isRight ? from.x + cornerRadius : from.x - cornerRadius;
-    const midY = to.y - cornerRadius;
+    const isRight = to.x > from.x // 是否向右绘制
+    const isUp = to.y < from.y
+    const midX = isRight ? from.x + cornerRadius : from.x - cornerRadius
+    const midY = isUp ? to.y + cornerRadius : to.y - cornerRadius
     _ctx.beginPath();
     _ctx.moveTo(from.x, from.y);
 

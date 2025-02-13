@@ -138,16 +138,16 @@ const upTrains = computed(() => {
     }
 })
 const drawConfig = {
-    "lineId": "3",
+    "lineId": "59",
     "railsystemCode": "NJMTR",
-    "reverse": true,
-    "extraLines": [{
-        "lineId": "1",
-        "type": "X-INTERSECTION",
-        "intersectionId": "21",
-        "direction": "LEFT-DOWN-RIGHT-UP",
-    }]
+    "extraLines": [
+        {
+            "lineId": "51",
+            "type": "INTERSECTION",
+        },
+    ]
 }
+
 
 const lineInfoLoader = async (lineId) => {
     if (lineId) {
@@ -220,7 +220,6 @@ async function calcTrainPosition(train) {
             positionMap.set(key, train)
         } else if (positionTrain.id !== train.id) {
             //位置冲突
-            console.log('conflict', positionTrain, train)
             position.xPosition = position.xPosition - TRAIN_ICON_WEIGHT - 5
         }
         return position
@@ -352,9 +351,19 @@ async function drawMetroLine(canvas, config) {
         _ctx.stroke();
     }
 
+    function findInteractionPoint(targetIntersectionId, stations) {
+        return stations.find(s => {
+            if (targetIntersectionId) {
+                return s.id === targetIntersectionId
+            } else {
+                return stationPositions[s.id]
+            }
+        })
+    }
+
     const lineInfo = await lineInfoLoader(config.lineId)
 
-    const mainLineStations = config.reverse ? lineInfo.stations.reverse() : lineInfo.stations;
+    const mainLineStations = config.reverse ? lineInfo.stations.slice().reverse() : lineInfo.stations;
     const lineColor = lineInfo.color;
     const width = canvas.width / 2;
     const lineWidth = 10;
@@ -380,25 +389,19 @@ async function drawMetroLine(canvas, config) {
     let lineHeight = (mainLineStations.length - 1) * SEGMENT_LENGTH;
     const intersections = new Set()
     if (config.extraLines) {
-        for (const extra of config.extraLines) {
-            const extraLineData = extraLineDataMap[extra.lineId];
+        for (const extraLineConfig of config.extraLines) {
+            const extraLineData = extraLineDataMap[extraLineConfig.lineId];
             const extraStations = extraLineData.stations;
 
             // 找到交汇站点
-            const intersection = extraStations.find(s => {
-                if (extra.intersectionId) {
-                    return s.id === extra.intersectionId
-                } else {
-                    return stationPositions[s.id]
-                }
-            })
+            const intersection = findInteractionPoint(extraLineConfig.intersectionId, extraStations)
             if (!intersection) continue;
             intersections.add(intersection.id)
-            const intersectionPoint = stationPositions[intersection.id];
+            const intersectionPoint = stationPositions[intersection.id]
 
             // 计算支线终点坐标
-            const branchStations = getBranchStations(extraStations, intersection.id, extra.showAll);
-            const branchEndPosition = calcBranchEndPosition(intersectionPoint, branchStations, extra.type, SEGMENT_LENGTH, extra.direction, canvas);
+            const branchStations = getBranchStations(extraStations, intersection.id, extraLineConfig.showAll)
+            const branchEndPosition = calcBranchEndPosition(intersectionPoint, branchStations, extraLineConfig.type, SEGMENT_LENGTH, extraLineConfig.direction, canvas);
 
             if (branchEndPosition.y > lineHeight) {
                 lineHeight = branchEndPosition.y;
@@ -429,11 +432,10 @@ async function drawMetroLine(canvas, config) {
             const extraColor = extraLineInfo.color;
 
             // 找到交汇站点
-            const intersectionStation = extraStations.find(s => stationPositions[s.id]);
+            const intersectionStation = findInteractionPoint(extraLineConfig.intersectionId, extraStations)
             if (!intersectionStation) continue;
 
             const intersectionPoint = stationPositions[intersectionStation.id];
-
             // 计算支线终点坐标
             const branchStations = getBranchStations(extraStations, intersectionStation.id, extraLineConfig.showAll);
             const branchEndPosition = calcBranchEndPosition(intersectionPoint, branchStations, extraLineConfig.type, SEGMENT_LENGTH, extraLineConfig.direction, canvas);
@@ -459,6 +461,15 @@ async function drawMetroLine(canvas, config) {
                     drawLine(ctx, extraLineInfo, lineWidth, intersectionPoint, branchEndPosition)
                 }
                 drawLineName(ctx, extraLineInfo, branchEndPosition)
+            } else if (extraLineConfig.type === 'X-INTERSECTION') {
+                const directions = extraLineConfig.direction.split('@')
+
+                const branchEndPosition1 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[0], canvas)
+                const branchEndPosition2 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[1], canvas)
+                drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition1)
+                drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition2)
+                const rightEnd = branchEndPosition2.x > branchEndPosition1.x ? branchEndPosition2 : branchEndPosition1
+                drawLineName(ctx, extraLineInfo, rightEnd)
             }
             // 画支线站点
             branchStations.forEach((station, i) => {
@@ -532,6 +543,9 @@ function calcBranchEndPosition(intersectionPoint, branchStations, positionType, 
             endPosition.y = intersectionPoint.y
             endPosition.x = 0
         }
+    } else if (positionType === 'X-INTERSECTION') {
+        endPosition.y = intersectionPoint.y
+        endPosition.x = 0
     }
     //TODO
     return endPosition
@@ -565,10 +579,10 @@ function initTrains() {
 let updateTrainInterval
 
 function init() {
-    updateTrainInterval = setInterval(() => {
-        initTrains()
-        updateTrainPositions()
-    }, 16000)
+    // updateTrainInterval = setInterval(() => {
+    //     initTrains()
+    //     updateTrainPositions()
+    // }, 16000)
 
     loadDrawConfig(props.lineIdProp).then(_drawConfig => {
         __drawConfig.value = drawConfig
@@ -576,7 +590,7 @@ function init() {
         const canvasWidth = window.innerWidth >= 350 && window.innerWidth <= 600 ? window.innerWidth : 358
         resizeCanvas(canvas, {width: canvasWidth})
         drawMetroLine(canvas, drawConfig)
-        initTrains()
+        // initTrains()
     })
 }
 
