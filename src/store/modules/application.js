@@ -13,11 +13,15 @@ const state = {
     // 相对当前时间的偏移秒数
     timeOffsetSeconds: 0,
     shownTrainInfo: reactive(null),
-    metroGoViewConfig: null
+    metroGoViewConfig: null,
+    shownLineRealtime: null,
 };
 const mutations = {
     SET_SHOWN_TRAININFO(state, {trainInfo}) {
         state.shownTrainInfo = trainInfo
+    },
+    SET_SHOWN_LINE_REALTIME(state, {lineId}) {
+        state.shownLineRealtime = lineId
     },
     SET_SHOWN_STATION_ID(state, {stationId}) {
         state.shownStationId = stationId
@@ -108,7 +112,8 @@ const getters = {
     getNowTime: state => (timezone) => getNowByTimezone(timezone).add(state.timeOffsetSeconds, "seconds"),
     shownTrainInfo: state => {
         return {...state.shownTrainInfo}
-    }
+    },
+    shownLineRealtime: state => state.shownLineRealtime
 };
 
 export default {

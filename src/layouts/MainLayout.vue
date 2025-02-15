@@ -26,7 +26,8 @@
             </q-tabs>
         </q-footer>
     </q-layout>
-
+    
+    <LineRealtimeView/>
     <TrainInfoDetailView/>
     <StationRealtimeModal/>
 </template>
@@ -37,6 +38,7 @@ import {useI18n} from 'vue-i18n';
 import {useRouter} from "vue-router";
 import StationRealtimeModal from "components/StationRealtimeModal.vue";
 import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
+import LineRealtimeView from "components/LineRealtimeView.vue";
 
 const {t} = useI18n();
 

@@ -1,6 +1,15 @@
 import {reactive, toRaw} from "vue";
 import LRUCache from "src/utils/LRU";
-import {fetchGraph, fetchLine, fetchLines, fetchStation, fetchStations, fetchTransfers} from "src/apis/railsystem";
+import {
+    fetchDrawLineTemplate,
+    fetchGraph,
+    fetchLine,
+    fetchLines,
+    fetchShowLineCanvasConfig,
+    fetchStation,
+    fetchStations,
+    fetchTransfers
+} from "src/apis/railsystem";
 
 
 const railSystems = {
@@ -21,6 +30,7 @@ const state = {
     stations: reactive(new LRUCache(100)),
     lines: reactive(new LRUCache(50)),
     transferInfoMap: reactive(new LRUCache(5)),
+    showLineDrawConfigMap: reactive(new LRUCache(5)),
 }
 
 const mutations = {
@@ -62,6 +72,11 @@ const mutations = {
     },
     SET_TRANSFER_INFO(state, {railsystemCode, transferInfo}) {
         state.transferInfoMap.set(railsystemCode, transferInfo)
+    },
+    SET_SHOW_LINE_CANVAS_CONFIG(state, {railsystemCode, config}) {
+        if (railsystemCode && config) {
+            state.showLineDrawConfigMap.set(railsystemCode, config)
+        }
     }
 }
 
@@ -234,6 +249,22 @@ const actions = {
             })
         }
     },
+
+    async getShowLineCanvasConfig({state, commit, getters}, {railsystemCode}) {
+        const temp = state.showLineDrawConfigMap.get(railsystemCode)
+        if (temp) {
+            return temp
+        }
+        return fetchShowLineCanvasConfig(railsystemCode).then(config => {
+            commit('SET_SHOW_LINE_CANVAS_CONFIG', {railsystemCode, config})
+            return config
+        })
+    },
+    async getLineCanvasConfig({state, commit, getters}, {lineId}) {
+        return fetchDrawLineTemplate(lineId).then(template => {
+            return template
+        })
+    }
 }
 
 const getters = {

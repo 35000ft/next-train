@@ -30,6 +30,7 @@ export default {
                 return
             }
             if (contentWidth > el.offsetWidth) {
+                console.log('contss', contentWidth, el.offsetWidth)
                 el.classList.add("auto-scroll-content");
             }
         };

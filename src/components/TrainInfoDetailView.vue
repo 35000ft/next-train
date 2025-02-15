@@ -1,5 +1,5 @@
 <template>
-    <bottom-modal :display="display" @close="handleCloseSelector" content-height="90vh" content-width="100%"
+    <bottom-modal :display="display" @close="handleClose" content-height="90vh" content-width="100%"
                   :after-close="afterClose"
                   :is-use-route="isFromUrl"
                   @touchstart.stop name="train-info-detail">
@@ -531,7 +531,7 @@ const handleClickStationName = (_stationId) => {
     }
 }
 
-const handleCloseSelector = () => {
+const handleClose = () => {
     closeQuickStationView()
     display.value = false
 }
