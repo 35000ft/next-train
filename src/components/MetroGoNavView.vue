@@ -79,7 +79,11 @@ defineOptions({
 })
 const depTimeStr = computed(() => {
     if (depTime.value) {
-        return depTime.value.format('HH:mm')
+        if (depTime.value.isSame(dayjs(), 'day')) {
+            return depTime.value.format('HH:mm')
+        } else {
+            return '次日 ' + depTime.value.format('HH:mm')
+        }
     } else {
         return t('now')
     }
