@@ -35,7 +35,7 @@
 </template>
 <script setup>
 import OverlayView from "components/OverlayView.vue";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {planRoute, planShortestSolution} from "src/utils/route-plan";
 import {diff, getNowByTimezone} from "src/utils/time-utils";
@@ -54,22 +54,26 @@ const handleCloseDetail = () => {
     }, 400)
 }
 const loading = ref(true)
-const route = useRoute()
 const currentSolution = ref(null)
 const depTime = ref(null)
 
 const departStation = ref(null)
 const arrivalStation = ref(null)
-onMounted(() => {
-    init()
-})
+
 const store = useStore()
 const $q = useQuasar()
 const solutions = ref([])
+onMounted(() => {
+    const params = store.getters['application/solutionOverviewParams']
+    init(params)
+})
 
-async function init() {
-    const params = route.query
+async function init(params) {
     const {fromMainId, toMainId, viaIds} = params
+    if (!fromMainId || !toMainId) {
+        console.warn(`From or To StationId cannot be null. from:${fromMainId} to:${toMainId}`)
+        return
+    }
     const via = (viaIds && viaIds.split(',')) || []
     depTime.value = params.depTime
     loading.value = true
@@ -139,7 +143,6 @@ async function init() {
     })
 }
 
-const router = useRouter()
 const handleShowSolutionDetail = (_solution) => {
     currentSolution.value = _solution
     showDetail.value = true

@@ -2,7 +2,7 @@
     <SearchHeader/>
     <q-page-container style=" max-height: 85vh; overflow-y: auto">
         <div class="row" style="gap:20px;justify-content: space-between;">
-            <div class="col-12 row-card">
+            <div class="col-12 row-card" v-if="false">
                 <q-card class="my-card">
                     <q-card-section class="full-height" style="padding: 0">
                         <q-tab-panels class="full-height" v-model="topBanner" swipeable animated @touchstart.stop>

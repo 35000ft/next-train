@@ -111,7 +111,13 @@ const init = () => {
             })
         }
         if (config.depTime) {
-            depTime.value = dayjs(config.depTime)
+            const _depTime = dayjs(config.depTime)
+            // 判断是否是今天或明天的任意时间
+            if (_depTime.isSame(dayjs(), 'day') || _depTime.isSame(dayjs().add(1, 'day'), 'day')) {
+                depTime.value = _depTime
+            } else {
+                depTime.value = dayjs(dayjs().format('YYYY-MM-DD') + ' ' + _depTime.format('HH:mm:ss'));
+            }
         }
         if (config.viaIds && config.viaIds.length > 0) {
             store.dispatch('railsystem/getStationByIds', {stationIds: config.viaIds}).then(stations => {
@@ -208,6 +214,7 @@ const handleGo = () => {
     }
     saveConfig()
     router.push({name: 'route-solution-overview', query: params})
+    store.commit('application/SHOW_SOLUTION_OVERVIEW', params)
     store.dispatch('application/pushOverlay', {
         component: {componentName: "RouteSolutionOverview"}
     })
