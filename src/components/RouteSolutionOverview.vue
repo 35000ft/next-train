@@ -9,6 +9,11 @@
                 </div>
             </div>
         </template>
+        <template v-slot:header-right>
+            <div style="display: flex;gap: 10px;justify-content: right; padding-right: 10px;">
+                <q-icon name="fa fa-share-alt" size="24px" @click="handleShare"/>
+            </div>
+        </template>
         <template v-slot:default>
             <div>
                 <div style="height: 10px;"></div>
@@ -63,9 +68,13 @@ const arrivalStation = ref(null)
 const store = useStore()
 const $q = useQuasar()
 const solutions = ref([])
+let queryParams = null
 onMounted(() => {
     const params = store.getters['application/solutionOverviewParams']
-    init(params)
+    if (params) {
+        init(params)
+        queryParams = params
+    }
 })
 
 async function init(params) {
@@ -141,6 +150,17 @@ async function init(params) {
             $q.notify.ok('全部方案已加载完成')
         })
     })
+}
+
+const handleShare = () => {
+    const shareUrl = window.location.href
+    navigator.clipboard.writeText(shareUrl)
+        .then(() => {
+            $q.notify.ok(`分享链接已复制🔗`)
+        })
+        .catch((err) => {
+            console.error("Failed to copy text: ", err);
+        })
 }
 
 const handleShowSolutionDetail = (_solution) => {

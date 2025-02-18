@@ -71,8 +71,9 @@ import DepartTimeSelector from "components/DepartTimeSelector.vue";
 import dayjs from "dayjs";
 import {useQuasar} from "quasar";
 import {getNowByTimezone} from "src/utils/time-utils";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {arr2Map} from "src/utils/array-utils";
+import {isNumber} from "src/utils/string-utils";
 
 defineOptions({
     name: 'MetroGoView'
@@ -88,6 +89,7 @@ const depTimeStr = computed(() => {
         return t('now')
     }
 })
+const loading = ref(false)
 const depTime = ref(null)
 const departTimeSelector = ref(null)
 const departStation = ref(null)
@@ -96,19 +98,54 @@ const store = useStore()
 onMounted(() => {
     init()
 })
+const route = useRoute()
+
+const getConfigFromUrl = () => {
+    const params = route.query
+    if (isNumber(params.fromMainId) && isNumber(params.toMainId)) {
+        const _config = {}
+        _config.from = params.fromMainId
+        _config.to = params.toMainId
+        let depTime = dayjs(params.depTime)
+        if (!depTime.isValid()) {
+            depTime = dayjs()
+        }
+        _config.depTime = depTime
+        const isValidViaIds = /^(\d+)(,\d+)*$/.test(_config.viaIds);
+        if (isValidViaIds) {
+            _config.viaIds = _config.viaIds.split(',')
+        } else {
+            _config.viaIds = []
+        }
+        return _config
+    } else {
+        return null
+    }
+}
 
 const init = () => {
+    let fromUrl = false
     store.dispatch('application/getMetroGoViewConfig').then(config => {
+        const _config = getConfigFromUrl()
+        if (_config) {
+            config = _config
+            fromUrl = true
+        }
+        const promises = []
         const {from, to} = config
         if (from) {
-            store.dispatch('railsystem/getStation', {stationId: from}).then(fromStation => {
+            const _p = store.dispatch('railsystem/getStation', {stationId: from}).then(fromStation => {
+                loading.value = true
                 departStation.value = fromStation
             })
+            promises.push(_p)
         }
         if (to) {
-            store.dispatch('railsystem/getStation', {stationId: to}).then(toStation => {
+            const _p = store.dispatch('railsystem/getStation', {stationId: to}).then(toStation => {
+                loading.value = true
                 arrivalStation.value = toStation
             })
+            promises.push(_p)
         }
         if (config.depTime) {
             const _depTime = dayjs(config.depTime)
@@ -120,9 +157,18 @@ const init = () => {
             }
         }
         if (config.viaIds && config.viaIds.length > 0) {
-            store.dispatch('railsystem/getStationByIds', {stationIds: config.viaIds}).then(stations => {
+            const _p = store.dispatch('railsystem/getStationByIds', {stationIds: config.viaIds}).then(stations => {
+                loading.value = true
                 const stationMap = arr2Map(stations, 'id')
                 via.value = config.viaIds.map(it => stationMap.get(it)).filter(it => it !== undefined)
+            })
+            promises.push(_p)
+        }
+
+        if (fromUrl) {
+            Promise.all(promises).then(_ => {
+                loading.value = false
+                handleGo()
             })
         }
     })
