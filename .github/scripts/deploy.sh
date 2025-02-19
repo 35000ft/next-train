@@ -1,1 +1,6 @@
-cat TEST25 > ~/test.txt
+cd /usr/
+cd /home/ubuntu/projects/next-train
+git checkout quasar-dev
+npm install
+quasar build
+
