@@ -1,0 +1,27 @@
+name: CI/CD Workflow
+
+# 触发器
+on:
+    push:
+        branches:
+            - quasar-dev
+    pull_request:
+        branches:
+            - quasar-dev
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v3
+
+            -   name: Setup SSH key
+                uses: webfactory/ssh-agent@v0.5.3
+                with:
+                    ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+            -   name: Run deploy script on remote server
+                run: |
+                    ssh -o StrictHostKeyChecking=no ubuntu@43.166.3.69 'bash -s' < .github/scripts/deploy.sh
