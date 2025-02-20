@@ -1,16 +1,17 @@
 <template>
-    <bottom-modal :display="display" @close="handleClose" :content-height="'95vh'" :content-width="'100vw'"
+    <bottom-modal :display="display" @close="handleClose" :content-height="'90vh'" :content-width="'100vw'"
                   name="line-realtime-view"
                   :after-close="afterClose">
         <template v-slot:default>
             <div ref="container" class="container" style="position:absolute;left:0;">
-                <canvas ref="metroCanvas" id="metroCanvas" width="360" height="800" @click="handleCanvasClick"></canvas>
+                <canvas v-show="false" ref="metroCanvas" id="metroCanvas" width="360" height="800"
+                        @click="handleCanvasClick"></canvas>
                 <span @click="handleShowTrainInfoDetail(train)"
                       class="pentagon down-pentagon"
                       style="width: 80px;position: absolute;display: flex;justify-content: center;"
                       v-for="train in upTrains" :key="train.id"
                       :style="{top:train.yPosition+'px',height:TRAIN_ICON_HEIGHT+'px',right:train.xPosition+'px'}">
-            <span>
+                <span>
                 <svg width="25" height="40" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="icon"
                      version="1.1">
                     <g>
@@ -90,6 +91,7 @@ import {diff, getNowByTimezone} from "src/utils/time-utils";
 import {categoryParser, TRAIN_CATEGORY, trainLineOfStopParser} from "../models/Train";
 import {useI18n} from "vue-i18n";
 import BottomModal from "components/BottomModal.vue";
+import Canvas2SVG from 'canvas2svg';
 
 const display = ref(false)
 const handleClose = () => {
@@ -133,9 +135,13 @@ const calcTrainLineColor = (train, lineInfo) => {
         return (_trainCategory && _trainCategory.bgColor) || '#6c6c6c'
     }
 }
+
+//TODO
 const handleRefresh = () => {
 
 }
+
+//TODO
 const saveLineTemplate = () => {
     const scale = 3
     const domNode = metroCanvas.value
@@ -144,7 +150,6 @@ const saveLineTemplate = () => {
     newCanvas.width = domNode.width * scale;
     newCanvas.height = domNode.height * scale;
     drawMetroLine(newCanvas, drawConfig.value, scale).then(r => {
-        console.log('newV', newCanvas)
         const imageDataUrl = newCanvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = imageDataUrl;
@@ -233,12 +238,12 @@ function handleClicKStation(station) {
     }
 }
 
-function handleClicKLine(lineId) {
+function handleClickLine(lineId) {
     console.log('click line', lineId)
 }
 
 const onServiceTrains = ref({})
-const positionMap = new Map()
+let positionMap = new Map()
 
 async function calcTrainPosition(train) {
     const lineInfo = await lineInfoLoader(train.lineId)
@@ -283,8 +288,8 @@ const updateTrainPositions = () => {
     Array.from(Object.values(onServiceTrains.value)).forEach(t => {
         calcTrainPosition(t).then(position => {
             if (!position) {
-                if (onServiceTrains.value[t.id]) {
-                    delete onServiceTrains.value[t.id]
+                if (onServiceTrains.value[t.hash]) {
+                    delete onServiceTrains.value[t.hash]
                 }
             } else {
                 t.yPosition = position.yPosition
@@ -306,7 +311,7 @@ async function loadTrains(lineIds) {
                 if (position) {
                     t.yPosition = position.yPosition
                     t.xPosition = position.xPosition
-                    onServiceTrains.value.push(t)
+                    onServiceTrains.value[t.hash] = t
                 }
             })
         })
@@ -322,7 +327,6 @@ async function loadTrains(lineIds) {
  */
 async function drawMetroLine(canvas, config, scaleFactor = 1) {
     if (!canvas || !config) return;
-    const ctx = canvas.getContext("2d");
     const SEGMENT_LENGTH = 160 * scaleFactor // 站点间距
     const xPadding = 10 * scaleFactor
     const yPadding = 80 * scaleFactor
@@ -374,7 +378,7 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
         addClickableArea({
             from: {x: rectX, y: rectY},
             to: {x: rectX + textWidth + 2 * xPadding, y: rectY + textHeight}
-        }, handleClicKLine, lineInfo.id)
+        }, handleClickLine, lineInfo.id)
     }
 
     function drawStationName(_ctx, station, position) {
@@ -512,8 +516,11 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
             }
         }
     }
+    const canvasWidth = window.innerWidth >= 350 && window.innerWidth <= 600 ? window.innerWidth : 358
 
     canvas.height = lineHeight + 2 * yPadding;
+    const ctx = new C2S(canvasWidth, lineHeight + 2 * yPadding)
+    // const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const segmentsCount = lineHeight / SEGMENT_LENGTH
@@ -570,8 +577,14 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
 
                 const branchEndPosition1 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[0], canvas)
                 const branchEndPosition2 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[1], canvas)
-                drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition1, {cornerRadius: branchRadius})
-                drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition2, {cornerRadius: branchRadius})
+                drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition1, {
+                    cornerRadius: branchRadius,
+                    intersectionStation
+                })
+                drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition2, {
+                    cornerRadius: branchRadius,
+                    intersectionStation
+                })
                 const rightEnd = branchEndPosition2.x > branchEndPosition1.x ? branchEndPosition2 : branchEndPosition1
                 drawLineName(ctx, extraLineInfo, rightEnd)
             }
@@ -608,6 +621,11 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
         station.yPosition = stationY
         stationMap.value.set(station.id, station)
     });
+
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(ctx.getSerializedSvg(), 'image/svg+xml');
+
+    container.value.appendChild(svgDoc.documentElement)
 }
 
 
@@ -628,7 +646,6 @@ function initTrains() {
     console.log('Init Trains...')
     if (drawConfig.value) {
         const throughLineIds = drawConfig.value.extraLines.filter(it => it.type === 'THROUGH').map(it => it.lineId)
-        console.log('tgroug', throughLineIds)
         loadTrains([shownLineId.value, ...throughLineIds])
     }
 }
@@ -638,7 +655,9 @@ let updateTrainInterval
 function init() {
     const lineId = shownLineId.value
     if (!lineId) return
-    onServiceTrains.value = []
+    onServiceTrains.value = {}
+    positionMap = new Map()
+
     updateTrainInterval = setInterval(() => {
         initTrains()
         updateTrainPositions()
@@ -647,8 +666,6 @@ function init() {
     loadDrawConfig(lineId).then(_drawConfig => {
         drawConfig.value = _drawConfig
         const canvas = metroCanvas.value
-        const canvasWidth = window.innerWidth >= 350 && window.innerWidth <= 600 ? window.innerWidth : 358
-        resizeCanvas(canvas, {width: canvasWidth})
         drawMetroLine(canvas, _drawConfig)
         initTrains()
     })
