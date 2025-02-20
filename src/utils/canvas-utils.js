@@ -23,9 +23,18 @@ export function drawRoundedLShape(_ctx, color, lineWidth, from, to, config = {co
 
     // 画竖线
     _ctx.lineTo(from.x, midY);
-
     // 画圆角
-    _ctx.arcTo(from.x, to.y, midX, to.y, cornerRadius);
+    if (!isRight && isUp) {
+        // 向左上画支线
+        _ctx.moveTo(midX, to.y);
+        _ctx.arcTo(from.x, to.y, from.x, midY, cornerRadius);
+    } else if (isRight && !isUp) {
+        // 向右下画支线
+        _ctx.moveTo(midX, to.y);
+        _ctx.arcTo(from.x, to.y, from.x, midY, cornerRadius);
+    } else {
+        _ctx.arcTo(from.x, to.y, midX, to.y, cornerRadius);
+    }
     // 画横线
     _ctx.moveTo(midX, to.y);
     _ctx.lineTo(to.x, to.y);
