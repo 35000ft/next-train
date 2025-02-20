@@ -82,3 +82,8 @@ export async function fetchStationTrainInfoAtTime(stationId, lineId, depTime) {
             return Promise.reject(err)
         })
 }
+
+export async function fetchLineOnServiceTrains(lineId) {
+    const url = `api/metro-realtime/train-info/on-service/line/${lineId}`
+    return await axios.post(url).then(res => res.data.data).catch(err => Promise.reject(err))
+}

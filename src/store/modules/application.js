@@ -14,11 +14,15 @@ const state = {
     timeOffsetSeconds: 0,
     shownTrainInfo: reactive(null),
     metroGoViewConfig: null,
+    shownLineRealtime: null,
     solutionOverviewParams: null,
 };
 const mutations = {
     SET_SHOWN_TRAININFO(state, {trainInfo}) {
         state.shownTrainInfo = trainInfo
+    },
+    SET_SHOWN_LINE_REALTIME(state, {lineId}) {
+        state.shownLineRealtime = lineId
     },
     SET_SHOWN_STATION_ID(state, {stationId}) {
         state.shownStationId = stationId
@@ -113,6 +117,7 @@ const getters = {
     shownTrainInfo: state => {
         return {...state.shownTrainInfo}
     },
+    shownLineRealtime: state => state.shownLineRealtime,
     solutionOverviewParams: state => state.solutionOverviewParams,
 };
 

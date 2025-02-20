@@ -8,19 +8,19 @@ const TRAIN_CATEGORY = {
     },
     EXPRESS: {
         code: 'express',
-        bgColor: '#EA7600'
+        bgColor: '#ab658a'
     },
     NONSTOP: {
         code: 'nonstop',
-        bgColor: '#F1B434'
+        bgColor: '#d96658'
     },
     THROUGH: {
         code: 'through',
-        bgColor: '#E89CAE'
+        bgColor: '#286663   '
     },
     SHORT: {
         code: 'short',
-        bgColor: '#009ACE'
+        bgColor: '#53658a'
     },
     INITIAL: {
         code: 'initial',

@@ -107,9 +107,11 @@ export function getToday(timezone) {
  */
 export function getNowByTimezone(_timezone) {
     if (!_timezone) {
+        console.warn('timezone is undefined, use utc')
         return dayjs().utc()
     }
-    return dayjs().utcOffset(parseTimezoneOffset(_timezone))
+    const utcOffset = parseTimezoneOffset(_timezone)
+    return dayjs().utcOffset(utcOffset)
 }
 
 export function isAfterNow(_date, timezone) {
@@ -157,7 +159,7 @@ export function diff(d1, d2, unit = 'second') {
 
 function parseTimezoneOffset(offset) {
     // 匹配时区偏移字符串（例如 +0800, -0500）
-    const match = offset.match(/^([+-])(\d{2})(\d{2})$/);
+    const match = offset.match(/^([+-])(\d{2}):?(\d{2})$/);
 
     if (match) {
         const sign = match[1]; // + 或 -

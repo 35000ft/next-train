@@ -84,12 +84,18 @@ export async function fetchGraph(railsystemCode) {
 
 export async function fetchTransfers(railsystemCode) {
     const url = `api/file/railsystem/transfers/${railsystemCode}`
-    return await axios
-        .get(url)
-        .then(res => {
-            return res.data.data || res.data
-        })
-        .catch(err => {
-            return Promise.reject(err)
-        })
+    return await axios.get(url).then(res => res.data.data || res.data)
+        .catch(err => Promise.reject(err))
+}
+
+export async function fetchDrawLineTemplate(lineId) {
+    const url = `api/file/railsystem/draw-line-templates/id/${lineId}`
+    return await axios.get(url).then(res => res.data.data || res.data)
+        .catch(err => Promise.reject(err))
+}
+
+export async function fetchShowLineCanvasConfig(railsystemCode) {
+    const url = `api/file/railsystem/show-line-canvas-config/${railsystemCode}`
+    return await axios.get(url).then(res => res.data.data)
+        .catch(err => Promise.reject(err))
 }

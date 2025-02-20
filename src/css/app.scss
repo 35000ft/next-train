@@ -135,3 +135,11 @@
         transform: scale(1);
     }
 }
+
+.show-in-2-lines {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 限制为两行 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
