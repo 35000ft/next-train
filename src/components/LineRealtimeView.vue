@@ -103,7 +103,7 @@ const shownLineId = computed(() => {
     return store.getters['application/shownLineRealtime']
 })
 watch(shownLineId, (newVal, oldVal) => {
-    if (newVal !== oldVal) {
+    if (newVal) {
         display.value = true
         init()
     }
@@ -197,7 +197,7 @@ const lineInfoLoader = async (lineId) => {
     }
 }
 
-const positions = []
+let positions = []
 const stationMap = ref(new Map())
 const TRAIN_ICON_HEIGHT = 70
 const TRAIN_ICON_WEIGHT = 80
@@ -230,7 +230,6 @@ function handleClicKStation(station) {
 
 function handleClickLine(lineId) {
     if (lineId) {
-        console.log('lineiD click')
         store.commit('application/SET_SHOWN_LINE_REALTIME', {lineId})
     }
 }
@@ -655,7 +654,7 @@ function init() {
     if (!lineId) return
     onServiceTrains.value = {}
     positionMap = new Map()
-
+    positions = []
     updateTrainInterval = setInterval(() => {
         initTrains()
         updateTrainPositions()
