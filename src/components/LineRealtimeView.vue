@@ -103,12 +103,13 @@ const shownLineId = computed(() => {
     return store.getters['application/shownLineRealtime']
 })
 watch(shownLineId, (newVal, oldVal) => {
-    if (newVal && !oldVal) {
+    if (newVal !== oldVal) {
         display.value = true
         init()
     }
 })
 let prefix = null
+const emit = defineEmits(['close'])
 
 function afterClose() {
     if (isFromUrl.value) {
@@ -156,17 +157,6 @@ const saveLineTemplate = () => {
         link.download = 'high-res-image.png';
         link.click();
     })
-}
-
-function resizeCanvas(canvas, {width, height}) {
-    if (typeof width === "number" && width > 0) {
-        canvas.width = width
-    } else {
-        canvas.width = window.innerWidth * 0.95;
-    }
-    if (typeof height === "number" && height > 0) {
-        canvas.height = height
-    }
 }
 
 const handleShowTrainInfoDetail = (trainInfo) => {
@@ -239,7 +229,10 @@ function handleClicKStation(station) {
 }
 
 function handleClickLine(lineId) {
-    console.log('click line', lineId)
+    if (lineId) {
+        console.log('lineiD click')
+        store.commit('application/SET_SHOWN_LINE_REALTIME', {lineId})
+    }
 }
 
 const onServiceTrains = ref({})
@@ -520,7 +513,6 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
 
     canvas.height = lineHeight + 2 * yPadding;
     const ctx = new C2S(canvasWidth, lineHeight + 2 * yPadding)
-    // const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const segmentsCount = lineHeight / SEGMENT_LENGTH
@@ -622,9 +614,15 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
         stationMap.value.set(station.id, station)
     });
 
-    const parser = new DOMParser();
-    const svgDoc = parser.parseFromString(ctx.getSerializedSvg(), 'image/svg+xml');
-
+    const parser = new DOMParser()
+    const svgDoc = parser.parseFromString(ctx.getSerializedSvg(), 'image/svg+xml')
+    const id = 'line-template-svg'
+    const oldNode = container.value.querySelector(`#${id}`)
+    if (oldNode) {
+        oldNode.remove()
+    }
+    svgDoc.documentElement.setAttribute('id', id)
+    svgDoc.documentElement.addEventListener('click', handleCanvasClick)
     container.value.appendChild(svgDoc.documentElement)
 }
 
@@ -676,14 +674,12 @@ onBeforeUnmount(() => {
 })
 
 const handleCanvasClick = _.debounce((event) => {
-    if (!metroCanvas.value) return
-    const canvas = metroCanvas.value
-    const rect = canvas.getBoundingClientRect()
-
-    // 获取点击位置（相对于 canvas 内部）
+    const svg = document.getElementById('line-template-svg')
+    if (!svg) return
+    const rect = svg.getBoundingClientRect()
+    // 获取点击位置（相对于 target 内部）
     const clickX = event.clientX - rect.left
     const clickY = event.clientY - rect.top
-
     const clickedPosition = positions.find(({area}) => {
         if (clickX >= area.from.x && clickX <= area.to.x) {
             if (clickY >= area.from.y && clickY <= area.to.y) {

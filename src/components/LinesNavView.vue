@@ -67,7 +67,6 @@ function init() {
     const railsystemCode = railsystem.value.code
     store.dispatch('railsystem/getShowLineCanvasConfig', {railsystemCode}).then(lineIds => {
         lineIds.forEach(lineId => {
-            console.log('loed', lineId)
             store.dispatch('railsystem/getLine', {lineId}).then(line => {
                 showLines.value.push(line)
             })
