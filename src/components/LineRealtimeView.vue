@@ -235,6 +235,7 @@ function handleClicKStation(station) {
 const handleClickLine = _.debounce((lineId) => {
     if (lineId) {
         loadDrawConfig(lineId).then(_ => {
+            console.log('_asdsa', _)
             store.commit('application/SET_SHOWN_LINE_REALTIME', {lineId})
         }).catch((e) => {
             $q.notify.info('该线路暂不支持线路实况')
