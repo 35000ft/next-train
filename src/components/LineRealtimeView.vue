@@ -4,8 +4,6 @@
                   :after-close="afterClose">
         <template v-slot:default>
             <div ref="container" class="container" style="position:absolute;left:0;">
-                <canvas v-show="false" ref="metroCanvas" id="metroCanvas" width="360" height="800"
-                        @click="handleCanvasClick"></canvas>
                 <span @click="handleShowTrainInfoDetail(train)"
                       class="pentagon down-pentagon"
                       style="width: 80px;position: absolute;display: flex;justify-content: center;"
@@ -92,8 +90,19 @@ import {categoryParser, TRAIN_CATEGORY, trainLineOfStopParser} from "../models/T
 import {useI18n} from "vue-i18n";
 import BottomModal from "components/BottomModal.vue";
 import Canvas2SVG from 'canvas2svg';
+import {useQuasar} from "quasar";
 
+let positions = []
+const TRAIN_ICON_HEIGHT = 70
+const TRAIN_ICON_WEIGHT = 80
+let prefix = null
+const onServiceTrains = ref({})
+let positionMap = new Map()
+const emit = defineEmits(['close'])
+const stationMap = ref(new Map())
+const container = ref(null)
 const display = ref(false)
+const $q = useQuasar()
 const handleClose = () => {
     display.value = false
 }
@@ -108,8 +117,6 @@ watch(shownLineId, (newVal, oldVal) => {
         init()
     }
 })
-let prefix = null
-const emit = defineEmits(['close'])
 
 function afterClose() {
     if (isFromUrl.value) {
@@ -124,7 +131,6 @@ function afterClose() {
     emit('close')
 }
 
-const metroCanvas = ref(null)
 const {t} = useI18n()
 const calcTrainLineColor = (train, lineInfo) => {
     if (!train) return '#6c6c6c'
@@ -137,26 +143,27 @@ const calcTrainLineColor = (train, lineInfo) => {
     }
 }
 
-//TODO
 const handleRefresh = () => {
-
+    initTrains().then(_ => {
+        $q.notify.ok('列车信息已更新')
+    })
 }
 
 //TODO
 const saveLineTemplate = () => {
     const scale = 3
-    const domNode = metroCanvas.value
+    const domNode = document.getElementById('line-template-svg')
     if (!domNode) return
-    const newCanvas = document.createElement('canvas');
-    newCanvas.width = domNode.width * scale;
-    newCanvas.height = domNode.height * scale;
-    drawMetroLine(newCanvas, drawConfig.value, scale).then(r => {
-        const imageDataUrl = newCanvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.href = imageDataUrl;
-        link.download = 'high-res-image.png';
-        link.click();
-    })
+    // const newCanvas = document.createElement('canvas');
+    // newCanvas.width = domNode.width * scale;
+    // newCanvas.height = domNode.height * scale;
+    // drawMetroLine(newCanvas, drawConfig.value, scale).then(r => {
+    //     const imageDataUrl = newCanvas.toDataURL('image/png');
+    //     const link = document.createElement('a');
+    //     link.href = imageDataUrl;
+    //     link.download = 'high-res-image.png';
+    //     link.click();
+    // })
 }
 
 const handleShowTrainInfoDetail = (trainInfo) => {
@@ -165,13 +172,14 @@ const handleShowTrainInfoDetail = (trainInfo) => {
     }
 }
 const trainXPosition = computed(() => {
-    if (metroCanvas.value) {
-        return Math.round(metroCanvas.value.width / 2) - 95
+    const domNode = document.getElementById('line-template-svg')
+    if (domNode) {
+        const width = domNode.getBoundingClientRect().width
+        return Math.round(width / 2) - 95
     } else {
         return 0
     }
 })
-const container = ref(null)
 
 const downTrains = computed(() => {
     if (drawConfig.value) {
@@ -197,10 +205,6 @@ const lineInfoLoader = async (lineId) => {
     }
 }
 
-let positions = []
-const stationMap = ref(new Map())
-const TRAIN_ICON_HEIGHT = 70
-const TRAIN_ICON_WEIGHT = 80
 
 function addClickableArea(rect, callBack, ...params) {
     positions.push({
@@ -228,14 +232,16 @@ function handleClicKStation(station) {
     }
 }
 
-function handleClickLine(lineId) {
+const handleClickLine = _.debounce((lineId) => {
     if (lineId) {
-        store.commit('application/SET_SHOWN_LINE_REALTIME', {lineId})
+        loadDrawConfig(lineId).then(_ => {
+            store.commit('application/SET_SHOWN_LINE_REALTIME', {lineId})
+        }).catch((e) => {
+            $q.notify.info('该线路暂不支持线路实况')
+        })
     }
-}
+}, 1000)
 
-const onServiceTrains = ref({})
-let positionMap = new Map()
 
 async function calcTrainPosition(train) {
     const lineInfo = await lineInfoLoader(train.lineId)
@@ -312,13 +318,11 @@ async function loadTrains(lineIds) {
 
 /**
  *
- * @param canvas canvas dom
  * @param config 绘制配置
  * @param scaleFactor 放大倍数
  * @returns {Promise<void>}
  */
-async function drawMetroLine(canvas, config, scaleFactor = 1) {
-    if (!canvas || !config) return;
+async function drawMetroLine(config, scaleFactor = 1) {
     const SEGMENT_LENGTH = 160 * scaleFactor // 站点间距
     const xPadding = 10 * scaleFactor
     const yPadding = 80 * scaleFactor
@@ -415,7 +419,7 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
         })
     }
 
-    function calcBranchEndPosition(intersectionPoint, branchStations, positionType, segmentLength, direction, canvas) {
+    function calcBranchEndPosition(intersectionPoint, branchStations, positionType, segmentLength, direction) {
         const {x, y, index} = intersectionPoint
         const endPosition = {}
         if (positionType === 'THROUGH') {
@@ -440,14 +444,14 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
                 xDirection = 'RIGHT'
             }
             if (xDirection === 'RIGHT') {
-                endPosition.x = canvas.width
+                endPosition.x = canvasWidth
             } else {
                 endPosition.x = 0
             }
         } else if (positionType === 'INTERSECTION') {
             if (!direction || direction === 'RIGHT') {
                 endPosition.y = intersectionPoint.y
-                endPosition.x = canvas.width
+                endPosition.x = canvasWidth
             } else if (direction === 'LEFT') {
                 endPosition.y = intersectionPoint.y
                 endPosition.x = 0
@@ -462,17 +466,17 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
 
 
     const lineInfo = await lineInfoLoader(config.lineId)
+    const canvasWidth = window.innerWidth <= 500 ? window.innerWidth : 360
+    const mainLineStations = config.reverse ? lineInfo.stations.slice().reverse() : lineInfo.stations
+    const lineColor = lineInfo.color
+    const halfWidth = canvasWidth / 2
+    const lineWidth = 10 * scaleFactor
 
-    const mainLineStations = config.reverse ? lineInfo.stations.slice().reverse() : lineInfo.stations;
-    const lineColor = lineInfo.color;
-    const width = canvas.width / 2;
-    const lineWidth = 10 * scaleFactor;
-
-    const mainLineX = width
+    const mainLineX = halfWidth
     // 计算主线站点坐标
-    const stationPositions = {};
+    const stationPositions = {}
     mainLineStations.forEach((station, index) => {
-        const x = width;
+        const x = halfWidth
         const y = yPadding + index * SEGMENT_LENGTH
         stationPositions[station.id] = {x, y, index}
     })
@@ -485,43 +489,41 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
         }
     }
 
-    // 计算 `canvas.height`
-    let lineHeight = (mainLineStations.length - 1) * SEGMENT_LENGTH;
+    // 计算 `canvasHeight`
+    let lineHeight = (mainLineStations.length - 1) * SEGMENT_LENGTH
     const intersections = new Set()
     if (config.extraLines) {
         for (const extraLineConfig of config.extraLines) {
-            const extraLineData = extraLineDataMap[extraLineConfig.lineId];
-            const extraStations = extraLineData.stations;
+            const extraLineData = extraLineDataMap[extraLineConfig.lineId]
+            const extraStations = extraLineData.stations
 
             // 找到交汇站点
             const intersection = findInteractionPoint(extraLineConfig.intersectionId, extraStations)
-            if (!intersection) continue;
+            if (!intersection) continue
             intersections.add(intersection.id)
             const intersectionPoint = stationPositions[intersection.id]
 
             // 计算支线终点坐标
             const branchStations = getBranchStations(extraStations, intersection.id, extraLineConfig.type)
-            const branchEndPosition = calcBranchEndPosition(intersectionPoint, branchStations, extraLineConfig.type, SEGMENT_LENGTH, extraLineConfig.direction, canvas);
+            const branchEndPosition = calcBranchEndPosition(intersectionPoint, branchStations, extraLineConfig.type, SEGMENT_LENGTH, extraLineConfig.direction);
 
             if (branchEndPosition.y > lineHeight) {
-                lineHeight = branchEndPosition.y;
+                lineHeight = branchEndPosition.y
             }
         }
     }
-    const canvasWidth = window.innerWidth >= 350 && window.innerWidth <= 600 ? window.innerWidth : 358
-
-    canvas.height = lineHeight + 2 * yPadding;
+    const canvasHeight = lineHeight + 2 * yPadding
     const ctx = new C2S(canvasWidth, lineHeight + 2 * yPadding)
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
     const segmentsCount = lineHeight / SEGMENT_LENGTH
     for (let i = 0; i < segmentsCount; i++) {
         if (i % 2 === 0) {
-            ctx.fillStyle = "#efefef";
+            ctx.fillStyle = "#efefef"
         } else {
             ctx.fillStyle = '#ffffff'
         }
-        ctx.fillRect(0, yPadding + (i * SEGMENT_LENGTH), canvas.width, SEGMENT_LENGTH); // (x, y, width, height)
+        ctx.fillRect(0, yPadding + (i * SEGMENT_LENGTH), canvasWidth, SEGMENT_LENGTH); // (x, y, width, height)
     }
 
     const stationCirclesToDraw = []
@@ -540,15 +542,15 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
             const intersectionPoint = stationPositions[intersectionStation.id];
             // 计算支线终点坐标
             const branchStations = getBranchStations(extraStations, intersectionStation.id, extraLineConfig.type)
-            const branchEndPosition = calcBranchEndPosition(intersectionPoint, branchStations, extraLineConfig.type, SEGMENT_LENGTH, extraLineConfig.direction, canvas);
+            const branchEndPosition = calcBranchEndPosition(intersectionPoint, branchStations, extraLineConfig.type, SEGMENT_LENGTH, extraLineConfig.direction);
 
             if (!branchEndPosition) continue;
 
             // 画支线
             if (extraLineConfig.type === 'THROUGH') {
                 drawLine(ctx, extraLineInfo, lineWidth, intersectionPoint, branchEndPosition);
-                drawLineName(ctx, extraLineInfo, {x: canvas.width, y: intersectionPoint.y + 30 * scaleFactor})
-                drawLineName(ctx, lineInfo, {x: canvas.width, y: intersectionPoint.y + 10 * scaleFactor})
+                drawLineName(ctx, extraLineInfo, {x: canvasWidth, y: intersectionPoint.y + 30 * scaleFactor})
+                drawLineName(ctx, lineInfo, {x: canvasWidth, y: intersectionPoint.y + 10 * scaleFactor})
             } else if (extraLineConfig.type === 'BRANCH') {
                 //画一条圆角L形 终点位置为branchEndPosition 是一个对象{x,y}
                 drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition, {cornerRadius: branchRadius});
@@ -556,7 +558,7 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
             } else if (extraLineConfig.type === 'INTERSECTION') {
                 if (!extraLineConfig.direction) {
                     drawLine(ctx, extraLineInfo, lineWidth, {x: 0, y: intersectionPoint.y}, {
-                        x: canvas.width,
+                        x: canvasWidth,
                         y: intersectionPoint.y
                     })
                 } else {
@@ -566,8 +568,8 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
             } else if (extraLineConfig.type === 'X-INTERSECTION') {
                 const directions = extraLineConfig.direction.split('@')
 
-                const branchEndPosition1 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[0], canvas)
-                const branchEndPosition2 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[1], canvas)
+                const branchEndPosition1 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[0])
+                const branchEndPosition2 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[1])
                 drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition1, {
                     cornerRadius: branchRadius,
                     intersectionStation
@@ -595,8 +597,8 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
     }
 
     // **绘制主线**
-    drawLine(ctx, lineInfo, lineWidth, {x: width, y: yPadding}, {
-        x: width,
+    drawLine(ctx, lineInfo, lineWidth, {x: halfWidth, y: yPadding}, {
+        x: halfWidth,
         y: yPadding + (mainLineStations.length - 1) * SEGMENT_LENGTH
     })
 
@@ -607,7 +609,7 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
     mainLineStations.forEach((station, index) => {
         const isIntersection = intersections.has(station.id)
         const stationY = yPadding + index * SEGMENT_LENGTH
-        drawStation(ctx, width, stationY, lineColor, isIntersection);
+        drawStation(ctx, halfWidth, stationY, lineColor, isIntersection);
         drawStationName(ctx, station, {x: xPadding, y: stationY + 16 * scaleFactor})
         station.yPosition = stationY
         stationMap.value.set(station.id, station)
@@ -627,23 +629,25 @@ async function drawMetroLine(canvas, config, scaleFactor = 1) {
 
 
 onMounted(() => {
-    // init()
 })
 
 async function loadDrawConfig(lineId) {
     const template = await store.dispatch('railsystem/getLineCanvasConfig', {lineId})
     if (template) {
         return template
+    } else {
+        return Promise.reject(`No template for lineId:${lineId}`)
     }
 }
 
 const drawConfig = ref(null)
 
-function initTrains() {
-    console.log('Init Trains...')
+async function initTrains() {
     if (drawConfig.value) {
         const throughLineIds = drawConfig.value.extraLines.filter(it => it.type === 'THROUGH').map(it => it.lineId)
-        loadTrains([shownLineId.value, ...throughLineIds])
+        return loadTrains([shownLineId.value, ...throughLineIds]).then(_ => {
+            updateTrainPositions()
+        })
     }
 }
 
@@ -655,15 +659,14 @@ function init() {
     onServiceTrains.value = {}
     positionMap = new Map()
     positions = []
+
     updateTrainInterval = setInterval(() => {
         initTrains()
-        updateTrainPositions()
     }, 16000)
 
     loadDrawConfig(lineId).then(_drawConfig => {
         drawConfig.value = _drawConfig
-        const canvas = metroCanvas.value
-        drawMetroLine(canvas, _drawConfig)
+        drawMetroLine(_drawConfig)
         initTrains()
     })
 }
