@@ -1,5 +1,14 @@
 <template>
     <router-view/>
+    <div style="height: 40px;">
+        <!-- Google AdSense 广告 -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-5910846206073431"
+             data-ad-slot="9881278344"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    </div>
     <OverlayContainer/>
 </template>
 
@@ -24,5 +33,25 @@ onMounted(() => {
         document.documentElement.style.setProperty('--q-background-grey-2', '#222222');
         document.documentElement.style.setProperty('--q-grey', '#dcdcdc');
     }
+
+    initGoogleAd()
 })
+
+const initGoogleAd = async () => {
+    const jsSrc = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5910846206073431'
+    if (!document.querySelector(`script[src="${jsSrc}"]`)) {
+        const script = document.createElement('script');
+        script.src = jsSrc
+        script.async = true;
+        script.crossOrigin = "anonymous";
+        document.head.appendChild(script);
+
+        // 当脚本加载完毕时，触发广告的渲染
+        script.onload = () => {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        };
+    } else {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+    }
+}
 </script>
