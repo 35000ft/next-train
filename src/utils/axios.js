@@ -32,4 +32,25 @@ axiosInstance.interceptors.request.use(
     }
 );
 
+axiosInstance.interceptors.response.use(
+    (response) => {
+        if (response.status === 200) {
+            const _data = response.data
+            if (_data.failed) {
+                return Promise.reject(_data.msg)
+            }
+        } else if (response.status === 401) {
+            return Promise.reject('Unauthorized')
+        } else if (response.status === 403) {
+            return Promise.reject('Permission Denied')
+        } else if (response.status === 404) {
+            return Promise.reject('Not Found')
+        }
+        return response
+    },
+    (response) => {
+
+    }
+)
+
 export default axiosInstance
