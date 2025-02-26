@@ -464,8 +464,8 @@ watch(stopInfoListView, (newVal, oldValue) => {
 watch(() => shownTrainInfo.value, (newVal, oldValue) => {
     if (newVal) {
         if (newVal.id !== trainInfoId.value) {
+            trainDate.value = newVal.date
             trainInfoId.value = newVal.id
-            trainDate.value = newVal.trainDate
         }
     }
 })
@@ -476,7 +476,6 @@ async function loadTrainInfo(_trainInfoId, trainDate) {
         return
     }
     loading.value = true
-    console.log('td', trainDate)
     return store.dispatch('realtime/getTrainInfoById', {
         trainInfoId: _trainInfoId,
         date: trainDate
@@ -497,6 +496,7 @@ watch(trainInfoId, (newVal, oldValue) => {
     if (newVal) {
         show()
         isFirst.value = true
+        console.log('train d', trainDate.value)
         loadTrainInfo(newVal, trainDate.value).then(res => {
             setTimeout(() => {
                 trainInfo.value = res
