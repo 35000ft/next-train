@@ -476,6 +476,7 @@ async function loadTrainInfo(_trainInfoId, trainDate) {
         return
     }
     loading.value = true
+    console.log('td', trainDate)
     return store.dispatch('realtime/getTrainInfoById', {
         trainInfoId: _trainInfoId,
         date: trainDate
@@ -496,9 +497,8 @@ watch(trainInfoId, (newVal, oldValue) => {
     if (newVal) {
         show()
         isFirst.value = true
-        loadTrainInfo(newVal).then(res => {
+        loadTrainInfo(newVal, trainDate.value).then(res => {
             setTimeout(() => {
-                console.log('r', res)
                 trainInfo.value = res
             }, 100)
         })
