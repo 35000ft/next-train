@@ -83,7 +83,7 @@
 <script setup>
 import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import {useStore} from "vuex";
-import {drawRoundedLShape, drawRoundedRect} from "src/utils/canvas-utils";
+import {drawMetroLine} from "src/utils/canvas-utils";
 import _ from "lodash";
 import {diff, getNowByTimezone} from "src/utils/time-utils";
 import {categoryParser, TRAIN_CATEGORY, trainLineOfStopParser} from "../models/Train";
@@ -92,6 +92,7 @@ import BottomModal from "components/BottomModal.vue";
 import Canvas2SVG from 'canvas2svg';
 import {useQuasar} from "quasar";
 
+const LINE_TEMPLATE_DOC_ID = 'line-template-svg'
 let positions = []
 const TRAIN_ICON_HEIGHT = 70
 const TRAIN_ICON_WEIGHT = 80
@@ -152,7 +153,7 @@ const handleRefresh = () => {
 //TODO
 const saveLineTemplate = () => {
     const scale = 3
-    const domNode = document.getElementById('line-template-svg')
+    const domNode = document.getElementById(LINE_TEMPLATE_DOC_ID)
     if (!domNode) return
     // const newCanvas = document.createElement('canvas');
     // newCanvas.width = domNode.width * scale;
@@ -172,7 +173,7 @@ const handleShowTrainInfoDetail = (trainInfo) => {
     }
 }
 const trainXPosition = computed(() => {
-    const domNode = document.getElementById('line-template-svg')
+    const domNode = document.getElementById(LINE_TEMPLATE_DOC_ID)
     if (domNode) {
         const width = domNode.getBoundingClientRect().width
         return Math.round(width / 2) - 95
@@ -235,7 +236,6 @@ function handleClicKStation(station) {
 const handleClickLine = _.debounce((lineId) => {
     if (lineId) {
         loadDrawConfig(lineId).then(_ => {
-            console.log('_asdsa', _)
             store.commit('application/SET_SHOWN_LINE_REALTIME', {lineId})
         }).catch((e) => {
             $q.notify.info('该线路暂不支持线路实况')
@@ -317,317 +317,6 @@ async function loadTrains(lineIds) {
     }
 }
 
-/**
- *
- * @param config 绘制配置
- * @param scaleFactor 放大倍数
- * @returns {Promise<void>}
- */
-async function drawMetroLine(config, scaleFactor = 1) {
-    const SEGMENT_LENGTH = 160 * scaleFactor // 站点间距
-    const xPadding = 10 * scaleFactor
-    const yPadding = 80 * scaleFactor
-    const branchRadius = 30 * scaleFactor
-
-    function drawLine(_ctx, lineInfo, width, from, to) {
-        const {color, name} = lineInfo
-        _ctx.beginPath()
-        _ctx.moveTo(from.x, from.y)
-        _ctx.lineTo(to.x, to.y)
-        _ctx.strokeStyle = color
-        _ctx.lineWidth = width
-        _ctx.stroke()
-    }
-
-    function drawLineName(_ctx, lineInfo, position) {
-        const {color, name} = lineInfo
-        // 计算文本框位置
-        const textPadding = 4 * scaleFactor;
-        const fontSize = 10 * scaleFactor;
-        const radius = 9 * scaleFactor;
-
-        _ctx.font = `${fontSize}px Arial`;
-        _ctx.textBaseline = "middle";
-        _ctx.textAlign = "center";
-
-        const textWidth = _ctx.measureText(name).width + textPadding * 4;
-        const textHeight = fontSize + textPadding * 2;
-
-        const isLeft = position.x === 0
-        // 矩形框位置：在 `to` 点上方
-        const rectX = isLeft ? xPadding : position.x - textWidth - xPadding;
-        const rectY = isLeft ? position.y + 10 * scaleFactor : position.y - textHeight - 10 * scaleFactor; // 适当上移，避免重叠
-        // 画圆角矩形
-        _ctx.beginPath();
-        _ctx.lineWidth = 2 * scaleFactor
-        _ctx.strokeStyle = color;
-        _ctx.fillStyle = color;
-        drawRoundedRect(_ctx, rectX, rectY, textWidth, textHeight, radius);
-        _ctx.fill();
-        _ctx.stroke();
-
-        // 填充文本
-        _ctx.fillStyle = '#ffffff';
-        const textStartX = isLeft ? (textWidth / 2) + xPadding : (position.x - textWidth / 2 - xPadding)
-        const textStartY = rectY + textHeight / 2
-        _ctx.fillText(name, textStartX, textStartY)
-
-        addClickableArea({
-            from: {x: rectX, y: rectY},
-            to: {x: rectX + textWidth + 2 * xPadding, y: rectY + textHeight}
-        }, handleClickLine, lineInfo.id)
-    }
-
-    function drawStationName(_ctx, station, position) {
-        const {name} = station
-        const fontSize = 15 * scaleFactor;
-
-        _ctx.font = `bold ${fontSize}px Helvetica Neue`;
-        _ctx.textBaseline = "middle";
-        _ctx.textAlign = "left";
-        const textWidth = _ctx.measureText(name).width
-        const textHeight = fontSize
-
-        // 填充文本
-        _ctx.fillStyle = '#4f716f';
-        _ctx.fillText(name, position.x, position.y)
-
-        const textStartX = position.x
-        const textStartY = position.y
-        addClickableArea({
-            from: {x: textStartX, y: textStartY},
-            to: {x: textStartX + textWidth, y: textStartY + textHeight}
-        }, handleClicKStation, station)
-    }
-
-    function drawStation(_ctx, x, y, color, isHalf = false) {
-        _ctx.beginPath();
-        _ctx.arc(x, y, lineWidth / 2, isHalf ? Math.PI : 0, isHalf ? 0 : Math.PI * 2,);
-        _ctx.fillStyle = "white";
-        _ctx.fill();
-        _ctx.strokeStyle = color;
-        _ctx.lineWidth = 2 * scaleFactor;
-        _ctx.stroke();
-    }
-
-    function findInteractionPoint(targetIntersectionId, stations) {
-        return stations.find(s => {
-            if (targetIntersectionId) {
-                return s.id === targetIntersectionId
-            } else {
-                return stationPositions[s.id]
-            }
-        })
-    }
-
-    function calcBranchEndPosition(intersectionPoint, branchStations, positionType, segmentLength, direction) {
-        const {x, y, index} = intersectionPoint
-        const endPosition = {}
-        if (positionType === 'THROUGH') {
-            endPosition.x = x
-            if (index === 0) {
-                endPosition.y = y - segmentLength * (branchStations.length - 1)
-            } else {
-                endPosition.y = y + segmentLength * (branchStations.length - 1)
-            }
-        } else if (positionType === 'BRANCH') {
-            let [yDirection, xDirection] = (direction && direction.split('-')) || [null, null]
-            if (!['DOWN', 'UP'].includes(yDirection)) {
-                yDirection = 'DOWN'
-            }
-            if (yDirection === 'DOWN') {
-                endPosition.y = y + 50 * scaleFactor
-            } else {
-                endPosition.y = y - 50 * scaleFactor
-            }
-
-            if (!['RIGHT', 'LEFT'].includes(xDirection)) {
-                xDirection = 'RIGHT'
-            }
-            if (xDirection === 'RIGHT') {
-                endPosition.x = canvasWidth
-            } else {
-                endPosition.x = 0
-            }
-        } else if (positionType === 'INTERSECTION') {
-            if (!direction || direction === 'RIGHT') {
-                endPosition.y = intersectionPoint.y
-                endPosition.x = canvasWidth
-            } else if (direction === 'LEFT') {
-                endPosition.y = intersectionPoint.y
-                endPosition.x = 0
-            }
-        } else if (positionType === 'X-INTERSECTION') {
-            endPosition.y = intersectionPoint.y
-            endPosition.x = 0
-        }
-        //TODO
-        return endPosition
-    }
-
-
-    const lineInfo = await lineInfoLoader(config.lineId)
-    const canvasWidth = window.innerWidth <= 500 ? window.innerWidth : 360
-    const mainLineStations = config.reverse ? lineInfo.stations.slice().reverse() : lineInfo.stations
-    const lineColor = lineInfo.color
-    const halfWidth = canvasWidth / 2
-    const lineWidth = 10 * scaleFactor
-
-    const mainLineX = halfWidth
-    // 计算主线站点坐标
-    const stationPositions = {}
-    mainLineStations.forEach((station, index) => {
-        const x = halfWidth
-        const y = yPadding + index * SEGMENT_LENGTH
-        stationPositions[station.id] = {x, y, index}
-    })
-
-    // **预加载支线数据，避免重复调用 `lineInfoLoader`**
-    const extraLineDataMap = {};
-    if (config.extraLines) {
-        for (const extra of config.extraLines) {
-            extraLineDataMap[extra.lineId] = await lineInfoLoader(extra.lineId);
-        }
-    }
-
-    // 计算 `canvasHeight`
-    let lineHeight = (mainLineStations.length - 1) * SEGMENT_LENGTH
-    const intersections = new Set()
-    if (config.extraLines) {
-        for (const extraLineConfig of config.extraLines) {
-            const extraLineData = extraLineDataMap[extraLineConfig.lineId]
-            const extraStations = extraLineData.stations
-
-            // 找到交汇站点
-            const intersection = findInteractionPoint(extraLineConfig.intersectionId, extraStations)
-            if (!intersection) continue
-            intersections.add(intersection.id)
-            const intersectionPoint = stationPositions[intersection.id]
-
-            // 计算支线终点坐标
-            const branchStations = getBranchStations(extraStations, intersection.id, extraLineConfig.type)
-            const branchEndPosition = calcBranchEndPosition(intersectionPoint, branchStations, extraLineConfig.type, SEGMENT_LENGTH, extraLineConfig.direction);
-
-            if (branchEndPosition.y > lineHeight) {
-                lineHeight = branchEndPosition.y
-            }
-        }
-    }
-    const canvasHeight = lineHeight + 2 * yPadding
-    const ctx = new C2S(canvasWidth, lineHeight + 2 * yPadding)
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight)
-
-    const segmentsCount = lineHeight / SEGMENT_LENGTH
-    for (let i = 0; i < segmentsCount; i++) {
-        if (i % 2 === 0) {
-            ctx.fillStyle = "#efefef"
-        } else {
-            ctx.fillStyle = '#ffffff'
-        }
-        ctx.fillRect(0, yPadding + (i * SEGMENT_LENGTH), canvasWidth, SEGMENT_LENGTH); // (x, y, width, height)
-    }
-
-    const stationCirclesToDraw = []
-
-    // **绘制支线**
-    if (config.extraLines) {
-        for (const extraLineConfig of config.extraLines) {
-            const extraLineInfo = extraLineDataMap[extraLineConfig.lineId];
-            const extraStations = extraLineInfo.stations;
-            const extraColor = extraLineInfo.color;
-
-            // 找到交汇站点
-            const intersectionStation = findInteractionPoint(extraLineConfig.intersectionId, extraStations)
-            if (!intersectionStation) continue;
-
-            const intersectionPoint = stationPositions[intersectionStation.id];
-            // 计算支线终点坐标
-            const branchStations = getBranchStations(extraStations, intersectionStation.id, extraLineConfig.type)
-            const branchEndPosition = calcBranchEndPosition(intersectionPoint, branchStations, extraLineConfig.type, SEGMENT_LENGTH, extraLineConfig.direction);
-
-            if (!branchEndPosition) continue;
-
-            // 画支线
-            if (extraLineConfig.type === 'THROUGH') {
-                drawLine(ctx, extraLineInfo, lineWidth, intersectionPoint, branchEndPosition);
-                drawLineName(ctx, extraLineInfo, {x: canvasWidth, y: intersectionPoint.y + 30 * scaleFactor})
-                drawLineName(ctx, lineInfo, {x: canvasWidth, y: intersectionPoint.y + 10 * scaleFactor})
-            } else if (extraLineConfig.type === 'BRANCH') {
-                //画一条圆角L形 终点位置为branchEndPosition 是一个对象{x,y}
-                drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition, {cornerRadius: branchRadius});
-                drawLineName(ctx, extraLineInfo, branchEndPosition)
-            } else if (extraLineConfig.type === 'INTERSECTION') {
-                if (!extraLineConfig.direction) {
-                    drawLine(ctx, extraLineInfo, lineWidth, {x: 0, y: intersectionPoint.y}, {
-                        x: canvasWidth,
-                        y: intersectionPoint.y
-                    })
-                } else {
-                    drawLine(ctx, extraLineInfo, lineWidth, intersectionPoint, branchEndPosition)
-                }
-                drawLineName(ctx, extraLineInfo, branchEndPosition)
-            } else if (extraLineConfig.type === 'X-INTERSECTION') {
-                const directions = extraLineConfig.direction.split('@')
-
-                const branchEndPosition1 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[0])
-                const branchEndPosition2 = calcBranchEndPosition(intersectionPoint, branchStations, 'BRANCH', SEGMENT_LENGTH, directions[1])
-                drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition1, {
-                    cornerRadius: branchRadius,
-                    intersectionStation
-                })
-                drawRoundedLShape(ctx, extraColor, lineWidth, intersectionPoint, branchEndPosition2, {
-                    cornerRadius: branchRadius,
-                    intersectionStation
-                })
-                const rightEnd = branchEndPosition2.x > branchEndPosition1.x ? branchEndPosition2 : branchEndPosition1
-                drawLineName(ctx, extraLineInfo, rightEnd)
-            }
-            // 画支线站点
-            branchStations.forEach((station, i) => {
-                const stationY = intersectionPoint.y + i * SEGMENT_LENGTH
-                stationCirclesToDraw.push([mainLineX, stationY, extraColor])
-                if (extraLineConfig.type === 'THROUGH') {
-                    drawStationName(ctx, station, {x: xPadding, y: stationY + 16 * scaleFactor})
-                    if (i > 0) {
-                        station.yPosition = stationY
-                        stationMap.value.set(station.id, station)
-                    }
-                }
-            })
-        }
-    }
-
-    // **绘制主线**
-    drawLine(ctx, lineInfo, lineWidth, {x: halfWidth, y: yPadding}, {
-        x: halfWidth,
-        y: yPadding + (mainLineStations.length - 1) * SEGMENT_LENGTH
-    })
-
-    stationCirclesToDraw.forEach(params => {
-        drawStation(ctx, ...params)
-    })
-    // **绘制主线站点**
-    mainLineStations.forEach((station, index) => {
-        const isIntersection = intersections.has(station.id)
-        const stationY = yPadding + index * SEGMENT_LENGTH
-        drawStation(ctx, halfWidth, stationY, lineColor, isIntersection);
-        drawStationName(ctx, station, {x: xPadding, y: stationY + 16 * scaleFactor})
-        station.yPosition = stationY
-        stationMap.value.set(station.id, station)
-    });
-
-    const parser = new DOMParser()
-    const svgDoc = parser.parseFromString(ctx.getSerializedSvg(), 'image/svg+xml')
-    const id = 'line-template-svg'
-    const oldNode = container.value.querySelector(`#${id}`)
-    if (oldNode) {
-        oldNode.remove()
-    }
-    svgDoc.documentElement.setAttribute('id', id)
-    svgDoc.documentElement.addEventListener('click', handleCanvasClick)
-    container.value.appendChild(svgDoc.documentElement)
-}
-
 
 onMounted(() => {
 })
@@ -667,7 +356,43 @@ function init() {
 
     loadDrawConfig(lineId).then(_drawConfig => {
         drawConfig.value = _drawConfig
-        drawMetroLine(_drawConfig)
+        //TODO
+        _drawConfig = {
+            "lineId": "51001",
+            "railsystemCode": "CRSH",
+            "extraLines": [],
+            "branchStations": [
+                {
+                    "stationId": "2575",
+                    "connectStationId": "2547",
+                    "direction": "LEFT",
+                    "shape": "LU"
+                },
+                {
+                    "stationId": "2565",
+                    "connectStationId": "2563",
+                    "direction": "LEFT",
+                    "shape": "LD"
+                }
+            ],
+        }
+        drawMetroLine(_drawConfig, {
+            addClickableArea,
+            handleClicKStation,
+            lineInfoLoader,
+            stationMap: stationMap.value,
+            handleClickLine,
+            getBranchStations,
+            stationGetter: (stationId) => store.dispatch('railsystem/getStation', {stationId})
+        }).then(svgDoc => {
+            const oldNode = container.value.querySelector(`#${LINE_TEMPLATE_DOC_ID}`)
+            if (oldNode) {
+                oldNode.remove()
+            }
+            svgDoc.documentElement.setAttribute('id', LINE_TEMPLATE_DOC_ID)
+            svgDoc.documentElement.addEventListener('click', handleCanvasClick)
+            container.value.appendChild(svgDoc.documentElement)
+        })
         initTrains()
     })
 }
@@ -677,7 +402,7 @@ onBeforeUnmount(() => {
 })
 
 const handleCanvasClick = _.debounce((event) => {
-    const svg = document.getElementById('line-template-svg')
+    const svg = document.getElementById(LINE_TEMPLATE_DOC_ID)
     if (!svg) return
     const rect = svg.getBoundingClientRect()
     // 获取点击位置（相对于 target 内部）
