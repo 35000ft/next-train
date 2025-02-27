@@ -75,6 +75,10 @@
                   style="z-index: 20;position: absolute;right: 20px;bottom: 150px;font-size: 32px;color: var(--q-primary)">
                 <q-icon name="update"/>
             </span>
+            <span class="tool-wrapper" @click="saveLineTemplate"
+                  style="z-index: 20;position: absolute;right: 20px;bottom: 200px;font-size: 28px;color: var(--q-primary)">
+                <q-icon name="fa fa-download"/>
+            </span>
         </template>
     </bottom-modal>
 
@@ -150,21 +154,41 @@ const handleRefresh = () => {
     })
 }
 
-//TODO
 const saveLineTemplate = () => {
     const scale = 3
-    const domNode = document.getElementById(LINE_TEMPLATE_DOC_ID)
-    if (!domNode) return
-    // const newCanvas = document.createElement('canvas');
-    // newCanvas.width = domNode.width * scale;
-    // newCanvas.height = domNode.height * scale;
-    // drawMetroLine(newCanvas, drawConfig.value, scale).then(r => {
-    //     const imageDataUrl = newCanvas.toDataURL('image/png');
-    //     const link = document.createElement('a');
-    //     link.href = imageDataUrl;
-    //     link.download = 'high-res-image.png';
-    //     link.click();
-    // })
+    drawMetroLine(drawConfig.value, {
+        scaleFactor: scale,
+        addClickableArea,
+        handleClicKStation,
+        lineInfoLoader,
+        stationMap: stationMap.value,
+        handleClickLine,
+        getBranchStations,
+        stationGetter: (stationId) => store.dispatch('railsystem/getStation', {stationId})
+    }).then(svgDoc => {
+        const svgData = new XMLSerializer().serializeToString(svgDoc.documentElement)
+        const svgBlob = new Blob([svgData], {type: 'image/svg+xml'})
+        const svgUrl = URL.createObjectURL(svgBlob)
+
+        const img = new Image()
+        img.onload = () => {
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d')
+            canvas.width = img.width
+            canvas.height = img.height
+            ctx.drawImage(img, 0, 0)
+
+            // Export canvas to PNG
+            const pngData = canvas.toDataURL('image/png')
+
+            // Create a download link
+            const link = document.createElement('a')
+            link.href = pngData
+            link.download = 'line-template.png'
+            link.click()
+        };
+        img.src = svgUrl
+    })
 }
 
 const handleShowTrainInfoDetail = (trainInfo) => {
@@ -355,7 +379,6 @@ function init() {
     }, 16000)
 
     loadDrawConfig(lineId).then(_drawConfig => {
-        drawConfig.value = _drawConfig
         //TODO
         _drawConfig = {
             "lineId": "51001",
@@ -376,6 +399,7 @@ function init() {
                 }
             ],
         }
+        drawConfig.value = _drawConfig
         drawMetroLine(_drawConfig, {
             addClickableArea,
             handleClicKStation,

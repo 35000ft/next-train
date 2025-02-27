@@ -65,13 +65,24 @@ const handleShowLineRealtime = (line) => {
 
 function init() {
     const railsystemCode = railsystem.value.code
+    const promises = []
     store.dispatch('railsystem/getShowLineCanvasConfig', {railsystemCode}).then(lineIds => {
         lineIds.forEach(lineId => {
-            store.dispatch('railsystem/getLine', {lineId}).then(line => {
+            const p = store.dispatch('railsystem/getLine', {lineId}).then(line => {
+                return line
+            })
+            promises.push(p)
+        })
+        Promise.all(promises).then(lines => {
+            // lines 是按 lineIds 顺序的数组
+            lines.forEach((line, index) => {
+                // 按照 lineIds 中的顺序将每个 line 推入 showLines
                 showLines.value.push(line)
             })
         })
+
     })
+
 }
 
 </script>

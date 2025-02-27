@@ -210,7 +210,7 @@ async function drawMetroLine(config, {
 
 
     const lineInfo = await lineInfoLoader(config.lineId)
-    const canvasWidth = window.innerWidth <= 500 ? window.innerWidth : 360
+    const canvasWidth = (window.innerWidth <= 500 ? window.innerWidth : 360) * scaleFactor
 
     const branchStationIdSet = (config.branchStations && new Set(config.branchStations.map(s => s.stationId))) || new Set()
     const tempMainLineStations = lineInfo.stations.filter(it => !branchStationIdSet.has(it.id))
@@ -350,7 +350,9 @@ async function drawMetroLine(config, {
         for (const branchStationConfig of config.branchStations) {
             const index = mainLineStations.findIndex(it => it.id === branchStationConfig.connectStationId)
             const fromY = yPadding + index * SEGMENT_LENGTH
-            let toX = branchStationConfig.direction === 'LEFT' ? mainLineX - 150 : mainLineX + 150
+            const horizonLineWidth = 150 * scaleFactor
+            const cornerRadius = 50 * scaleFactor
+            let toX = branchStationConfig.direction === 'LEFT' ? mainLineX - horizonLineWidth : mainLineX + horizonLineWidth
             let toY = fromY + SEGMENT_LENGTH / 2
             let stationNameY = toY - 20 * scaleFactor
             connectedStationIdSet.add(branchStationConfig.connectStationId)
@@ -358,23 +360,23 @@ async function drawMetroLine(config, {
                 drawRoundedLShape(ctx, lineColor, lineWidth, {x: mainLineX, y: fromY}, {
                     x: toX,
                     y: toY
-                }, {cornerRadius: 50})
+                }, {cornerRadius})
                 drawRoundedLShape(ctx, lineColor, lineWidth, {x: mainLineX, y: fromY + SEGMENT_LENGTH}, {
                     x: toX,
                     y: toY
-                }, {cornerRadius: 50})
+                }, {cornerRadius})
             } else if (branchStationConfig.shape === 'LU') {
                 drawRoundedLShape(ctx, lineColor, lineWidth, {x: mainLineX, y: fromY}, {
                     x: toX,
                     y: toY
-                }, {cornerRadius: 50})
+                }, {cornerRadius})
             } else if (branchStationConfig.shape === 'LD') {
                 toY = toY - SEGMENT_LENGTH
                 stationNameY = toY + 20 * scaleFactor
                 drawRoundedLShape(ctx, lineColor, lineWidth, {x: mainLineX, y: fromY}, {
                     x: toX,
                     y: toY
-                }, {cornerRadius: 50})
+                }, {cornerRadius})
             }
             stationCirclesToDraw.push([toX, toY, lineColor])
             const p = stationGetter(branchStationConfig.stationId).then(_station => {
@@ -400,7 +402,7 @@ async function drawMetroLine(config, {
         drawStation(ctx, halfWidth, stationY, lineColor, isIntersection);
 
         const moveRight = connectedStationIdSet.has(station.id)
-        drawStationName(ctx, station, {x: xPadding, y: stationY + 10 * scaleFactor}, {moveRight})
+        drawStationName(ctx, station, {x: xPadding, y: stationY + 16 * scaleFactor}, {moveRight})
         station.yPosition = stationY
         stationMap.set(station.id, station)
     });
