@@ -4,7 +4,7 @@ import {
     fetchDrawLineTemplate,
     fetchGraph,
     fetchLine,
-    fetchLines,
+    fetchLines, fetchRailsystem,
     fetchShowLineCanvasConfig,
     fetchStation,
     fetchStations,
@@ -52,7 +52,7 @@ const mutations = {
             state.lines.set(line.id, line)
         }
     },
-    SET_RAILSYSTEM(state, railsystem) {
+    SET_RAILSYSTEM(state, {railsystem}) {
         if (railsystem && railsystem.code) {
             state.railSystems.set(railsystem.id, railsystem)
         }
@@ -81,7 +81,13 @@ const mutations = {
 
 const actions = {
     async getRailSystem({state, commit}, {code}) {
-        return state.railSystems.get(code)
+        const r = state.railSystems.get(code)
+        if (!r) {
+            return fetchRailsystem(code).then(railsystem => {
+                commit('SET_RAILSYSTEM', {railsystem})
+                return railsystem
+            })
+        }
     },
     async getRailSystemGraph({state, commit}, {code}) {
         return fetchGraph(code)
@@ -168,7 +174,7 @@ const actions = {
         } else {
             return fetchStations(currentRailSystem.code).then(stations => {
                 currentRailSystem.stations = stations
-                commit('SET_RAILSYSTEM', {currentRailSystem})
+                commit('SET_RAILSYSTEM', {railsystem: currentRailSystem})
                 return stations
             })
         }

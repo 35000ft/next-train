@@ -19,24 +19,15 @@ export async function fetchStations(railsystemCode) {
 
 export async function fetchLines(railsystemCode) {
     const url = `api/file/railsystem/lines/${railsystemCode}`
-    return await axios
-        .get(url,)
-        .then(res => {
-            return res.data.data || res.data
-        })
+    return await axios.get(url,).then(res => res.data.data || res.data)
         .catch(err => {
-            console.log('err', err)
             return Promise.reject(err)
         })
 }
 
 export async function fetchRailsystem(railsystemCode) {
-    const url = `api/metro-realtime/query/railsystem/id/${railsystemCode}`
-    return await axios
-        .get(url)
-        .then(res => {
-            return res.data.data || res.data
-        })
+    const url = `api/metro-realtime/query/railsystem/${railsystemCode}`
+    return await axios.get(url).then(res => res.data.data || res.data)
         .catch(err => {
             return Promise.reject(err)
         })

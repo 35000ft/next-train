@@ -497,7 +497,6 @@ watch(trainInfoId, (newVal, oldValue) => {
     if (newVal) {
         show()
         isFirst.value = true
-        console.log('train d', trainDate.value)
         loadTrainInfo(newVal, trainDate.value).then(res => {
             setTimeout(() => {
                 trainInfo.value = res

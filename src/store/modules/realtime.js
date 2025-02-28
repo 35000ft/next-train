@@ -224,7 +224,8 @@ const actions = {
             trainInfo.trainVia = trainLineOfStopParser(trainInfo)
             if (!date) {
                 const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
-                const nowTime = this.getters['application/getNowTime'](railsystem.timezone) || dayjs()
+                console.log('rail', railsystem)
+                const nowTime = (railsystem && this.getters['application/getNowTime'](railsystem.timezone)) || dayjs()
                 date = nowTime.format('YYYY-MM-DD')
             }
             trainInfo.schedule = trainScheduleParser(trainInfo.schedule, date)

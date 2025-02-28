@@ -8,11 +8,11 @@ const LOCAL_STORAGE_KEYS = {
     METRO_GO_CONFIG: 'MetroGoConfig',
 }
 const state = {
-    shownStationId: reactive(null),
+    shownStationId: null,
     overlayStack: reactive([]),
     // 相对当前时间的偏移秒数
     timeOffsetSeconds: 0,
-    shownTrainInfo: reactive(null),
+    shownTrainInfo: null,
     metroGoViewConfig: null,
     shownLineRealtime: null,
     solutionOverviewParams: null,
