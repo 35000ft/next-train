@@ -38,19 +38,7 @@ onMounted(() => {
 })
 
 const initGoogleAd = async () => {
-    const jsSrc = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5910846206073431'
-    if (!document.querySelector(`script[src="${jsSrc}"]`)) {
-        const script = document.createElement('script');
-        script.src = jsSrc
-        script.async = true;
-        script.crossOrigin = "anonymous";
-        document.head.appendChild(script);
-
-        // 当脚本加载完毕时，触发广告的渲染
-        script.onload = () => {
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-        };
-    } else {
+    if (document.querySelector(`script[id="googleAdScript"]`)) {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
     }
 }
