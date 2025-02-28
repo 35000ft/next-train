@@ -91,11 +91,11 @@ const categoryParser = (category) => {
 const stopInfoParse = (stopInfo) => {
     if (stopInfo instanceof Array && stopInfo.length === 5) {
         const temp = {
-            stationId: stopInfo[0],
+            stationId: stopInfo[0] || null,
             stationName: stopInfo[1],
             arr: dayjs(stopInfo[2]),
             dep: dayjs(stopInfo[3]),
-            platform: stopInfo[4]
+            platform: stopInfo[4] || null
         }
         const _diff = temp.dep.diff(temp.arr, 'second')
         if (_diff < 0) {

@@ -50,7 +50,6 @@ const mutations = {
     SET_LINE(state, {line}) {
         if (line && line.id) {
             state.lines.set(line.id, line)
-            localStorage.setItem("line:" + line.id, JSON.stringify(line))
         }
     },
     SET_RAILSYSTEM(state, railsystem) {
@@ -184,11 +183,6 @@ const actions = {
                 return _line
             }
         } else {
-            const _line = JSON.parse(localStorage.getItem('line:' + lineId))
-            if (_line) {
-                commit('SET_LINE', {_line})
-                return _line
-            }
             return new Promise((resolve, reject) => {
                 fetchLine(lineId).then(line => {
                     commit('SET_LINE', {line})
