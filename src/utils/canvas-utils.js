@@ -404,6 +404,7 @@ async function drawMetroLine(config, {
         const moveRight = connectedStationIdSet.has(station.id)
         drawStationName(ctx, station, {x: xPadding, y: stationY + 16 * scaleFactor}, {moveRight})
         station.yPosition = stationY
+        station.yIndex = index
         stationMap.set(station.id, station)
     });
 

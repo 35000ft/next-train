@@ -139,13 +139,13 @@ function afterClose() {
 const {t} = useI18n()
 const calcTrainLineColor = (train, lineInfo) => {
     if (!train) return '#6c6c6c'
-    const trainLines = trainLineOfStopParser(train)
-    if (trainLines.length === 1) {
-        return lineInfo.color || '#6c6c6c'
-    } else {
-        const _trainCategory = categoryParser(train.category)
-        return (_trainCategory && _trainCategory.bgColor) || '#6c6c6c'
+    const baseColor = lineInfo.color || '#6c6c6c'
+
+    const _trainCategory = categoryParser(train.category)
+    if (_trainCategory !== TRAIN_CATEGORY.LOCAL) {
+        return (_trainCategory && _trainCategory.bgColor) || baseColor
     }
+    return baseColor
 }
 
 const handleRefresh = () => {
@@ -278,14 +278,30 @@ async function calcTrainPosition(train) {
         train.nextStop = nextStop
         const lastStop = train.schedule[nextStopIndex - 1]
         let rawYPosition
-        if (diff(currentTime, lastStop.dep) > 0) {
+        const depDiff = diff(currentTime, lastStop.dep)
+        const nextStopPosition = stationMap.value.get(nextStop.stationId)
+        if (depDiff > 0) {
             //在lastStop和nextStop之间
-            rawYPosition = (stationMap.value.get(lastStop.stationId).yPosition
-                + stationMap.value.get(nextStop.stationId).yPosition) / 2
+            const lastStopPosition = stationMap.value.get(lastStop.stationId)
+            if (!lastStopPosition || !nextStopPosition) {
+                return null
+            }
+            const yIndexDiff = Math.abs(nextStopPosition.yIndex - lastStopPosition.yIndex)
+            if (yIndexDiff > 1) {
+                const intervalTotalTime = diff(nextStop.arr, lastStop.dep)
+                const intervalIndex = Math.floor((depDiff / intervalTotalTime) / (1 / yIndexDiff))
+                const direction = (nextStopPosition.yPosition - lastStopPosition.yPosition) > 0 ? 1 : -1
+                const segmentHeight = (nextStopPosition.yPosition - lastStopPosition.yPosition) / yIndexDiff
+                rawYPosition = lastStopPosition.yPosition + (0.5 + intervalIndex) * segmentHeight * direction
+            } else {
+                rawYPosition = (lastStopPosition.yPosition + nextStopPosition.yPosition) / 2
+            }
         } else {
             //停在lastStop
+            const lastStopPosition = stationMap.value.get(lastStop.stationId)
+            if (!lastStopPosition) return null
             train.currentStop = lastStop
-            rawYPosition = stationMap.value.get(lastStop.stationId).yPosition
+            rawYPosition = lastStopPosition.yPosition
         }
         const position = {}
         position.yPosition = rawYPosition - TRAIN_ICON_HEIGHT / 2
