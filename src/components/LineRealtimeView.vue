@@ -379,26 +379,6 @@ function init() {
     }, 16000)
 
     loadDrawConfig(lineId).then(_drawConfig => {
-        //TODO
-        _drawConfig = {
-            "lineId": "51001",
-            "railsystemCode": "CRSH",
-            "extraLines": [],
-            "branchStations": [
-                {
-                    "stationId": "2575",
-                    "connectStationId": "2547",
-                    "direction": "LEFT",
-                    "shape": "LU"
-                },
-                {
-                    "stationId": "2565",
-                    "connectStationId": "2563",
-                    "direction": "LEFT",
-                    "shape": "LD"
-                }
-            ],
-        }
         drawConfig.value = _drawConfig
         drawMetroLine(_drawConfig, {
             addClickableArea,
