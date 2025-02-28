@@ -291,7 +291,7 @@ async function calcTrainPosition(train) {
                 const intervalTotalTime = diff(nextStop.arr, lastStop.dep)
                 const intervalIndex = Math.floor((depDiff / intervalTotalTime) / (1 / yIndexDiff))
                 const direction = (nextStopPosition.yPosition - lastStopPosition.yPosition) > 0 ? 1 : -1
-                const segmentHeight = (nextStopPosition.yPosition - lastStopPosition.yPosition) / yIndexDiff
+                const segmentHeight = Math.abs(nextStopPosition.yPosition - lastStopPosition.yPosition) / yIndexDiff
                 rawYPosition = lastStopPosition.yPosition + (0.5 + intervalIndex) * segmentHeight * direction
             } else {
                 rawYPosition = (lastStopPosition.yPosition + nextStopPosition.yPosition) / 2
