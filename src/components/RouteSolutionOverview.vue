@@ -9,6 +9,11 @@
                 </div>
             </div>
         </template>
+        <template v-slot:header-right>
+            <div style="display: flex;gap: 10px;justify-content: right; padding-right: 10px;">
+                <q-icon name="fa fa-share-alt" size="24px" @click="handleShare"/>
+            </div>
+        </template>
         <template v-slot:default>
             <div>
                 <div style="height: 10px;"></div>
@@ -35,7 +40,7 @@
 </template>
 <script setup>
 import OverlayView from "components/OverlayView.vue";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {planRoute, planShortestSolution} from "src/utils/route-plan";
 import {diff, getNowByTimezone} from "src/utils/time-utils";
@@ -54,22 +59,30 @@ const handleCloseDetail = () => {
     }, 400)
 }
 const loading = ref(true)
-const route = useRoute()
 const currentSolution = ref(null)
 const depTime = ref(null)
 
 const departStation = ref(null)
 const arrivalStation = ref(null)
-onMounted(() => {
-    init()
-})
+
 const store = useStore()
 const $q = useQuasar()
 const solutions = ref([])
+let queryParams = null
+onMounted(() => {
+    const params = store.getters['application/solutionOverviewParams']
+    if (params) {
+        init(params)
+        queryParams = params
+    }
+})
 
-async function init() {
-    const params = route.query
+async function init(params) {
     const {fromMainId, toMainId, viaIds} = params
+    if (!fromMainId || !toMainId) {
+        console.warn(`From or To StationId cannot be null. from:${fromMainId} to:${toMainId}`)
+        return
+    }
     const via = (viaIds && viaIds.split(',')) || []
     depTime.value = params.depTime
     loading.value = true
@@ -139,7 +152,17 @@ async function init() {
     })
 }
 
-const router = useRouter()
+const handleShare = () => {
+    const shareUrl = window.location.href
+    navigator.clipboard.writeText(shareUrl)
+        .then(() => {
+            $q.notify.ok(`分享链接已复制🔗`)
+        })
+        .catch((err) => {
+            console.error("Failed to copy text: ", err);
+        })
+}
+
 const handleShowSolutionDetail = (_solution) => {
     currentSolution.value = _solution
     showDetail.value = true

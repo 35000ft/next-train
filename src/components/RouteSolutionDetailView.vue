@@ -1,5 +1,11 @@
 <template>
     <OverlayView name="RouteSolutionDetailView" @close="handleClose" :manage-by-overlay="false">
+        <template v-slot:header-right>
+            <div style="display: flex;gap: 10px;justify-content: right; padding-right: 10px;">
+                <q-icon name="fas fa-paper-plane" size="24px"></q-icon>
+                <q-icon name="fa fa-share-alt" size="24px"></q-icon>
+            </div>
+        </template>
         <template v-slot:default>
             <div v-if="solution && solution.trains" style="overflow-y: auto;height: 90vh;">
                 <div v-for="(train,index) in solution.trains" :key="index">

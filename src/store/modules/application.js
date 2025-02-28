@@ -15,6 +15,7 @@ const state = {
     shownTrainInfo: reactive(null),
     metroGoViewConfig: null,
     shownLineRealtime: null,
+    solutionOverviewParams: null,
 };
 const mutations = {
     SET_SHOWN_TRAININFO(state, {trainInfo}) {
@@ -56,7 +57,10 @@ const mutations = {
         if (value) {
             localStorage.setItem(LOCAL_STORAGE_KEYS.METRO_GO_CONFIG, value)
         }
-    }
+    },
+    SHOW_SOLUTION_OVERVIEW(state, params) {
+        state.solutionOverviewParams = params
+    },
 };
 
 const actions = {
@@ -113,7 +117,8 @@ const getters = {
     shownTrainInfo: state => {
         return {...state.shownTrainInfo}
     },
-    shownLineRealtime: state => state.shownLineRealtime
+    shownLineRealtime: state => state.shownLineRealtime,
+    solutionOverviewParams: state => state.solutionOverviewParams,
 };
 
 export default {

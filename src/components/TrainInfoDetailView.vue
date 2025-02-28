@@ -121,11 +121,11 @@
                                 <div class="col-3">{{ t('depTime') }}</div>
                             </div>
                             <div class="scroll" style="max-height: 50vh;" ref="stopInfoListView" v-if="trainInfo">
-                                <div class="stop-info-wrapper row" v-for="stop in schedule"
+                                <div class="stop-info-wrapper row" v-for="(stop,index) in schedule"
                                      style="font-size: 18px;font-weight:bold;"
                                      :style="{height:STOP_ROW_HEIGHT+'px'}"
                                      :class="stop.statusClass||'ontime'"
-                                     :key="stop.stationId">
+                                     :key="index">
                                     <div class="col-4 grey-border-bottom">
                                         <span class="show-text-in-2-line station-name"
                                               @click="handleClickStationName(stop.stationId)">
@@ -241,6 +241,7 @@ const schedule = computed(() => {
 })
 
 const handleShowQuickStationView = (stop) => {
+    if (!stop.stationId) return;
     if (stop.quickStationImg) {
         shownHeaderStop.value = stop
         setTimeout(() => {
@@ -464,8 +465,8 @@ watch(stopInfoListView, (newVal, oldValue) => {
 watch(() => shownTrainInfo.value, (newVal, oldValue) => {
     if (newVal) {
         if (newVal.id !== trainInfoId.value) {
+            trainDate.value = newVal.date
             trainInfoId.value = newVal.id
-            trainDate.value = newVal.trainDate
         }
     }
 })
@@ -496,23 +497,23 @@ watch(trainInfoId, (newVal, oldValue) => {
     if (newVal) {
         show()
         isFirst.value = true
-        loadTrainInfo(newVal).then(res => {
+        console.log('train d', trainDate.value)
+        loadTrainInfo(newVal, trainDate.value).then(res => {
             setTimeout(() => {
-                console.log('r', res)
                 trainInfo.value = res
             }, 100)
         })
     }
 })
 
-watch(() => currentIndex.value, (_currentIndex, oldValue) => {
-    if (_currentIndex && oldValue == null) {
-        const currentStop = schedule.value[_currentIndex]
+watch(() => currentIndex.value, (_curIndex, lastCurIndex) => {
+    if (_curIndex && lastCurIndex == null) {
+        const currentStop = schedule.value[_curIndex]
         if (currentStop) {
             handleShowQuickStationView(currentStop)
         }
-    } else if (!_currentIndex && oldValue) {
-        const lastCurrentStop = schedule.value[oldValue]
+    } else if (!_curIndex && lastCurIndex) {
+        const lastCurrentStop = schedule.value[lastCurIndex]
         if (shownHeaderStop.value && shownHeaderStop.value.stationId === lastCurrentStop.stationId) {
             closeQuickStationView()
         }

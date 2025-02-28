@@ -7,7 +7,7 @@
                     <q-card-section class="full-height" style="padding: 0">
                         <q-tab-panels class="full-height" v-model="topBanner" swipeable animated @touchstart.stop>
                             <q-tab-panel name="home">
-                                HOME 1
+                                <CurrentTrip/>
                             </q-tab-panel>
                             <q-tab-panel name="home2">
                                 HOME 2
@@ -53,6 +53,7 @@ import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
+import CurrentTrip from "components/CurrentTrip.vue";
 
 defineOptions({
     name: 'HomeView'
@@ -111,7 +112,7 @@ const handleChangeStation = (station) => {
 
 .q-tab-panel {
     background-color: darkseagreen;
-    padding: 5px 10px;
+    padding: 0;
 }
 
 .q-card__section--vert {
