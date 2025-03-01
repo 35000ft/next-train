@@ -16,6 +16,7 @@ const state = {
     metroGoViewConfig: null,
     shownLineRealtime: null,
     solutionOverviewParams: null,
+    bottomModalStack: reactive([]),
 };
 const mutations = {
     SET_SHOWN_TRAININFO(state, {trainInfo}) {
@@ -51,6 +52,22 @@ const mutations = {
             }
         }
     },
+    PUSH_BOTTOM(state, {id}) {
+        state.bottomModalStack.push(id)
+    },
+    POP_BOTTOM(state, {id}) {
+        if (state.bottomModalStack.length > 0) {
+            const top = state.bottomModalStack.slice(-1)[0]
+            if (top.id === id) {
+                state.bottomModalStack.splice(state.bottomModalStack.length - 1, 1)
+                return true
+            } else {
+                return false
+            }
+        } else {
+            return false
+        }
+    },
     SET_METRO_GO_CONFIG(state, config) {
         state.metroGoViewConfig = config
         const value = JSON.stringify(config)
@@ -68,7 +85,7 @@ const actions = {
         commit('SET_SHOWN_STATION_ID', {stationId})
     },
     closeStationRealtimeModal({commit, state}) {
-        mutations.SET_SHOWN_STATION_ID(state, {stationId: null})
+        commit('SET_SHOWN_STATION_ID', {stationId: null})
     },
     pushOverlay({commit, state}, {component}) {
         if (component) {
@@ -112,6 +129,7 @@ const actions = {
 const getters = {
     shownStationId: state => state.shownStationId,
     topOverlayComponent: state => state.overlayStack.slice(-1)[0],
+    topBottomComponent: state => state.bottomModalStack.slice(-1)[0],
     overlayComponentStack: state => state.overlayStack,
     getNowTime: state => (timezone) => getNowByTimezone(timezone).add(state.timeOffsetSeconds, "seconds"),
     shownTrainInfo: state => {

@@ -31,9 +31,7 @@
                    border-bottom-right-radius: 15px"
                 :style="{backgroundColor:train.lineColor}"
             >
-                {{
-                    t(`trainCategory.${TRAIN_CATEGORY[train.category].code}`)
-                }} · {{ train.schedule.slice(-1)[0].stationName }}
+                {{ train.overviewText }}
             </span>
         </span>
 
@@ -49,9 +47,7 @@
                 border-top-left-radius: 15px;
                 border-top-right-radius: 15px"
                 :style="{backgroundColor:train.lineColor}">
-                {{
-                    t(`trainCategory.${TRAIN_CATEGORY[train.category].code}`)
-                }} · {{ train.schedule.slice(-1)[0].stationName }}
+                {{ train.overviewText }}
             </span>
 
             <span style="margin-top: 30px;">
@@ -95,6 +91,7 @@ import {useI18n} from "vue-i18n";
 import BottomModal from "components/BottomModal.vue";
 import Canvas2SVG from 'canvas2svg';
 import {useQuasar} from "quasar";
+import {arr2Map} from "src/utils/array-utils";
 
 const LINE_TEMPLATE_DOC_ID = 'line-template-svg'
 let positions = []
@@ -271,6 +268,7 @@ const handleClickLine = _.debounce((lineId) => {
 async function calcTrainPosition(train) {
     const lineInfo = await lineInfoLoader(train.lineId)
     const currentTime = getNowByTimezone(lineInfo.stations[0].timezone)
+    const branchStationMap = arr2Map(drawConfig.value.branchStations || [], 'stationId')
     const nextStopIndex = train.schedule.map(stop => diff(stop.arr, currentTime))
         .sort((a, b) => a - b).findIndex(it => it > 0)
     if (nextStopIndex > 0) {
@@ -279,12 +277,30 @@ async function calcTrainPosition(train) {
         const lastStop = train.schedule[nextStopIndex - 1]
         let rawYPosition
         const depDiff = diff(currentTime, lastStop.dep)
-        const nextStopPosition = stationMap.value.get(nextStop.stationId)
+        let nextStopPosition = stationMap.value.get(nextStop.stationId)
         if (depDiff > 0) {
             //在lastStop和nextStop之间
-            const lastStopPosition = stationMap.value.get(lastStop.stationId)
-            if (!lastStopPosition || !nextStopPosition) {
+            let lastStopPosition = stationMap.value.get(lastStop.stationId)
+            if (!lastStopPosition && !nextStopPosition) {
                 return null
+            } else if (lastStopPosition && !nextStopPosition) {
+                //跨线车 本站在本线上 下站不在本线上
+                const branchStation = branchStationMap.get(nextStop.stationId)
+                const connectedStation = branchStation && stationMap.value.get(branchStation.connectStationId)
+                if (connectedStation) {
+                    nextStopPosition = connectedStation
+                } else {
+                    return null
+                }
+            } else if (nextStopPosition && !lastStopPosition) {
+                //跨线车 下站在本线上 本站不在本线上
+                const branchStation = branchStationMap.get(lastStop.stationId)
+                const connectedStation = branchStation && stationMap.value.get(branchStation.connectStationId)
+                if (connectedStation) {
+                    lastStopPosition = connectedStation
+                } else {
+                    return null
+                }
             }
             const yIndexDiff = Math.abs(nextStopPosition.yIndex - lastStopPosition.yIndex)
             if (yIndexDiff > 1) {
@@ -307,25 +323,37 @@ async function calcTrainPosition(train) {
         position.yPosition = rawYPosition - TRAIN_ICON_HEIGHT / 2
         position.xPosition = trainXPosition.value
         const key = `${train.direction}-${position.xPosition}-${position.yPosition}`
-        const positionTrain = positionMap.get(key)
+        const positionTrain = positionMap.has(key) && positionMap.get(key)[0]
         if (!positionTrain) {
-            positionMap.set(key, train)
+            train.xPosition = position.xPosition
+            train.yPosition = position.yPosition
+            positionMap.set(key, [train])
+            return position
         } else if (positionTrain.id !== train.id) {
             //位置冲突
             if (positionTrain.hash === train.hash) {
                 return null
             }
-            position.xPosition = position.xPosition - TRAIN_ICON_WEIGHT - 5
+            const group = positionMap.get(key)
+            position.xPosition = trainXPosition.value - 20 * group.length
+            train.xPosition = position.xPosition
+            train.yPosition = position.yPosition
+            positionMap.get(key).push(train)
+            return position
+        } else {
+            train.xPosition = position.xPosition
+            train.yPosition = position.yPosition
+            return position
         }
-        return position
     } else {
         return null
     }
 }
 
 const updateTrainPositions = () => {
-    Array.from(Object.values(onServiceTrains.value)).forEach(t => {
-        calcTrainPosition(t).then(position => {
+    positionMap = new Map()
+    Array.from(Object.values(onServiceTrains.value)).forEach(async t => {
+        await calcTrainPosition(t).then(position => {
             if (!position) {
                 if (onServiceTrains.value[t.hash]) {
                     delete onServiceTrains.value[t.hash]
@@ -343,17 +371,26 @@ async function loadTrains(lineIds) {
         if (!lineId) return
         const lineInfo = await lineInfoLoader(lineId)
         const trains = await store.dispatch('realtime/getLineOnServiceTrains', {lineId})
-        trains.forEach(t => {
-            t.lineId = lineId
-            t.lineColor = calcTrainLineColor(t, lineInfo)
-            calcTrainPosition(t).then(position => {
+        for (const train of trains) {
+            train.lineId = lineId
+            // 是否展示车次
+            train.showTrainNo = drawConfig.value.showTrainNo ? train.trainNo : null
+
+            train.overviewText = `${t(`trainCategory.${TRAIN_CATEGORY[train.category].code}`)} · ${train.schedule.slice(-1)[0].stationName}`
+            if (train.showTrainNo) {
+                train.overviewText = train.overviewText + " " + train.showTrainNo
+            }
+
+            train.lineColor = calcTrainLineColor(train, lineInfo)
+            positionMap = new Map()
+            await calcTrainPosition(train).then(position => {
                 if (position) {
-                    t.yPosition = position.yPosition
-                    t.xPosition = position.xPosition
-                    onServiceTrains.value[t.hash] = t
+                    train.yPosition = position.yPosition
+                    train.xPosition = position.xPosition
+                    onServiceTrains.value[train.hash] = train
                 }
             })
-        })
+        }
     }
 }
 

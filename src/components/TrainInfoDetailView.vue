@@ -532,6 +532,7 @@ const handleClickStationName = (_stationId) => {
 }
 
 const handleClose = () => {
+    console.log('close TrainInfoDetailView')
     closeQuickStationView()
     display.value = false
 }

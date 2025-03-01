@@ -1,5 +1,5 @@
 <template>
-    <div class="modal-overlay" @click.self="$emit('close')" v-show="showBg" v-back="handleBack"
+    <div class="modal-overlay" @click.self="handleBack" v-show="showBg" v-back="handleBack"
          :style="{backgroundColor:`rgb(0,0,0,${overlayOpacity})`}">
         <transition name="bottom-modal">
             <div class="modal-content" v-show="display" ref="modalContent"
@@ -14,8 +14,10 @@
 </template>
 
 <script setup>
-import {onMounted, ref, watch} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import Hammer from 'hammerjs';
+import {useStore} from "vuex";
+import {generateUUID} from "src/utils/crypto_utils";
 
 const props = defineProps({
     display: {
@@ -56,7 +58,7 @@ let rawHeight = null
 const movableBanner = ref(null)
 const modalContent = ref(null)
 let callOnMoveUp = false
-
+const componentId = ref(null)
 onMounted(() => {
     const hammer = new Hammer(movableBanner.value)
     hammer.get('pan').set({direction: Hammer.DIRECTION_VERTICAL})
@@ -104,14 +106,10 @@ onMounted(() => {
     })
 })
 
-
-//TODO tobe optimized
-const isTopModal = () => {
-    return showBg.value && !window.location.href.endsWith(`#${props.name}`);
-}
-
 const handleBack = () => {
-    if (isTopModal()) {
+    const isPop = topBottomComponentId.value === componentId.value
+    if (isPop) {
+        store.commit('application/POP_BOTTOM', {id: componentId.value})
         emit('close')
     }
 }
@@ -123,10 +121,13 @@ watch(() => props.display, (newValue, oldValue) => {
         showModel()
     }
 })
-
-
+const store = useStore()
+const topBottomComponentId = computed(() => store.getters['application/topBottomComponent'])
 const showModel = () => {
     showBg.value = true
+    const id = props.name + '-' + generateUUID()
+    componentId.value = id
+    store.commit('application/PUSH_BOTTOM', {id})
     if (!props.isUseRoute) {
         const hasName = window.location.href.endsWith(props.name)
         if (!hasName) {
