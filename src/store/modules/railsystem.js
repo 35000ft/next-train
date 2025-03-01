@@ -87,6 +87,8 @@ const actions = {
                 commit('SET_RAILSYSTEM', {railsystem})
                 return railsystem
             })
+        } else {
+            return r
         }
     },
     async getRailSystemGraph({state, commit}, {code}) {
