@@ -1,5 +1,5 @@
 <template>
-    <div class="modal-overlay" @click.self="handleBack" v-show="showBg" v-back="handleBack"
+    <div class="modal-overlay" @click.self="handleBack('click')" v-show="showBg" v-back="handleBack"
          :style="{backgroundColor:`rgb(0,0,0,${overlayOpacity})`}">
         <transition name="bottom-modal">
             <div class="modal-content" v-show="display" ref="modalContent"
@@ -106,10 +106,9 @@ onMounted(() => {
     })
 })
 
-const handleBack = () => {
+const handleBack = (source) => {
     const isPop = topBottomComponentId.value === componentId.value
     if (isPop) {
-        store.commit('application/POP_BOTTOM', {id: componentId.value})
         emit('close')
     }
 }
@@ -151,6 +150,9 @@ const showModel = () => {
 }
 
 const closeModal = () => {
+    setTimeout(() => {
+        store.commit('application/POP_BOTTOM', {id: componentId.value})
+    }, 10)
     if (window.location.href.indexOf(`#${props.name}`) !== -1) {
         window.history.back()
     }

@@ -58,14 +58,9 @@ const mutations = {
     POP_BOTTOM(state, {id}) {
         if (state.bottomModalStack.length > 0) {
             const top = state.bottomModalStack.slice(-1)[0]
-            if (top.id === id) {
+            if (top === id) {
                 state.bottomModalStack.splice(state.bottomModalStack.length - 1, 1)
-                return true
-            } else {
-                return false
             }
-        } else {
-            return false
         }
     },
     SET_METRO_GO_CONFIG(state, config) {
