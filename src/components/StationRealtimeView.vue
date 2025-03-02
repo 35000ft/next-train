@@ -147,6 +147,7 @@
     <line-stations-selector :height="45" ref="lineStationsSelector" @select="handleSelectStation"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
     <EditFavouriteStationDialog :station="addFavStation" @close="()=>addFavStation=null"/>
+    <OpenMapSelector v-if="openOnMapConfig" :config="openOnMapConfig" @close="()=>openOnMapConfig=null"/>
 </template>
 
 <script setup>
@@ -164,6 +165,7 @@ import _ from "lodash";
 import {useRouter} from "vue-router";
 import {genAmapPositionUrl} from "src/utils/navigator_utils";
 import EditFavouriteStationDialog from "components/EditFavouriteStationDialog.vue";
+import OpenMapSelector from "components/OpenMapSelector.vue";
 
 const router = useRouter()
 const $q = useQuasar()
@@ -182,33 +184,18 @@ const lineStationsSelector = ref(null)
 const currentStation = ref(null)
 const currentTrains = ref([])
 const allTrains = ref([])
-const showTrainInfo = ref(null)
 const addFavStation = ref(null)
+const openOnMapConfig = ref(null)
 const handleClickMap = () => {
     const _station = currentStation.value
     if (!_station) {
         return
     }
     if (_station.location) {
-        const positionUrl = genAmapPositionUrl(_station.location)
-        try {
-            const iframe = document.createElement("iframe");
-            iframe.style.display = "none";
-            iframe.src = positionUrl.url;
-            document.body.appendChild(iframe);
-            setTimeout(function () {
-                // 如果页面未加载，则认为没有安装应用
-                document.body.removeChild(iframe)
-                if (positionUrl.fallbackUrl) {
-                    window.open(positionUrl.fallbackUrl, '_blank')
-                }
-            }, 500);
-        } catch (e) {
-            if (positionUrl.fallbackUrl) {
-                window.open(positionUrl.fallbackUrl, '_blank')
-            }
+        openOnMapConfig.value = {
+            location: _station.location,
+            title: _station.name
         }
-
     }
 }
 
