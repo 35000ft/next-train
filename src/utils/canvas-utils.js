@@ -389,9 +389,9 @@ async function drawMetroLine(config, {
     // **绘制主线**
     drawLine(ctx, lineInfo, lineWidth, {x: halfWidth, y: yPadding}, {
         x: halfWidth,
-        y: yPadding + mainLineHeight
+        y: yPadding + (mainLineStations.length - 1) * SEGMENT_LENGTH
     })
-
+    
     stationCirclesToDraw.forEach(params => {
         drawStation(ctx, ...params)
     })
