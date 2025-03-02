@@ -3,7 +3,7 @@
         <template v-slot:header-right>
             <div style="display: flex;gap: 10px;justify-content: right; padding-right: 10px;">
                 <q-icon name="fas fa-paper-plane" size="24px"></q-icon>
-                <q-icon name="fa fa-share-alt" size="24px"></q-icon>
+                <q-icon name="fa fa-share-alt" size="24px" @click="handleShare"></q-icon>
             </div>
         </template>
         <template v-slot:default>
@@ -115,7 +115,12 @@ import {useI18n} from "vue-i18n";
 import {onMounted} from "vue";
 import TrainCategory from "components/TrainCategory.vue";
 import TrainTransferDirector from "components/TrainTransferDirector.vue";
+import {useQuasar} from "quasar";
+import {useRoute} from "vue-router";
+import {buildUrl} from "src/utils/url-utils";
 
+const route = useRoute()
+const $q = useQuasar()
 const {t} = useI18n()
 const props = defineProps({
     solution: {
@@ -165,6 +170,21 @@ const handleClickStationName = (stationId) => {
 }
 const handleShowQuickStationView = (stop) => {
 
+}
+const handleShare = () => {
+    if (props.solution) {
+        const queryParams = route.query
+        queryParams.sId = props.solution.id
+        const shareUrl = buildUrl('/metro-go', queryParams)
+
+        navigator.clipboard.writeText(shareUrl.toString())
+            .then(() => {
+                $q.notify.ok(`分享链接已复制🔗`)
+            })
+            .catch((err) => {
+                console.error("Failed to copy text: ", err);
+            })
+    }
 }
 
 const handleFoldStopInfo = (train) => {

@@ -256,7 +256,8 @@ const handleGo = () => {
         fromMainId,
         toMainId,
         viaIds,
-        depTime: _depTime.format()
+        depTime: _depTime.format(),
+        sId: route.query.sId || null,
     }
     saveConfig()
     router.push({name: 'route-solution-overview', query: params})
