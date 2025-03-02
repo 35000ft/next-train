@@ -50,6 +50,7 @@ import OneSolutionOverview from "components/OneSolutionOverview.vue";
 import RouteSolutionDetailView from "components/RouteSolutionDetailView.vue";
 import {trainLineOfStopParser} from "src/models/Train";
 import {tagSolutions} from "src/models/RouteSolution";
+import _ from "lodash";
 
 const showDetail = ref(false)
 const handleCloseDetail = () => {
@@ -61,19 +62,22 @@ const handleCloseDetail = () => {
 const loading = ref(true)
 const currentSolution = ref(null)
 const depTime = ref(null)
-
+const route = useRoute()
 const departStation = ref(null)
 const arrivalStation = ref(null)
 
 const store = useStore()
 const $q = useQuasar()
 const solutions = ref([])
-let queryParams = null
+
 onMounted(() => {
-    const params = store.getters['application/solutionOverviewParams']
+    const params = _.clone(store.getters['application/solutionOverviewParams'])
+    const sId = route.query.sId
+    if (sId) {
+        params.sId = sId
+    }
     if (params) {
         init(params)
-        queryParams = params
     }
 })
 
@@ -118,6 +122,14 @@ async function init(params) {
                 return arrCompare
             }
         })
+
+        // 查看分享的方案详情
+        if (params.sId) {
+            if (solution.id === params.sId) {
+                handleShowSolutionDetail(solution)
+            }
+        }
+
         const index = tempSolutions.findIndex(it => it.id === solution.id)
         solutions.value.splice(index, 0, solution)
     }
