@@ -147,7 +147,7 @@
     <line-stations-selector :height="45" ref="lineStationsSelector" @select="handleSelectStation"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
     <EditFavouriteStationDialog :station="addFavStation" @close="()=>addFavStation=null"/>
-    <OpenMapSelector v-if="openOnMapConfig" :config="openOnMapConfig" @close="()=>openOnMapConfig=null"/>
+    <OpenMapSelector :config="openOnMapConfig" @close="()=>openOnMapConfig=null"/>
 </template>
 
 <script setup>

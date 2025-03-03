@@ -1,5 +1,5 @@
 <template>
-    <q-popup-proxy @before-hide="handleClose">
+    <q-popup-proxy ref="openMapSelector" @before-hide="handleClose">
         <q-banner style="width: 90%;">
             <div
                 style="font-size: 20px;font-weight:bold;text-align: center;height: 30px;padding-top: 10px;color: var(--q-primary-d);">
@@ -9,7 +9,8 @@
                 <q-list>
                     <q-item clickable v-ripple @click="handleOpen('google')">
                         <q-item-section avatar>
-                            <img style="width: 36px;height: 36px;" src="public/icons/google-maps.png"
+                            <img style="width: 36px;height: 36px;"
+                                 :src="`${publicPath}icons/google-maps.png`"
                                  alt="Google Maps Icon">
                         </q-item-section>
                         <q-item-section>Google Maps</q-item-section>
@@ -46,12 +47,16 @@
 
 <script setup>
 import {genAmapPositionUrl, genBaiduPositionUrl, genGoogleMapPositionUrl} from "src/utils/navigator_utils";
+import {ref} from "vue";
+
+const publicPath = process.env.PUBLIC_URL || '/';
 
 const props = defineProps({
     config: {
         type: Object
     }
 })
+const openMapSelector = ref(null)
 const emit = defineEmits(['close'])
 const handleClose = () => {
     emit('close')
@@ -71,6 +76,7 @@ const handleOpen = (mapServiceProvider) => {
     }
     if (url) {
         try {
+            openMapSelector.value.hide()
             const iframe = document.createElement("iframe");
             iframe.style.display = "none";
             iframe.src = url.url;
