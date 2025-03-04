@@ -32,9 +32,9 @@
                             <q-icon name="departure_board" @click="handleShowSchedule"/>
                         </div>
                         <div>
-                            <!--                            <a :href="locationUrl" target="_blank">-->
-                            <q-icon @click="handleClickMap" name="map"/>
-                            <!--                            </a>-->
+                            <q-icon @click="handleClickMap" name="map">
+                                <OpenMapSelector :config="openOnMapConfig" @close="()=>openOnMapConfig=null"/>
+                            </q-icon>
                         </div>
                     </div>
                     <div style="margin-top: 5px;max-width: 40%;" @click="handleClickStationName">
@@ -147,7 +147,7 @@
     <line-stations-selector :height="45" ref="lineStationsSelector" @select="handleSelectStation"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
     <EditFavouriteStationDialog :station="addFavStation" @close="()=>addFavStation=null"/>
-    <OpenMapSelector :config="openOnMapConfig" @close="()=>openOnMapConfig=null"/>
+
 </template>
 
 <script setup>
