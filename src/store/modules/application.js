@@ -17,10 +17,15 @@ const state = {
     shownLineRealtime: null,
     solutionOverviewParams: null,
     bottomModalStack: reactive([]),
+    usedSolution: null,
+    shownSolution: null,
 };
 const mutations = {
     SET_SHOWN_TRAININFO(state, {trainInfo}) {
         state.shownTrainInfo = trainInfo
+    },
+    SET_SHOWN_SOLUTION(state, {solution}) {
+        state.shownSolution = solution
     },
     SET_SHOWN_LINE_REALTIME(state, {lineId}) {
         state.shownLineRealtime = lineId
@@ -72,6 +77,9 @@ const mutations = {
     },
     SHOW_SOLUTION_OVERVIEW(state, params) {
         state.solutionOverviewParams = params
+    },
+    SET_USING_SOLUTION(state, solution) {
+        state.usedSolution = solution
     },
 };
 
@@ -132,6 +140,8 @@ const getters = {
     },
     shownLineRealtime: state => state.shownLineRealtime,
     solutionOverviewParams: state => state.solutionOverviewParams,
+    usedSolution: state => state.usedSolution,
+    shownSolution: state => state.shownSolution,
 };
 
 export default {

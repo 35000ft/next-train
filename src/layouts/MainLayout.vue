@@ -26,30 +26,39 @@
             </q-tabs>
         </q-footer>
     </q-layout>
-    
+
     <LineRealtimeView/>
     <TrainInfoDetailView/>
     <StationRealtimeModal/>
+    <transition name="right-in-right-out">
+        <div v-if="showSolutionDetail" style="position: absolute;z-index: 10;top: 0;left: 0;width: 100vw;">
+            <RouteSolutionDetailView :solution="showSolutionDetail" @close="handleCloseSolutionDetail"/>
+        </div>
+    </transition>
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {useI18n} from 'vue-i18n';
 import {useRouter} from "vue-router";
 import StationRealtimeModal from "components/StationRealtimeModal.vue";
 import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import LineRealtimeView from "components/LineRealtimeView.vue";
+import RouteSolutionDetailView from "components/RouteSolutionDetailView.vue";
+import {useStore} from "vuex";
 
 const {t} = useI18n();
 
 defineOptions({
     name: 'MainLayout'
 })
-
-
+const store = useStore()
+const showSolutionDetail = computed(() => store.getters['application/shownSolution'])
 const tab = ref('station'); // 默认激活的导航项
 const router = useRouter()
-
+const handleCloseSolutionDetail = () => {
+    store.commit('application/SET_SHOWN_SOLUTION', {solution: null})
+}
 
 const updateRoute = (newTab) => {
     // 根据选中的选项卡更新路由

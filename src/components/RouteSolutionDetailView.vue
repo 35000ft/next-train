@@ -2,7 +2,7 @@
     <OverlayView name="RouteSolutionDetailView" @close="handleClose" :manage-by-overlay="false">
         <template v-slot:header-right>
             <div style="display: flex;gap: 10px;justify-content: right; padding-right: 10px;">
-                <q-icon name="fas fa-paper-plane" size="24px"></q-icon>
+                <q-icon name="fas fa-paper-plane" size="24px" @click="useSolution"></q-icon>
                 <q-icon name="fa fa-share-alt" size="24px" @click="handleShare"></q-icon>
             </div>
         </template>
@@ -118,7 +118,9 @@ import TrainTransferDirector from "components/TrainTransferDirector.vue";
 import {useQuasar} from "quasar";
 import {useRoute} from "vue-router";
 import {buildUrl} from "src/utils/url-utils";
+import {useStore} from "vuex";
 
+const store = useStore()
 const route = useRoute()
 const $q = useQuasar()
 const {t} = useI18n()
@@ -184,6 +186,12 @@ const handleShare = () => {
             .catch((err) => {
                 console.error("Failed to copy text: ", err);
             })
+    }
+}
+const useSolution = () => {
+    if (props.solution) {
+        store.commit('application/SET_USING_SOLUTION', props.solution)
+        $q.notify.ok('使用方案成功，请至首页查看')
     }
 }
 

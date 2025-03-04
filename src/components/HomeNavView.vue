@@ -2,19 +2,19 @@
     <SearchHeader/>
     <q-page-container style=" max-height: 85vh; overflow-y: auto">
         <div class="row" style="gap:20px;justify-content: space-between;">
-            <div class="col-12 row-card" v-if="false">
+            <div class="col-12 row-card" v-if="usedSolution">
                 <q-card class="my-card">
                     <q-card-section class="full-height" style="padding: 0">
                         <q-tab-panels class="full-height" v-model="topBanner" swipeable animated @touchstart.stop>
-                            <q-tab-panel name="home">
-                                <CurrentTrip/>
+                            <q-tab-panel name="currentTrip" v-if="usedSolution">
+                                <CurrentTrip :solution="usedSolution"/>
                             </q-tab-panel>
-                            <q-tab-panel name="home2">
-                                HOME 2
-                            </q-tab-panel>
-                            <q-tab-panel name="home3">
-                                HOME 3
-                            </q-tab-panel>
+                            <!--                            <q-tab-panel name="home2">-->
+                            <!--                                HOME 2-->
+                            <!--                            </q-tab-panel>-->
+                            <!--                            <q-tab-panel name="home3">-->
+                            <!--                                HOME 3-->
+                            <!--                            </q-tab-panel>-->
                         </q-tab-panels>
                     </q-card-section>
                 </q-card>
@@ -61,7 +61,7 @@ defineOptions({
 
 const store = useStore()
 const props = defineProps({})
-const topBanner = ref('home2')
+const topBanner = ref('currentTrip')
 const $q = useQuasar()
 const currentStationId = computed(() => {
     const currentStation = store.getters['preference/currentStation']
@@ -86,9 +86,12 @@ const loadRuleFavStation = () => {
 }
 
 const handleChangeStation = (station) => {
-    console.log('handleChangeStation', station)
     store.commit('preference/SET_CURRENT_STATION', {station})
 }
+
+const usedSolution = computed(() => {
+    return store.getters['application/usedSolution']
+})
 
 </script>
 
