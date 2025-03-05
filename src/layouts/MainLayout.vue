@@ -32,13 +32,14 @@
     <StationRealtimeModal/>
     <transition name="right-in-right-out">
         <div v-if="showSolutionDetail" style="position: absolute;z-index: 10;top: 0;left: 0;width: 100vw;">
-            <RouteSolutionDetailView :solution="showSolutionDetail" @close="handleCloseSolutionDetail"/>
+            <RouteSolutionDetailView :solution="showSolutionDetail" @close="handleCloseSolutionDetail"
+                                     v-back="handleCloseSolutionDetail"/>
         </div>
     </transition>
 </template>
 
 <script setup>
-import {computed, ref} from 'vue'
+import {computed, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n';
 import {useRouter} from "vue-router";
 import StationRealtimeModal from "components/StationRealtimeModal.vue";
@@ -59,7 +60,16 @@ const router = useRouter()
 const handleCloseSolutionDetail = () => {
     store.commit('application/SET_SHOWN_SOLUTION', {solution: null})
 }
-
+watch(showSolutionDetail, (newVal, oldVle) => {
+    const name = '#solution-detail-view'
+    const hasName = window.location.href.endsWith(name)
+    if (newVal && !hasName) {
+        const newPath = window.location.href + name
+        window.history.pushState({}, '', newPath)
+    } else if (!newVal && hasName) {
+        window.history.back()
+    }
+})
 const updateRoute = (newTab) => {
     // 根据选中的选项卡更新路由
     router.push({name: newTab})

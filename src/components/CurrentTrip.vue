@@ -1,5 +1,5 @@
 <template>
-    <div style="background-color: #f3f3f3;height: 100px; width: 100%;">
+    <div style="background-color: var(--q-background);height: 100px; width: 100%;">
         <div v-if="depInfo&&arrInfo" style="height: 20px;padding-left: 10px;padding-right: 10px;padding-top: 2px;"
              class="row" @click="handleShowSolutionDetail">
             <div class="col-8">{{ depInfo.name }}

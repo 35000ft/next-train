@@ -86,7 +86,7 @@ import {useStore} from "vuex";
 import {drawMetroLine} from "src/utils/canvas-utils";
 import _ from "lodash";
 import {diff, getNowByTimezone} from "src/utils/time-utils";
-import {categoryParser, TRAIN_CATEGORY, trainLineOfStopParser} from "../models/Train";
+import {categoryParser, TRAIN_CATEGORY} from "../models/Train";
 import {useI18n} from "vue-i18n";
 import BottomModal from "components/BottomModal.vue";
 import Canvas2SVG from 'canvas2svg';
@@ -119,6 +119,7 @@ watch(shownLineId, (newVal, oldVal) => {
         init()
     }
 })
+const CANVAS_BASE_WIDTH = window.innerWidth <= 500 ? window.innerWidth : 360
 
 function afterClose() {
     if (isFromUrl.value) {
@@ -194,13 +195,7 @@ const handleShowTrainInfoDetail = (trainInfo) => {
     }
 }
 const trainXPosition = computed(() => {
-    const domNode = document.getElementById(LINE_TEMPLATE_DOC_ID)
-    if (domNode) {
-        const width = domNode.getBoundingClientRect().width
-        return Math.round(width / 2) - 95
-    } else {
-        return 0
-    }
+    return Math.round(CANVAS_BASE_WIDTH / 2) - 95
 })
 
 const downTrains = computed(() => {

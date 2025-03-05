@@ -30,7 +30,22 @@ const TRAIN_CATEGORY = {
         code: 'terminal',
         bgColor: '#A6093D'
     },
-
+    THROUGH_EXPRESS: {
+        code: 'through_express',
+        bgColor: '#d96658'
+    },
+    ZT: {
+        code: 'zt',
+        bgColor: '#d96658'
+    },
+    KS: {
+        code: 'ks',
+        bgColor: '#36598f'
+    },
+    TK: {
+        code: 'tk',
+        bgColor: '#ab658a'
+    },
 }
 
 const TRAIN_STATUS = {
