@@ -66,6 +66,19 @@
                 </div>
             </div>
             <q-separator color="primary" size="2px" style="margin: 0 0 10px;"/>
+
+            <div v-if="operationMsgs.length>0" style="height: 70px;margin-bottom: 10px;">
+                <q-tab-panels v-model="curOpMsgId" swipeable animated @touchstart.stop
+                              style="height: 100%;opacity: 80%;border-radius: 10px;">
+                    <q-tab-panel :name="msg.id" v-for="msg in operationMsgs" :key="msg.id"
+                                 class="text-container"
+                                 :style="{backgroundColor:msg.color}" style="color: white;text-overflow:ellipsis;">
+                        <OperationMsgDetailView :operation-msg="msg"/>
+                        {{ msg.message }}
+                    </q-tab-panel>
+                </q-tab-panels>
+            </div>
+
             <q-skeleton v-if="!currentLine" class="col-12" style="height: 25px;margin-bottom: 5px;"/>
             <div v-if="currentLine" class="col-12" style="overflow-x: scroll;white-space: nowrap;margin-bottom: 5px;"
                  @touchstart="handleTouchLineIconRegionStart" ref="lineIconRegion">
@@ -166,6 +179,7 @@ import {useRouter} from "vue-router";
 import {genAmapPositionUrl} from "src/utils/navigator_utils";
 import EditFavouriteStationDialog from "components/EditFavouriteStationDialog.vue";
 import OpenMapSelector from "components/OpenMapSelector.vue";
+import OperationMsgDetailView from "components/OperationMsgDetailView.vue";
 
 const router = useRouter()
 const $q = useQuasar()
@@ -186,6 +200,8 @@ const currentTrains = ref([])
 const allTrains = ref([])
 const addFavStation = ref(null)
 const openOnMapConfig = ref(null)
+const operationMsgs = ref([])
+const curOpMsgId = ref(null)
 const handleClickMap = () => {
     const _station = currentStation.value
     if (!_station) {
@@ -331,11 +347,6 @@ const addAllTrains = (trainInfoList) => {
         allTrains.value.splice(preIndex + 1, 0, rItem)
         index++
     }, 250)
-
-    // lineTrains.map(it => {
-    //     it.line = allLines.get(lineId)
-    //     return it
-    // })
 }
 
 async function updateCurrentTrains(force = false) {
@@ -385,11 +396,21 @@ function init() {
     handleChangeStation(props.currentStationIdProp, props.currentLineIdProp, "init")
 }
 
+//TODO
+const loadOperationMsg = (stationId) => {
+    store.dispatch('realtime/getStationOpMsg', {stationId}).then(r => {
+        if (r && r.length > 0) {
+            operationMsgs.value = r
+            curOpMsgId.value = r[0].id
+        }
+    })
+}
+
 const handleChangeStation = (stationId, lineId, source, changeCurStationId) => {
     const timestamp = new Date().getTime()
-    console.log('HandleChangeStation', 'stationId:' + stationId, 'timestamp:' + timestamp, 'source:' + source)
     trainInfoMap.value = new Map()
     allTrains.value = []
+    loadOperationMsg(stationId)
     changeStation(stationId, lineId).then(station => {
         if (checkIsChanged(stationId)) {
             return
@@ -700,5 +721,13 @@ defineOptions({
     to {
         transform: translateY(0px);
     }
+}
+
+.text-container {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3; /* 显示的最大行数 */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>

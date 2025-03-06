@@ -2,9 +2,9 @@ import dayjs from "dayjs";
 import LRU from "src/utils/LRU";
 import {trainScheduleParser, trainLineOfStopParser, stopInfoParse} from "src/models/Train";
 import {reactive} from "vue";
-import {diff, isAfterNow, toLocalDatetime} from "src/utils/time-utils";
+import {diff, getNowByTimezone, isAfterNow, toLocalDatetime} from "src/utils/time-utils";
 import {
-    fetchLineOnServiceTrains,
+    fetchLineOnServiceTrains, fetchOperationMsg,
     fetchScheduleHeader,
     fetchStationTrainInfo,
     fetchStationTrainInfoAtTime,
@@ -18,6 +18,7 @@ const state = {
     LOCK: reactive(new Map()),
     lineScheduleHeaderMap: reactive(new LRU(20)),
     lineOnServiceTrainMap: reactive(new LRU(5)),
+    operationMsgMap: reactive(new LRU(10)),
 }
 const mutations = {
     SET_TRAININFO(state, {trainInfoId, trainInfo}) {
@@ -52,7 +53,10 @@ const mutations = {
             trains,
             time: dayjs()
         })
-    }
+    },
+    SET_STATION_OP_MSG(state, {stationId, opMsg}) {
+        state.operationMsgMap.set(stationId, opMsg)
+    },
 }
 
 const actions = {
@@ -254,6 +258,30 @@ const actions = {
         return fetchScheduleHeader(lineId).then(lineScheduleHeaders => {
             commit('SET_LINE_SCHEDULE_HEADER', {lineScheduleHeaders})
             return lineScheduleHeaders
+        })
+    },
+
+    async getStationOpMsg({commit, state}, {stationId}) {
+        const opMsg = state.operationMsgMap.get(stationId)
+        if (opMsg) {
+            return opMsg
+        }
+        const station = await this.dispatch('railsystem/getStation', {stationId})
+        const now = getNowByTimezone(station.timezone)
+        const lineIds = station.lines.map(it => it.id)
+        const form = {
+            stationId,
+            lineIds,
+            systemCode: station.railsystemCode,
+            time: now.format('YYYY-MM-DDTHH:mm:ss')
+        }
+        return fetchOperationMsg(stationId, form).then(opMsg => {
+            if (opMsg) {
+                commit('SET_STATION_OP_MSG', {stationId, opMsg})
+                return opMsg
+            } else {
+                return Promise.reject()
+            }
         })
     }
 }

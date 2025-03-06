@@ -143,3 +143,27 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* 未访问过的链接 */
+a:link {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* 已访问过的链接 */
+a:visited {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* 鼠标悬停时的链接 */
+a:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* 鼠标按下时的链接 */
+a:active {
+    text-decoration: none;
+    color: inherit;
+}
