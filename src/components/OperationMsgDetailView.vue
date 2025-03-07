@@ -1,5 +1,5 @@
 <template>
-    <q-popup-proxy>
+    <q-popup-proxy @show="handleOnShow" @before-hide="handleOnHide">
         <q-banner style="width: 90%;">
             <div
                 style="font-size: 20px;font-weight:bold;text-align: center;height: 30px;padding-top: 10px;color: var(--q-primary-d);margin-bottom: 10px;">
@@ -35,6 +35,13 @@ const props = defineProps({
 onMounted(() => {
 
 })
+const emit = defineEmits(['onShow', 'close'])
+const handleOnShow = () => {
+    emit('onShow', props.operationMsg)
+}
+const handleOnHide = () => {
+    emit('close')
+}
 </script>
 
 <style scoped>

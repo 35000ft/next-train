@@ -70,10 +70,19 @@
             <div v-if="operationMsgs.length>0" style="height: 70px;margin-bottom: 10px;">
                 <q-tab-panels v-model="curOpMsgId" swipeable animated @touchstart.stop infinite
                               style="height: 100%;opacity: 80%;border-radius: 10px;">
-                    <q-tab-panel :name="msg.id" v-for="msg in operationMsgs" :key="msg.id"
+                    <q-tab-panel :name="msg.id" v-for="(msg,index) in operationMsgs" :key="msg.id"
                                  class="text-container"
                                  :style="{backgroundColor:msg.color}" style="color: white;text-overflow:ellipsis;">
-                        <OperationMsgDetailView :operation-msg="msg"/>
+                        <span style="position: absolute; opacity: 70%;right: 5px;top: 24px;font-size: 16px;"
+                              v-show="operationMsgs.length>1&&index<operationMsgs.length-1">
+                            <q-icon class="fa-solid fa-circle-chevron-right"/>
+                        </span>
+                        <span style="position: absolute; opacity: 70%;left: 5px;top: 24px;font-size: 16px;"
+                              v-show="index>0">
+                            <q-icon class="fa-solid fa-circle-chevron-left"/>
+                        </span>
+                        <OperationMsgDetailView :operation-msg="msg" @on-show="handleOpMsgDetailOnShow"
+                                                @close="()=>shownOpMsg=null"/>
                         {{ msg.message }}
                     </q-tab-panel>
                 </q-tab-panels>
@@ -201,6 +210,7 @@ const addFavStation = ref(null)
 const openOnMapConfig = ref(null)
 const operationMsgs = ref([])
 const curOpMsgId = ref(null)
+const shownOpMsg = ref(null)
 const handleClickMap = () => {
     const _station = currentStation.value
     if (!_station) {
@@ -379,12 +389,19 @@ const handleSelectStation = (stationId, lineId) => {
     }
 }
 
+const handleOpMsgDetailOnShow = (opMsg) => {
+    shownOpMsg.value = opMsg
+}
+
 const refreshTrainInfoTimer = setInterval(() => {
     updateCurrentTrains()
 
     // Change shown operation message automatically
     const opMsgs = operationMsgs.value
     if (opMsgs.length > 0 && curOpMsgId.value) {
+        if (shownOpMsg.value) {
+            return
+        }
         const index = opMsgs.findIndex(it => it.id === curOpMsgId.value)
         if (index !== -1) {
             const nextIndex = (index + 1) % opMsgs.length
