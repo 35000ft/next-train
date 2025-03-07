@@ -90,22 +90,14 @@ export async function fetchLineOnServiceTrains(lineId) {
 }
 
 //TODO
-const operationMsg = [
-    {
-        "id": "1",
-        "level": "HIGH",
-        "message": "因5号线割接施工安排，5号线南段（吉印大道站——文靖路站）于2025年1月1日至3月15日临时停止运营服务。因5号线割接施工安排，5号线南段（吉印大道站——文靖路站）于2025年1月1日至3月15日临时停止运营服务。",
-        "sourceCategory": "OFFICIAL",
-        "sourceName": "南京地铁官方微博",
-        "sourceUrl": "https://weibo.com/ttarticle/p/show?id=2309405116290540110311",
-        "validTime": "2024-12-27T00:00:00+08:00",
-        "expireTime": "2025-03-15T23:59:59+08:00"
-    }
-]
-
-//TODO
 export async function fetchOperationMsg(stationId, form) {
     const url = `api/metro-realtime/op-msg/station/${stationId}`
-    // return await axios.post(url).then(res => res.data.data).catch(err => Promise.reject(err))
-    return operationMsg.map(it => new OperationMsg(it))
+    return await axios.post(url, form).then(res => {
+        if (res.data.data) {
+            return res.data.data.map(it => new OperationMsg(it))
+        } else {
+            return []
+        }
+    })
+        .catch(err => Promise.reject(err))
 }

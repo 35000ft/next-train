@@ -15,6 +15,9 @@
                        来源: {{ operationMsg.sourceName }}
                     </span>
                 </div>
+                <div style="font-size: 12px">生效时间: {{ operationMsg.validTime.format('YYYY-MM-DD HH:mm:ss') }} ~
+                    {{ operationMsg.expireTime.format('YYYY-MM-DD HH:mm:ss') }}
+                </div>
             </div>
         </q-banner>
     </q-popup-proxy>

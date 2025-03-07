@@ -11,7 +11,7 @@ const OP_MSG_LEVEL = {
         color: '#0079b3'
     },
     INFO: {
-        color: '#00b14f'
+        color: '#0da34d'
     }
 }
 

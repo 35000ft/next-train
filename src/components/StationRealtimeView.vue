@@ -68,7 +68,7 @@
             <q-separator color="primary" size="2px" style="margin: 0 0 10px;"/>
 
             <div v-if="operationMsgs.length>0" style="height: 70px;margin-bottom: 10px;">
-                <q-tab-panels v-model="curOpMsgId" swipeable animated @touchstart.stop
+                <q-tab-panels v-model="curOpMsgId" swipeable animated @touchstart.stop infinite
                               style="height: 100%;opacity: 80%;border-radius: 10px;">
                     <q-tab-panel :name="msg.id" v-for="msg in operationMsgs" :key="msg.id"
                                  class="text-container"
@@ -82,10 +82,9 @@
             <q-skeleton v-if="!currentLine" class="col-12" style="height: 25px;margin-bottom: 5px;"/>
             <div v-if="currentLine" class="col-12" style="overflow-x: scroll;white-space: nowrap;margin-bottom: 5px;"
                  @touchstart="handleTouchLineIconRegionStart" ref="lineIconRegion">
-                <LineIcon class="line-icon" v-show="currentStation.lines.length>1" :line="{
-          name:t('all'),
-          color:'#36598f'
-        }" @click="(event)=> handleClickLineIcon(event,'all')" :disabled="currentLineId!=='all'"/>
+                <LineIcon class="line-icon" v-show="currentStation.lines.length>1"
+                          :line="{name:t('all'),color:'#36598f'}"
+                          @click="(event)=> handleClickLineIcon(event,'all')" :disabled="currentLineId!=='all'"/>
                 <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id"
                           @click="(event)=> handleClickLineIcon(event,line)"
                           :disabled="currentLineId==='all'||line.id!==currentLine.id" class="line-icon">
@@ -382,7 +381,19 @@ const handleSelectStation = (stationId, lineId) => {
 
 const refreshTrainInfoTimer = setInterval(() => {
     updateCurrentTrains()
-}, 20000)
+
+    // Change shown operation message automatically
+    const opMsgs = operationMsgs.value
+    if (opMsgs.length > 0 && curOpMsgId.value) {
+        const index = opMsgs.findIndex(it => it.id === curOpMsgId.value)
+        if (index !== -1) {
+            const nextIndex = (index + 1) % opMsgs.length
+            curOpMsgId.value = opMsgs[nextIndex].id
+        } else {
+            curOpMsgId.value = opMsgs[0].id
+        }
+    }
+}, 10000)
 
 //clean refresh train info timer
 onBeforeUnmount(() => {
@@ -396,13 +407,16 @@ function init() {
     handleChangeStation(props.currentStationIdProp, props.currentLineIdProp, "init")
 }
 
-//TODO
 const loadOperationMsg = (stationId) => {
     store.dispatch('realtime/getStationOpMsg', {stationId}).then(r => {
-        if (r && r.length > 0) {
-            operationMsgs.value = r
-            curOpMsgId.value = r[0].id
+        if (!checkIsChanged(stationId)) {
+            if (r && r.length > 0) {
+                operationMsgs.value = r
+                curOpMsgId.value = r[0].id
+            }
         }
+    }).catch(e => {
+        operationMsgs.value = []
     })
 }
 
