@@ -110,6 +110,7 @@ export default defineComponent({
         const keyword = ref('')
         const {t} = useI18n()
         const loading = ref(true)
+        const loadStationPromise = ref(null)
         const currentRailSystem = computed(() => store.getters["railsystem/currentRailSystem"])
         const ALL_STR = t('all')
         const currentSearchGroup = ref(ALL_STR)
@@ -158,7 +159,7 @@ export default defineComponent({
             init()
         })
 
-        const handleSearch = _.debounce(keyword => {
+        const handleSearch = _.debounce(_keyword => {
             let lineId
             if (currentSearchGroup.value === ALL_STR) {
                 lineId = ALL_STR
@@ -168,15 +169,17 @@ export default defineComponent({
                     lineId = line.id
                 }
             }
-            loadStations(lineId).then(r => {
-                searchResults.value = filterResult(r, keyword)
+            searchResults.value = []
+            loadStationPromise.value = loadStations(lineId).then(r => {
+                const temp = filterResult(r, _keyword)
+                searchResults.value = temp
+                return {stations: temp, keyword: _keyword}
             })
         }, 300)
 
         const filterResult = (r, _keyword) => {
             if (typeof _keyword === "string") {
                 _keyword = _keyword.toString().replace(' ', '')
-                console.log('keyword', _keyword)
                 if (_keyword.length === 0 || r.length === 0) {
                     return r
                 }
@@ -260,14 +263,27 @@ export default defineComponent({
         const handleSelect = (station, line) => {
             const lineId = line ? line.id : null
             store.dispatch('preference/addHistoryStation', station)
-            emit('select', station.id, lineId, event)
+            emit('select', {stationId: station.id, lineId, event})
             display.value = false
         }
 
         const handleEnter = () => {
-            const results = searchResults.value
-            if (results && results.length > 0) {
-                handleSelect(results[0], null)
+            const p = loadStationPromise.value
+            if (p) {
+                const curKeyword = keyword.value
+                p.then(({stations, keyword}) => {
+                    if (curKeyword !== keyword) {
+                        setTimeout(handleEnter, 100)
+                        return
+                    }
+                    if (stations && stations.length > 0) {
+                        console.log('keyword', keyword, stations[0])
+                        handleSelect(stations[0], null)
+                    }
+                })
+                loadStationPromise.value = null
+            } else {
+                setTimeout(handleEnter, 200)
             }
         }
 

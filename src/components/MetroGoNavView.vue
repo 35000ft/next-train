@@ -212,7 +212,8 @@ const handleSetDepartStation = () => {
 const handleSetArrivalStation = () => {
     stationSelector.value.showSelector('setArrivalStation')
 }
-const handleSelectStation = async (stationId, lineId, event) => {
+const handleSelectStation = async ({stationId, lineId, event}) => {
+    if (!stationId) return
     const station = await store.dispatch('railsystem/getStation', {stationId})
     if (!station) return
     switch (event) {
