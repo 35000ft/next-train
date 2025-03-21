@@ -4,7 +4,7 @@
                   :after-close="afterClose">
         <template v-slot:default>
             <div ref="container" class="container" style="position:absolute;left:0;">
-                <span @click="handleShowTrainInfoDetail(train)"
+                <span @click="handleClickTrainIcon(train)"
                       class="pentagon down-pentagon"
                       style="width: 80px;position: absolute;display: flex;justify-content: center;"
                       v-for="train in upTrains" :key="train.id"
@@ -35,7 +35,7 @@
             </span>
         </span>
 
-                <span @click="handleShowTrainInfoDetail(train)"
+                <span @click="handleClickTrainIcon(train)"
                       class="pentagon up-pentagon"
                       style="width: 80px;position: absolute;display: flex;justify-content: center;"
                       v-for="train in downTrains" :key="train.id"
@@ -77,7 +77,7 @@
             </span>
         </template>
     </bottom-modal>
-
+    <MultipleTrainSelector ref="multipleTrainSelector" @select="handleShowTrainInfoDetail"/>
 </template>
 
 <script setup>
@@ -92,6 +92,7 @@ import BottomModal from "components/BottomModal.vue";
 import Canvas2SVG from 'canvas2svg';
 import {useQuasar} from "quasar";
 import {arr2Map} from "src/utils/array-utils";
+import MultipleTrainSelector from "components/MultipleTrainSelector.vue";
 
 const LINE_TEMPLATE_DOC_ID = 'line-template-svg'
 let positions = []
@@ -104,6 +105,7 @@ const emit = defineEmits(['close'])
 const stationMap = ref(new Map())
 const container = ref(null)
 const display = ref(false)
+const multipleTrainSelector = ref(null)
 const $q = useQuasar()
 const handleClose = () => {
     display.value = false
@@ -188,7 +190,16 @@ const saveLineTemplate = () => {
         img.src = svgUrl
     })
 }
-
+const handleClickTrainIcon = (trainInfo) => {
+    if (trainInfo) {
+        const positionTrains = positionMap.get(trainInfo.positionKey)
+        if (positionTrains.length === 1) {
+            handleShowTrainInfoDetail(trainInfo)
+        } else if (positionTrains.length > 1) {
+            multipleTrainSelector.value.show(positionTrains)
+        }
+    }
+}
 const handleShowTrainInfoDetail = (trainInfo) => {
     if (trainInfo) {
         store.commit('application/SET_SHOWN_TRAININFO', {trainInfo})
@@ -320,6 +331,7 @@ async function calcTrainPosition(train) {
         const key = `${train.direction}-${position.xPosition}-${position.yPosition}`
         const positionTrain = positionMap.has(key) && positionMap.get(key)[0]
         if (!positionTrain) {
+            train.positionKey = key
             train.xPosition = position.xPosition
             train.yPosition = position.yPosition
             positionMap.set(key, [train])

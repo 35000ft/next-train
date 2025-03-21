@@ -184,7 +184,6 @@ import LineStationsSelector from "components/LineStationsSelector.vue";
 import {isNumber} from "src/utils/string-utils";
 import _ from "lodash";
 import {useRouter} from "vue-router";
-import {genAmapPositionUrl} from "src/utils/navigator_utils";
 import EditFavouriteStationDialog from "components/EditFavouriteStationDialog.vue";
 import OpenMapSelector from "components/OpenMapSelector.vue";
 import OperationMsgDetailView from "components/OperationMsgDetailView.vue";
