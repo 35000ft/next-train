@@ -1,14 +1,5 @@
 <template>
     <router-view/>
-    <div style="height: 40px;">
-        <!-- Google AdSense 广告 -->
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-5910846206073431"
-             data-ad-slot="9881278344"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-    </div>
     <OverlayContainer/>
 </template>
 
