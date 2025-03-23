@@ -1,5 +1,5 @@
 <template>
-    <q-popup-proxy ref="multipleTrainSelector" v-if="trains.length>0">
+    <q-popup-proxy ref="multipleTrainSelector" v-if="trains.length>0" @before-hide="onHide">
         <q-banner style="width: 90%;">
             <div
                 style="font-size: 20px;font-weight:bold;text-align: center;height: 30px;padding-top: 10px;color: var(--q-primary-d);">
@@ -43,7 +43,9 @@ export default defineComponent({
         const handleSelect = (train) => {
             emit('select', train)
             multipleTrainSelector.value.hide()
-            trains.value = []
+        }
+        const onHide = () => {
+            setTimeout(() => trains.value = [], 100)
         }
         const multipleTrainSelector = ref(null)
         const show = (_trains) => {
@@ -56,6 +58,7 @@ export default defineComponent({
             multipleTrainSelector,
             show,
             handleSelect,
+            onHide,
         }
     }
 })
