@@ -381,8 +381,8 @@ async function updateCurrentTrains(force = false) {
     })
 }
 
-const handleSelectStation = (stationId, lineId) => {
-    if (stationId) {
+const handleSelectStation = ({stationId, lineId}) => {
+    if (isNumber(stationId)) {
         currentLineId.value = lineId
         currentStationId.value = stationId
     }
@@ -436,7 +436,7 @@ const loadOperationMsg = (stationId) => {
     })
 }
 
-const handleChangeStation = (stationId, lineId, source, changeCurStationId) => {
+const handleChangeStation = (stationId, lineId, source) => {
     const timestamp = new Date().getTime()
     trainInfoMap.value = new Map()
     allTrains.value = []
@@ -602,6 +602,7 @@ watch(currentStationId, (stationId, oldValue) => {
             return
         }
     }
+    console.log('cusss', stationId)
     handleChangeStation(stationId, currentLineId.value, "watch currentStationId")
 })
 
