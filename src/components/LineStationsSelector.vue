@@ -85,7 +85,10 @@ export default defineComponent({
             if (!station || station.id === currentStationId.value) {
                 return
             }
-            emit('select', station.id, line.value.id)
+            emit('select', {
+                stationId: station.id,
+                lineId: line.value.id,
+            })
             handleClose()
         }
         return {
