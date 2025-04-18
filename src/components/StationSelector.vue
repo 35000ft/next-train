@@ -263,7 +263,7 @@ export default defineComponent({
         const handleSelect = (station, line) => {
             const lineId = line ? line.id : null
             store.dispatch('preference/addHistoryStation', station)
-            emit('select', {stationId: station.id, lineId, event})
+            emit('select', {stationId: station.id, lineId, event, station})
             display.value = false
         }
 

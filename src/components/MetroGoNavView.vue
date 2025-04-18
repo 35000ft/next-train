@@ -4,8 +4,12 @@
             <q-toolbar-title>Next Train</q-toolbar-title>
         </q-toolbar>
     </q-header>
-    <q-page-container>
+    <q-page-container style="padding-top: 40px;">
+        <div class="top-area">
+            <span class="drug">地铁日票</span>
+        </div>
         <div class="station-input-wrapper">
+
             <div @click="handleSetDepartStation">
                 <div class="local-lang-station-name" style="margin-bottom: 10px;" v-if="departStation">
                     {{ departStation.name }}
@@ -395,6 +399,28 @@ const props = defineProps({})
 
 .depart-time {
     color: var(--q-primary-d);
+}
+
+.top-area {
+    height: 40px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.top-area .drug {
+    display: inline-block;
+    margin-right: 6px;
+    border-radius: 8px;
+    height: 25px;
+    line-height: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+    color: var(--q-background-grey);
+    background-color: var(--q-primary);
 }
 
 </style>
