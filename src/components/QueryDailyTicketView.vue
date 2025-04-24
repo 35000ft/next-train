@@ -80,7 +80,7 @@ const showStationSelector = () => {
 }
 const handleClickDestStationName = (stationName) => {
     store.dispatch('railsystem/queryStationByName', {stationName: stationName}).then(toStation => {
-        emit('go', {fromStation: selectedStation, toStation: toStation})
+        emit('go', {fromStation: selectedStation.value, toStation: toStation})
     }).catch(e => {
         console.warn(e)
     })

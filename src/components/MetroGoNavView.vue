@@ -7,7 +7,7 @@
     <q-page-container style="padding-top: 40px;">
         <div class="top-area">
             <span class="drug">地铁日票
-                <query-daily-ticket-view/>
+                <query-daily-ticket-view @go="handleDailyTicketGo"/>
             </span>
         </div>
         <div class="station-input-wrapper">
@@ -65,7 +65,7 @@
         </div>
     </q-page-container>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
-    <depart-time-selector ref="departTimeSelector" @select="handleSelectDepTime" @go="handleDailyTicketGo"/>
+    <depart-time-selector ref="departTimeSelector" @select="handleSelectDepTime"/>
 
 </template>
 
