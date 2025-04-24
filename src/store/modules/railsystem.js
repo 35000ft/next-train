@@ -266,6 +266,14 @@ const actions = {
         return fetchDrawLineTemplate(lineId).then(template => {
             return template
         })
+    },
+    async queryStationByName({state, commit}, {stationName}) {
+        const stations = await this.dispatch("railsystem/getAllStations")
+        const filteredStations = stations.filter(it => it.name === stationName)
+        if (filteredStations.length > 0) {
+            return filteredStations[0]
+        }
+        return Promise.reject(`No station named ${stationName}`)
     }
 }
 

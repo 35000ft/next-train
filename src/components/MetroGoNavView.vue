@@ -6,7 +6,9 @@
     </q-header>
     <q-page-container style="padding-top: 40px;">
         <div class="top-area">
-            <span class="drug">地铁日票</span>
+            <span class="drug">地铁日票
+                <query-daily-ticket-view/>
+            </span>
         </div>
         <div class="station-input-wrapper">
 
@@ -63,7 +65,8 @@
         </div>
     </q-page-container>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
-    <depart-time-selector ref="departTimeSelector" @select="handleSelectDepTime"/>
+    <depart-time-selector ref="departTimeSelector" @select="handleSelectDepTime" @go="handleDailyTicketGo"/>
+
 </template>
 
 <script setup>
@@ -78,6 +81,7 @@ import {getNowByTimezone} from "src/utils/time-utils";
 import {useRoute, useRouter} from "vue-router";
 import {arr2Map} from "src/utils/array-utils";
 import {isNumber} from "src/utils/string-utils";
+import QueryDailyTicketView from "components/QueryDailyTicketView.vue";
 
 defineOptions({
     name: 'MetroGoView'
@@ -195,6 +199,13 @@ const handleSelectDepTime = (_depTime, nowGo) => {
         setTimeout(() => {
             handleGo()
         }, 10)
+    }
+}
+const handleDailyTicketGo = ({fromStation, toStation}) => {
+    if (fromStation && toStation) {
+        departStation.value = fromStation
+        arrivalStation.value = toStation
+        handleGo()
     }
 }
 const stationSelector = ref(null)
