@@ -12,7 +12,7 @@
                         {{ (selectedStation && selectedStation.name) || '请选择车站' }}
                     </span>
                     <span class="col-3" style="text-align: right; color: var(--q-primary);"
-                          v-show="oneDayTicketData.length>0">
+                          v-show="oneDayTicketData.length>0" @click="handleRefresh">
                         换一批 <q-icon name="refresh"></q-icon>
                     </span>
                 </div>
@@ -65,6 +65,8 @@ import {ref} from "vue";
 import StationSelector from "components/StationSelector.vue";
 import {queryDailyTicket} from "src/apis/metro-trace";
 import {useStore} from "vuex";
+import {useThrottled} from "src/utils/common_utils";
+import {useQuasar} from "quasar";
 
 const emit = defineEmits(['onShow', 'close', 'go'])
 const selectedStation = ref()
@@ -75,6 +77,7 @@ const store = useStore()
 const handleOnHide = () => {
     emit('close')
 }
+const $q = useQuasar()
 const showStationSelector = () => {
     stationSelector.value.showSelector()
 }
@@ -85,7 +88,7 @@ const handleClickDestStationName = (stationName) => {
         console.warn(e)
     })
 }
-const getDailyTicket = async (station) => {
+const getDailyTicket = (station) => {
     queryDailyTicket({station_name: station.name, railsystem: station.railsystemCode}).then(data => {
         oneDayTicketData.value = data.one_day || []
         threeDayTicketData.value = data.three_day || []
@@ -97,6 +100,13 @@ const handleSelectStation = ({station}) => {
         getDailyTicket(station)
     }
 }
+const handleRefresh = useThrottled(() => {
+    if (selectedStation.value) {
+        getDailyTicket(selectedStation.value)
+    }
+}, () => {
+    $q.notify.info("请不要过快点击")
+})
 </script>
 
 <style scoped>
