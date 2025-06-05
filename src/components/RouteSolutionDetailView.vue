@@ -7,58 +7,89 @@
             </div>
         </template>
         <template v-slot:default>
-            <div v-if="solution && solution.trains" style="overflow-y: auto;height: 90vh;">
-                <div v-for="(train,index) in solution.trains" :key="index">
-                    <!-- TODO 出站换乘-->
-                    <div class="transfer-info-wrapper"
-                         v-if="train.outerTransfer">
+            <div style="overflow-y: auto;height: 90vh">
+                <div ref="solutionDetailRef" v-if="solution && solution.trains"
+                     style="background-color: var(--q-background);">
+                    <div class="share-header">
+                        <img alt="logo image"
+                             style="height: 70%;margin-left: 10px;margin-right: 10px;border-radius: 15px;border: 2px solid #dcdcdc;"
+                             :src="`${publicPath}icons/metro-go_256x256.png`">
+                        <div class="overview-info-wrapper">
+                            <div class="dep-arr-station-name-wrapper" style="font-size: 20px;">
+                                {{ depInfo?.depStationName }} ~ {{ arrInfo?.arrStationName }}
+                            </div>
+                            <div class="dep-arr-station-name-wrapper" style="font-size: 16px;">
+                                <span>
+                                    {{ depInfo.depTime.format('HH:mm') }}
+                                </span>
+                                <q-icon name="fa fa-arrow-circle-right"
+                                        style="margin-left: 2px;margin-right: 2px;font-size: 14px;"/>
+                                <span>
+                                    {{ arrInfo.arrTime.format('HH:mm') }}
+                                </span>
+                                <span style="margin-left: 5px;">
+                                    {{ Math.round(solution.totalTime / 60) }} {{ t('time.minute') }}
+                                </span>
+                            </div>
+                            <div>
+                                {{ depInfo.depTime.format('YYYY/MM/DD') }}
+                            </div>
+                        </div>
+                        <span style="height: 80px;width: 80px;">
+                            <canvas id="shareSolutionQRCode"/>
+                        </span>
                     </div>
-                    <div class="train-wrapper">
-                        <div class="station-name-wrapper">
+                    <div v-for="(train,index) in solution.trains" :key="index">
+                        <!-- TODO 出站换乘-->
+                        <div class="transfer-info-wrapper"
+                             v-if="train.outerTransfer">
+                        </div>
+                        <div class="train-wrapper">
+                            <div class="station-name-wrapper">
                             <span class="station-name auto-scroll-container" style="width: 50%;text-overflow:ellipsis;">
                                 <span v-overflow-auto-scroll>{{ train.depStationName }}</span>
                             </span>
-                            <span class="first-stop" v-show="train.isFirstStop">本站始发</span>
-                            <div class="transfer-info" v-if="train.transfer">
-                                <div style="height: 50%;width: 100%;" class="auto-scroll-container">
-                                    <div v-overflow-auto-scroll>
-                                        <q-icon name="fa-solid fa-person-walking"/>
-                                        <span>
+                                <span class="first-stop" v-show="train.isFirstStop">本站始发</span>
+                                <div class="transfer-info" v-if="train.transfer">
+                                    <div style="height: 50%;width: 100%;" class="auto-scroll-container">
+                                        <div v-overflow-auto-scroll>
+                                            <q-icon name="fa-solid fa-person-walking"/>
+                                            <span>
                                            {{ Math.round(train.transfer.needTime / 60) }}
                                             {{ t('time.minute') }} ({{ train.transfer.distance + t('meterShort') }})
                                         </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div style="height: 50%;width: 100%;" class="auto-scroll-container">
+                                    <div style="height: 50%;width: 100%;" class="auto-scroll-container">
                                     <span v-overflow-auto-scroll>
                                         {{ t(`transferCategory.${train.transfer.category}`) }}
                                     </span>
-                                    <TrainTransferDirector :transfer-info="train.transfer"/>
+                                        <TrainTransferDirector :transfer-info="train.transfer"/>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="through-station-wrapper">
-                            <div class="stop-info-wrapper">
+                            <div class="through-station-wrapper">
+                                <div class="stop-info-wrapper">
                                 <span style="top: 0">
                                         {{ train.depTime.format('HH:mm') }}
                                 </span>
-                                <span style="top: 25px;font-size: 14px">
+                                    <span style="top: 25px;font-size: 14px">
                                     {{ Math.ceil(train.arrTime.diff(train.depTime, 's') / 60) }}
                                     {{ t('time.minute') }}
                                 </span>
-                                <span style="bottom: 0">
+                                    <span style="bottom: 0">
                                         {{ train.arrTime.format('HH:mm') }}
                                 </span>
-                            </div>
+                                </div>
 
-                            <div class="stop-line-wrapper" v-if="train.lines">
+                                <div class="stop-line-wrapper" v-if="train.lines">
                                 <span :class="calcLineClass(train,lineIndex)"
                                       :key="lineIndex"
                                       :style="{backgroundColor:line.color, height:calcLineHeight(train,lineIndex)}"
                                       v-for="(line,lineIndex) in train.lines.map(it=>it.line)">
                                 </span>
-                                <transition-group name="list-view">
-                                        <span :key="`stop-info-${index}`" :style="{top:130+index*70+'px'}"
+                                    <transition-group name="list-view">
+                                        <span :key="`stop-info-${index}`" :style="{top:130+index*STOP_ROW_HEIGHT+'px'}"
                                               class="station-circle-wrapper"
                                               v-for="(item,index) in train.stops.slice(1,-1)"
                                               v-show="train.showStopInfo">
@@ -74,34 +105,36 @@
                                                 <circle cx="10" cy="10" fill="#ffffff" r="5" stroke="#ffffff"/>
                                             </svg>
                                         </span>
-                                </transition-group>
-                            </div>
-                            <div class="right-area-wrapper">
-                                <div class="line-name-wrapper">
-                                    <div style="display: flex;gap: 10px;">
-                                        <span v-html="trainNameGetter(train)"></span>
-                                        <span
-                                            style="width: 50px;display: flex; flex-direction: column; justify-content: center;">
+                                    </transition-group>
+                                </div>
+                                <div class="right-area-wrapper">
+                                    <div class="line-name-wrapper">
+                                        <div style="display: flex;gap: 10px;">
+                                            <span v-html="trainNameGetter(train)"></span>
+                                            <span
+                                                style="width: 50px;display: flex; flex-direction: column; justify-content: center;">
                                             <TrainCategory :category="train.category"/>
                                         </span>
-                                    </div>
-                                    <span>
+                                        </div>
+                                        <span>
                                         <b style="color: var(--q-primary)">
                                             {{ t('boundFor').replace('$terminal', train.terminal.stationName) }}</b>
                                     </span>
-                                </div>
-                                <div @click="handleFoldStopInfo(train)" class="item-wrapper stop-count-wrapper"
-                                     v-show="train.stops.length>2">
+                                    </div>
+                                    <div @click="handleFoldStopInfo(train)" class="item-wrapper stop-count-wrapper"
+                                         v-show="train.stops.length>2">
                                     <span style="color: var(--q-normal);margin-right: 4px;">
                                         {{ train.stops.length - 1 }} {{ t('stop') }}</span>
-                                    <i :class="[train.showStopInfo?'fa fa-angle-up':'fa fa-angle-down']"></i>
+                                        <i :class="[train.showStopInfo?'fa fa-angle-up':'fa fa-angle-down']"></i>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="station-name-wrapper" v-if="index===solution.trains.length-1||train.outerTransfer">
+                            <div class="station-name-wrapper"
+                                 v-if="index===solution.trains.length-1||train.outerTransfer">
                             <span class="station-name">
                                 {{ train.arrStationName }}
                             </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -112,24 +145,40 @@
 <script setup>
 import OverlayView from "components/OverlayView.vue";
 import {useI18n} from "vue-i18n";
-import {onMounted} from "vue";
+import {computed, onMounted, ref} from "vue";
 import TrainCategory from "components/TrainCategory.vue";
 import TrainTransferDirector from "components/TrainTransferDirector.vue";
 import {useQuasar} from "quasar";
 import {useRoute} from "vue-router";
 import {buildUrl} from "src/utils/url-utils";
 import {useStore} from "vuex";
+import {saveDomAsImage} from "src/utils/dom-utils";
+import QRious from 'qrious'
 
+const publicPath = process.env.PUBLIC_URL || '/';
 const store = useStore()
 const route = useRoute()
 const $q = useQuasar()
 const {t} = useI18n()
+const solutionDetailRef = ref(null)
 const props = defineProps({
     solution: {
         type: Object,
     }
 })
-const STOP_ROW_HEIGHT = 80
+const depInfo = computed(() => {
+    if (!props.solution) {
+        return null
+    }
+    return props.solution.trains[0]
+})
+const arrInfo = computed(() => {
+    if (!props.solution) {
+        return null
+    }
+    return props.solution.trains.slice(-1)[0]
+})
+const STOP_ROW_HEIGHT = 70
 const trainNameGetter = (train) => {
     if (!train.lines) {
         console.warn('lines is undefined', JSON.stringify(train))
@@ -178,7 +227,14 @@ const handleShare = () => {
         const queryParams = route.query
         queryParams.sId = props.solution.id
         const shareUrl = buildUrl('/metro-go', queryParams)
-
+        new QRious({
+            element: document.getElementById('shareSolutionQRCode'),
+            value: shareUrl.toString(),
+            size: 80,
+            backgroundAlpha: 0,
+            level: 'H'
+        })
+        saveDomAsImage(solutionDetailRef.value, 'solution').then(_ => _)
         navigator.clipboard.writeText(shareUrl.toString())
             .then(() => {
                 $q.notify.ok(`分享链接已复制🔗`)
@@ -186,6 +242,8 @@ const handleShare = () => {
             .catch((err) => {
                 console.error("Failed to copy text: ", err);
             })
+    } else {
+        $q.notify.info("请等待方案加载完成")
     }
 }
 const useSolution = () => {
@@ -367,4 +425,28 @@ const handleClose = () => {
         transform: translateY(0);
     }
 }
+
+.share-header {
+    width: 100%;
+    height: 100px;
+    background-color: var(--q-primary);
+    align-items: center;
+    position: relative;
+    display: flex;
+}
+
+.share-header .overview-info-wrapper {
+    color: #ffffff;
+    font-size: 14px;
+    height: 80%;
+    width: 60%;
+    overflow: hidden;
+}
+
+.dep-arr-station-name-wrapper {
+    font-weight: bold;
+    color: #ffffff;
+}
+
+
 </style>

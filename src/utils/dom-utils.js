@@ -1,8 +1,30 @@
+import domtoimage from "dom-to-image";
+
 const easeInOutQuad = (t) => {
     return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 }
 
-const smoothScroll = (element, target, duration = 1000) => {
+export async function saveDomAsImage(domNode, filename = 'dom_node_screenshot', scale = 3) {
+    domtoimage.toPng(domNode, {
+        width: domNode.clientWidth * scale,
+        height: domNode.clientHeight * scale,
+        style: {
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left'
+        }
+    })
+        .then(dataUrl => {
+            let a = document.createElement('a')
+            a.href = dataUrl
+            a.download = filename
+            a.click()
+        })
+        .catch(error => {
+            console.error(error)
+        })
+}
+
+export const smoothScroll = (element, target, duration = 1000) => {
     const start = element.scrollTop;
     const distance = target - start;
     let startTime = null;
@@ -22,4 +44,3 @@ const smoothScroll = (element, target, duration = 1000) => {
 
     requestAnimationFrame(animateScroll);
 };
-export {smoothScroll}
