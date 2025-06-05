@@ -232,7 +232,8 @@ const handleShare = () => {
             value: shareUrl.toString(),
             size: 80,
             backgroundAlpha: 0,
-            level: 'H'
+            level: 'H',
+            foreground: '#ffffff',
         })
         saveDomAsImage(solutionDetailRef.value, 'solution').then(_ => _)
         navigator.clipboard.writeText(shareUrl.toString())
