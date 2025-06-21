@@ -24,13 +24,6 @@ onMounted(() => {
         document.documentElement.style.setProperty('--q-background-grey-2', '#222222');
         document.documentElement.style.setProperty('--q-grey', '#dcdcdc');
     }
-
-    initGoogleAd()
 })
 
-const initGoogleAd = async () => {
-    if (document.querySelector(`script[id="googleAdScript"]`)) {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-    }
-}
 </script>
