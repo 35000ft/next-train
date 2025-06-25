@@ -1,4 +1,5 @@
-import _ from "lodash";
+import _, {parseInt} from "lodash";
+import {isNumber} from "src/utils/string-utils";
 
 export function useThrottled(fn, messageFn, wait = 2000,) {
     let lastCalled = 0
@@ -21,4 +22,23 @@ export function useThrottled(fn, messageFn, wait = 2000,) {
             }
         }
     };
+}
+
+
+export function setCache(cacheKey, ttl = 60 * 1000) {
+    localStorage.setItem(cacheKey, (Date.now() + ttl).toString())
+}
+
+export function checkCacheExpired(cacheKey) {
+    const expiredTime = localStorage.getItem(cacheKey);
+    if (!isNumber(expiredTime)) {
+        return true;
+    }
+    try {
+        const now = Date.now();
+        return parseInt(expiredTime) < now;
+
+    } catch (e) {
+        return true;
+    }
 }

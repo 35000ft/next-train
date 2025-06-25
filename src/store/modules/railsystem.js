@@ -66,7 +66,6 @@ const mutations = {
     SET_STATION(state, {station}) {
         if (station && station.id) {
             state.stations.set(station.id, station)
-            localStorage.setItem("station:" + station.id, JSON.stringify(station))
         }
     },
     SET_TRANSFER_INFO(state, {railsystemCode, transferInfo}) {

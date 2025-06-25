@@ -102,7 +102,6 @@
 import OverlayView from "components/OverlayView.vue";
 import {computed, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {fetchStationScheduleV2} from "src/apis/reailtime";
 import {genBriefName} from "src/utils/string-utils";
 import dayjs from "dayjs";
 import {useStore} from "vuex";
@@ -206,7 +205,7 @@ const changeSchedule = (_date) => {
     curHeader.value = lineScheduleHeader
     const _line = line.value
     const _station = station.value
-    fetchStationScheduleV2(_station.id, lineScheduleHeader.scheduleId).then(_scheduleData => {
+    fetchStationSchedule(_station.id, lineScheduleHeader.scheduleId).then(_scheduleData => {
         if (line.value.id !== _line.id || _station.id !== station.value.id) {
             return
         }

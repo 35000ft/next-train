@@ -1,4 +1,5 @@
 import axios from "src/utils/axios"
+import {setCache} from "src/utils/common_utils";
 
 /**
  * Fetch all stations of a rail system
@@ -6,10 +7,16 @@ import axios from "src/utils/axios"
  * @param update is force update
  */
 export async function fetchStations(railsystemCode, update = false) {
-    const url = `api/file/railsystem/stations/${railsystemCode}${update ? '?v=latest' : ''}`
+    const url = `api/file/railsystem/stations/${railsystemCode}`
+    const cacheKey = `railsystems-stations-${railsystemCode}`
     return await axios
-        .get(url,)
+        .get(url, {
+            fetchOptions: {
+                cacheKey: cacheKey, forceUpdate: update
+            }
+        })
         .then(res => {
+            setCache(cacheKey, 86400 * 1000)
             return res.data.data || res.data
         })
         .catch(err => {
@@ -19,16 +26,30 @@ export async function fetchStations(railsystemCode, update = false) {
 }
 
 export async function fetchLines(railsystemCode, update = false) {
-    const url = `api/file/railsystem/lines/${railsystemCode}${update ? '?v=latest' : ''}`
-    return await axios.get(url).then(res => res.data.data || res.data)
+    const url = `api/file/railsystem/lines/${railsystemCode}`
+    const cacheKey = `railsystems-lines-${railsystemCode}`
+    return await axios.get(url, {
+        fetchOptions: {
+            cacheKey: cacheKey, forceUpdate: update
+        }
+    }).then(res => {
+        setCache(cacheKey, 86400 * 1000)
+        return res.data.data || res.data
+    })
         .catch(err => {
             return Promise.reject(err)
         })
 }
 
 export async function fetchRailsystem(railsystemCode, update = false) {
-    const url = `api/metro-realtime/query/railsystem/${railsystemCode}${update ? '?v=latest' : ''}`
-    return await axios.get(url).then(res => res.data.data || res.data)
+    const url = `api/metro-realtime/query/railsystem/${railsystemCode}`
+    const cacheKey = `railsystems-${railsystemCode}`
+    return await axios.get(url, {
+        fetchOptions: {
+            cacheKey: cacheKey, forceUpdate: update
+        }
+    })
+        .then(res => res.data.data || res.data)
         .catch(err => {
             return Promise.reject(err)
         })
@@ -40,10 +61,16 @@ export async function fetchRailsystem(railsystemCode, update = false) {
  * @param update
  */
 export async function fetchLine(lineId, update = false) {
-    const url = `api/file/railsystem/lines/id/${lineId}${update ? '?v=latest' : ''}`
+    const url = `api/file/railsystem/lines/id/${lineId}`
+    const cacheKey = `railsystems-line-${lineId}`
     return await axios
-        .get(url)
+        .get(url, {
+            fetchOptions: {
+                cacheKey: cacheKey, forceUpdate: update
+            }
+        })
         .then(res => {
+            setCache(cacheKey, 86400 * 1000)
             return res.data.data || res.data
         })
         .catch(err => {
@@ -52,10 +79,16 @@ export async function fetchLine(lineId, update = false) {
 }
 
 export async function fetchStation(stationId, update = false) {
-    const url = `api/file/railsystem/stations/id/${stationId}${update ? '?v=latest' : ''}`
+    const url = `api/file/railsystem/stations/id/${stationId}`
+    const cacheKey = `railsystems-station-${stationId}`
     return await axios
-        .get(url)
+        .get(url, {
+            fetchOptions: {
+                cacheKey: cacheKey, forceUpdate: update
+            }
+        })
         .then(res => {
+            setCache(cacheKey, 86400 * 1000)
             return res.data.data || res.data
         })
         .catch(err => {
@@ -76,8 +109,16 @@ export async function fetchGraph(railsystemCode, update = false) {
 }
 
 export async function fetchTransfers(railsystemCode, update = false) {
-    const url = `api/file/railsystem/transfers/${railsystemCode}${update ? '?v=latest' : ''}`
-    return await axios.get(url).then(res => res.data.data || res.data)
+    const url = `api/file/railsystem/transfers/${railsystemCode}`
+    const cacheKey = `railsystems-transfers-${railsystemCode}`
+    return await axios.get(url, {
+        fetchOptions: {
+            cacheKey: cacheKey, forceUpdate: update
+        }
+    }).then(res => {
+        setCache(cacheKey, 86400 * 1000)
+        return res.data.data || res.data
+    })
         .catch(err => Promise.reject(err))
 }
 
