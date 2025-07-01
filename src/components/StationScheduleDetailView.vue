@@ -112,6 +112,7 @@ import HorizontalScheduleLayout from "components/schedule-layouts/HorizontalSche
 import domtoimage from 'dom-to-image';
 import {isTargetScheduleHeader, SCHEDULE_CATEGORY} from "src/models/Schedule";
 import {formatWeekday, getToday, TIME_FORMATS} from "src/utils/time-utils";
+import {fetchStationSchedule} from "src/apis/reailtime";
 
 const loading = ref(true)
 const scheduleData = ref(null)
