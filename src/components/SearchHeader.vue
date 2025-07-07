@@ -3,7 +3,7 @@
         <q-toolbar>
             <div class="row"
                  style="width: 100% ;display: flex;align-items: center;margin: 0 auto;align-content: space-around">
-                <div class="col-3">
+                <div class="col-3" @click="handleLeftDrawer">
                     <img src="../assets/logo.png" alt="logo" style="height: 20px;">
                 </div>
                 <div class="col-5" style="display: flex;justify-content: center;align-items: center;">
@@ -66,6 +66,9 @@ const railSystemSelector = ref(null)
 const languages = ref(supportedLanguages)
 const handleClickSelectRailSystem = () => {
     railSystemSelector.value.showRailSystemSelector()
+}
+const handleLeftDrawer = () => {
+    store.commit('application/SET_SHOW_LEFT_DRAWER', true)
 }
 const currentLanguage = computed(() => {
     return store.getters['language/currentLanguage']

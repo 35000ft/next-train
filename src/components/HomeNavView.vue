@@ -1,4 +1,5 @@
 <template>
+    <LeftDrawer :open="leftDrawerOpen"/>
     <SearchHeader/>
     <q-page-container style=" max-height: 85vh; overflow-y: auto">
         <div class="row" style="gap:20px;justify-content: space-between;">
@@ -54,6 +55,8 @@ import FocusTrainsView from "components/FocusTrainsView.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
 import CurrentTrip from "components/CurrentTrip.vue";
+import LeftDrawer from "components/LeftDrawer.vue";
+
 
 defineOptions({
     name: 'HomeView'
@@ -63,6 +66,7 @@ const store = useStore()
 const props = defineProps({})
 const topBanner = ref('currentTrip')
 const $q = useQuasar()
+const leftDrawerOpen = computed(() => store.getters['application/showLeftDrawer'])
 const currentStationId = computed(() => {
     const currentStation = store.getters['preference/currentStation']
     if (currentStation) {

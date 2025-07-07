@@ -95,6 +95,7 @@
                           :line="{name:t('all'),color:'#36598f'}"
                           @click="(event)=> handleClickLineIcon(event,'all')" :disabled="currentLineId!=='all'"/>
                 <LineIcon v-for="line in currentStation.lines" :line="line" :key="line.id"
+                          v-touch-hold:400.mouse="(evt)=>handleHoldOnLineIcon(evt,line)"
                           @click="(event)=> handleClickLineIcon(event,line)"
                           :disabled="currentLineId==='all'||line.id!==currentLine.id" class="line-icon">
                 </LineIcon>
@@ -165,7 +166,7 @@
             </div>
         </q-tab-panel>
     </q-tab-panels>
-    <line-stations-selector :height="45" ref="lineStationsSelector" @select="handleSelectStation"/>
+    <line-stations-selector :height="150" ref="lineStationsSelector" @select="handleSelectStation"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
     <EditFavouriteStationDialog :station="addFavStation" @close="()=>addFavStation=null"/>
 
@@ -574,7 +575,19 @@ function calcRelativeStation(offset) {
 
 const nextStation = computed(() => calcRelativeStation(1))
 const previousStation = computed(() => calcRelativeStation(-1))
-
+const handleHoldOnLineIcon = (event, line) => {
+    if (line && line.id) {
+        lineStationsSelector.value.showSelector({
+            position: {
+                x: event.position?.left,
+                y: event.position?.top,
+                height: 10,
+            },
+            lineProp: line,
+            currentStationIdProp: line.id
+        })
+    }
+}
 const handleClickLineIcon = (event, line) => {
     if (line === 'all') {
         currentLineId.value = 'all'

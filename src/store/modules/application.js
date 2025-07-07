@@ -19,6 +19,7 @@ const state = {
     bottomModalStack: reactive([]),
     usedSolution: null,
     shownSolution: null,
+    showLeftDrawer: false,
 };
 const mutations = {
     SET_SHOWN_TRAININFO(state, {trainInfo}) {
@@ -81,6 +82,13 @@ const mutations = {
     SET_USING_SOLUTION(state, solution) {
         state.usedSolution = solution
     },
+    SET_SHOW_LEFT_DRAWER(state, isShow) {
+        if (typeof isShow === "boolean") {
+            state.showLeftDrawer = isShow
+        } else {
+            state.showLeftDrawer = !state.showLeftDrawer
+        }
+    }
 };
 
 const actions = {
@@ -142,6 +150,7 @@ const getters = {
     solutionOverviewParams: state => state.solutionOverviewParams,
     usedSolution: state => state.usedSolution,
     shownSolution: state => state.shownSolution,
+    showLeftDrawer: state => state.showLeftDrawer,
 };
 
 export default {

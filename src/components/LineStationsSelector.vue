@@ -1,11 +1,11 @@
 <template>
     <div class="modal-overlay" @click.self="handleClose" v-show="showBg" @touchstart.stop>
         <transition name="zoom-in-zoom-out">
-            <div class="wrapper" :style="{height:height+'px',top:positionY+'px'}" v-show="display">
+            <div class="wrapper" :style="{maxHeight:height+'px',top:positionY+'px'}" v-show="display">
                 <div v-if="loading">
                     <q-skeleton :height="height+'px'"/>
                 </div>
-                <div class="full-height content-wrapper" v-if="line&&line.stations">
+                <div class="content-wrapper row" v-if="line&&line.stations">
                     <span style="display: inline-block;margin: auto 0"
                           v-for="station in line.stations"
                           @click="handleSelectStation(station)"
@@ -130,7 +130,9 @@ export default defineComponent({
     background-color: var(--q-grey-2);
     border-bottom: 2px solid var(--q-primary);
     border-radius: 10px;
+    padding: 5px;
     z-index: 1500;
+    overflow-y: auto;
 }
 
 .current-station {
@@ -146,9 +148,7 @@ export default defineComponent({
 }
 
 .content-wrapper {
-    display: flex;
-    align-items: center;
-    overflow-x: auto;
+    gap: 5px;
 }
 
 .pill {
