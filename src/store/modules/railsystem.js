@@ -52,6 +52,7 @@ const defaultSystemCode = (function () {
     return 'NJMTR'
 })()
 
+const publicPath = process.env.PUBLIC_URL || '/';
 const onChangeRailsystem = async (railsystem) => {
     if (railsystem?.ownerId === 0) {
         const scriptNodeName = 'third_realtime_script'
@@ -59,7 +60,7 @@ const onChangeRailsystem = async (railsystem) => {
         if (existedScript) {
             document.head.removeChild(existedScript)
         }
-        const scriptUrl = `/third_realtime_scripts/${railsystem.code}.js`
+        const scriptUrl = `${publicPath}third_realtime_scripts/${railsystem.code}.js`
         const script = document.createElement('script');
         script.setAttribute('data-node-name', scriptNodeName)
         script.src = scriptUrl;
