@@ -62,29 +62,53 @@ const mutations = {
 const actions = {
     async fetchStationTrain({state, commit}, {stationId, lineId}) {
         if (lineId && stationId) {
-            return new Promise((resolve, reject) => {
-                const lockKey = `fetchStationTrain:${stationId}-${lineId}`
-                if (state.LOCK.has(lockKey)) {
-                    const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
-                    const _oldTrains = stationTrainInfoMap && stationTrainInfoMap.get(lineId)
-                    resolve(_oldTrains || [])
-                    return
-                }
-                commit('SET_LOCK', {key: lockKey})
-                console.log('FetchStationTrain', 'stationId:' + stationId, 'lineId:' + lineId)
-                fetchStationTrainInfo(stationId, lineId).then(_trains => {
-                    commit('SET_STATION_TRAININFO', {trainInfoList: _trains, stationId, lineId})
-                    resolve(_trains)
-                }).catch(err => {
-                    reject(err)
-                }).finally(_ => {
-                    commit('UNLOCK', {key: lockKey})
+            const lockKey = `fetchStationTrain:${stationId}-${lineId}`
+            if (state.LOCK.has(lockKey)) {
+                const stationTrainInfoMap = state.stationTrainInfoMap.get(stationId)
+                const _oldTrains = stationTrainInfoMap && stationTrainInfoMap.get(lineId)
+                resolve(_oldTrains || [])
+                return
+            }
+            // 第三方api
+            const station = await this.dispatch('railsystem/getStation', {stationId})
+            const railsystem = await this.dispatch("railsystem/getRailSystem", {code: station.railsystemCode})
+            if (railsystem?.ownerId === 0) {
+                const line = await this.dispatch('railsystem/getLine', {lineId})
+                return new Promise((resolve, reject) => {
+                    const functionName = 'Third_FetchStationTrain'
+                    console.log('third Function', window[functionName])
+                    if (typeof window[functionName] === "function") {
+                        window[functionName](line, station).then(_trains => {
+                            commit('SET_STATION_TRAININFO', {trainInfoList: _trains, stationId, lineId})
+                            resolve(_trains)
+                        }).catch(err => {
+                            reject(err)
+                        }).finally(_ => {
+                            commit('UNLOCK', {key: lockKey})
+                        })
+                    }
                 })
-            })
+            } else {
+                return new Promise((resolve, reject) => {
+                    commit('SET_LOCK', {key: lockKey})
+                    console.log('FetchStationTrain', 'stationId:' + stationId, 'lineId:' + lineId)
+                    fetchStationTrainInfo(stationId, lineId).then(_trains => {
+                        commit('SET_STATION_TRAININFO', {trainInfoList: _trains, stationId, lineId})
+                        resolve(_trains)
+                    }).catch(err => {
+                        reject(err)
+                    }).finally(_ => {
+                        commit('UNLOCK', {key: lockKey})
+                    })
+                })
+            }
+
         } else {
             return Promise.reject('stationId and lineId cannot be undefined')
         }
     },
+
+
     async fetchStationTrainAtTime({state, commit}, {stationId, lineId, depTime}) {
         if (lineId && stationId && depTime) {
             return new Promise((resolve, reject) => {

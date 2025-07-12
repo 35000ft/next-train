@@ -11,7 +11,9 @@ import {
     fetchTransfers
 } from "src/apis/railsystem";
 
-
+const LOCAL_STORAGE_KEYS = {
+    CURRENT_RAILSYSTEM: 'RAILSYSTEM_CODE',
+}
 const railSystems = {
     'NJMTR': {
         name: '南京',
@@ -19,13 +21,59 @@ const railSystems = {
         code: 'NJMTR',
         lang: 'zh-hans',
         fullname: '南京地铁',
-        timezone: '+0800',
+        timezone: '+08:00',
+        ownerId: 1,
         defaultStationId: "13"
     },
+    'HKMTR': {
+        name: '香港',
+        city: '香港',
+        code: 'HKMTR',
+        lang: 'zh-hant',
+        fullname: '香港地铁',
+        timezone: '+08:00',
+        ownerId: 0,
+        defaultStationId: "2676"
+    },
 }
+const defaultSystemCode = (function () {
+    const storageCode = localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM)
+    if (storageCode && railSystems[storageCode]) {
+        return storageCode
+    }
+    const langMap = {
+        'zh-HK': 'HKMTR'
+    }
+    if (langMap[navigator.language]) {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, langMap[navigator.language])
+        return langMap[navigator.language]
+    }
+    localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, 'NJMTR')
+    return 'NJMTR'
+})()
+
+const onChangeRailsystem = async (railsystem) => {
+    if (railsystem?.ownerId === 0) {
+        const scriptNodeName = 'third_realtime_script'
+        const existedScript = document.querySelector(`script[data-node-name="${scriptNodeName}"]`)
+        if (existedScript) {
+            document.head.removeChild(existedScript)
+        }
+        const scriptUrl = `/third_realtime_scripts/${railsystem.code}.js`
+        const script = document.createElement('script');
+        script.setAttribute('data-node-name', scriptNodeName)
+        script.src = scriptUrl;
+        script.onerror = () => {
+            reject(new Error(`Failed to load script: ${scriptUrl}`));
+            document.head.removeChild(script);
+        };
+        document.head.appendChild(script);
+    }
+}
+onChangeRailsystem(railSystems[defaultSystemCode]).then(_ => _)
 
 const state = {
-    currentRailSystem: railSystems['NJMTR'],
+    currentRailSystem: railSystems[defaultSystemCode],
     railSystems: reactive(new Map(Object.entries(railSystems))),
     stations: reactive(new LRUCache(100)),
     lines: reactive(new LRUCache(50)),
@@ -55,6 +103,13 @@ const mutations = {
     SET_RAILSYSTEM(state, {railsystem}) {
         if (railsystem && railsystem.code) {
             state.railSystems.set(railsystem.id, railsystem)
+        }
+    },
+    SET_CURRENT_RAILSYSTEM(state, {code}) {
+        if (railSystems[code]) {
+            state.currentRailSystem = railSystems[code]
+            onChangeRailsystem(railSystems[code]).then(_ => _)
+            localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, code)
         }
     },
     SET_LINE_STATIONS(state, {lineId, stations}) {

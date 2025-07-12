@@ -22,7 +22,7 @@
 
 <script>
 import BottomModal from "components/BottomModal.vue";
-import {defineComponent, ref, toRaw} from "vue";
+import {computed, defineComponent, ref, toRaw} from "vue";
 import {useStore} from "vuex";
 
 
@@ -34,18 +34,17 @@ export default defineComponent({
         const loading = ref(true)
         const store = useStore()
         const searchResults = ref([])
-        let currentRailSystem = toRaw(store.getters['railsystem/currentRailSystem'])
+        const currentRailSystem = computed(() => store.getters['railsystem/currentRailSystem'])
         const handleClose = () => {
             display.value = false
             emit('close')
         }
         const handleSelectRailSystem = (railsystem) => {
             railsystem = toRaw(railsystem)
-            if (railsystem.code === currentRailSystem.code) {
+            if (railsystem.code === currentRailSystem.value.code) {
                 return
             }
             emit('select', railsystem)
-            currentRailSystem = railsystem
             display.value = false
         }
         const showRailSystemSelector = () => {

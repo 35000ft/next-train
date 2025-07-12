@@ -56,19 +56,13 @@ const state = {
 
 const mutations = {
     SAVE_CUR_FAV_STATION_RULES(state) {
-        console.log('save fav cur rules')
         localStorage.setItem(LOCAL_STORAGE_KEYS.FAVOURITE_RULES, JSON.stringify(Object.fromEntries(state.favouriteRules)))
     },
     SET_CURRENT_STATION(state, {station}) {
         if (!station) return
         state.currentStation = station;
-        console.log('set cur station ok', station)
+        console.log('Set current station:', station)
         localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_STATION, JSON.stringify(station))
-    },
-    SET_CURRENT_RAIL_SYSTEM(state, railsystem) {
-        if (!railsystem) return
-        state.currentRailSystem = railsystem;
-        localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, JSON.stringify(railsystem))
     },
     ADD_HISTORY_STATION(state, {station}) {
         let historyStations = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.HISTORY_STATION_LIST))
@@ -189,9 +183,6 @@ const actions = {
         }
         commit('ADD_FAVOUR_STATION_RULE', {station, fromTime, toTime, period})
         return Promise.resolve()
-    },
-    setCurrentRailSystem({commit}, railSystem) {
-        commit('SET_CURRENT_RAIL_SYSTEM', railSystem)
     },
     addHistoryStation({commit, state}, station) {
         if (!station || !station.id) {

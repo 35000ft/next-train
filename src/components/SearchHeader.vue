@@ -32,9 +32,8 @@
                         </q-btn-dropdown>
                     </div>
                     <q-btn flat :label="currentRailSystem.name" class="text-white"
+                           @click="handleClickSelectRailSystem"
                            style="font-size: 20px;font-weight:bold;padding-left: 5px;padding-right: 5px;"/>
-                    <!-- TODO 展示不展示切换线网 -->
-                    <!--                           @click="handleClickSelectRailSystem"-->
                 </div>
 
             </div>
@@ -55,15 +54,17 @@ import {computed, ref, toRaw} from 'vue'
 import RailSystemSelector from "components/RailSystemSelector.vue";
 import {i18n, supportedLanguages} from 'src/boot/i18n'
 import {useStore} from "vuex";
+import {useQuasar} from "quasar";
 
 const {t} = useI18n();
 const store = useStore()
 
-const currentRailSystem = ref(toRaw(store.getters['railsystem/currentRailSystem']))
+const currentRailSystem = computed(() => store.getters['railsystem/currentRailSystem'])
 
 const searchText = ref('')
 const railSystemSelector = ref(null)
 const languages = ref(supportedLanguages)
+const $q = useQuasar()
 const handleClickSelectRailSystem = () => {
     railSystemSelector.value.showRailSystemSelector()
 }
@@ -83,12 +84,18 @@ const selectLanguage = (langCode) => {
         });
     }
 }
-const handleSelectRailSystem = (railsystem) => {
+const handleSelectRailSystem = async (railsystem) => {
     if (!railsystem) {
         return
     }
-    currentRailSystem.value = railsystem
-    store.dispatch('preference/setCurrentRailSystem', railsystem)
+    store.commit('railsystem/SET_CURRENT_RAILSYSTEM', {code: railsystem?.code})
+    const station = await store.dispatch('railsystem/getStation', {stationId: railsystem.defaultStationId})
+    if (station) {
+        store.commit('preference/SET_CURRENT_STATION', {station})
+    } else {
+        $q.notify.error("自动切换车站失败")
+    }
+
 }
 
 const onSearch = () => {
