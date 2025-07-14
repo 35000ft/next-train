@@ -6,7 +6,7 @@
 
 <script setup>
 
-import {diffFromNowFormatted, formatToHHMM} from "src/utils/time-utils";
+import {diffFromNow, diffFromNowFormatted, formatToHHMM} from "src/utils/time-utils";
 import {useStore} from "vuex";
 import {toRaw} from "vue";
 import {useQuasar} from "quasar";
@@ -26,7 +26,9 @@ const props = defineProps({
 const addToFocusTrains = () => {
     store.dispatch('preference/addFocusTrain', {train: toRaw(props.trainData), station: props.station})
         .then(_ => {
-            const remainTime = diffFromNowFormatted(props.trainData.dep, {
+            const timezone = props.station?.timezone
+            const diffFromNowSeconds = diffFromNow(props.trainData.dep, 'second', timezone)
+            const remainTime = diffFromNowFormatted(diffFromNowSeconds, {
                 $hour: t('time.hour'),
                 $minute: t('time.minute'),
                 $second: t('time.second'),

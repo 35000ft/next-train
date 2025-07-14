@@ -175,7 +175,14 @@ import {useRoute, useRouter} from "vue-router";
 import {useQuasar} from "quasar";
 import TrainCategory from "components/TrainCategory.vue";
 import {TRAIN_STATUS} from "src/models/Train";
-import {diffFromNowFormatted, formatToHHMM, isAfterNow, isBeforeNow, TIME_FORMATS} from "src/utils/time-utils";
+import {
+    diffFromNow,
+    diffFromNowFormatted,
+    formatToHHMM,
+    isAfterNow,
+    isBeforeNow,
+    TIME_FORMATS
+} from "src/utils/time-utils";
 import {smoothScroll} from "src/utils/dom-utils";
 import {useI18n} from "vue-i18n";
 import _ from 'lodash';
@@ -188,6 +195,7 @@ const primaryColor = computed(() => {
 const shownTrainInfo = computed(() => {
     return store.getters['application/shownTrainInfo']
 })
+const firstStation = ref(null)
 const isDown = computed(() => {
     const _trainInfo = trainInfo.value;
     if (!_trainInfo) return true
@@ -205,6 +213,12 @@ const trainInfo = ref(null)
 const trainDate = ref(null)
 
 const currentInterval = computed(() => {
+    const _firstStation = firstStation.value
+    const timezone = _firstStation?.timezone
+    if (!timezone) {
+        return 'Waiting...'
+    }
+
     const _schedule = schedule.value
     const _nextIndex = nextIndex.value
     const _currentIndex = currentIndex.value
@@ -214,13 +228,15 @@ const currentInterval = computed(() => {
     if (_schedule && _nextIndex && _nextIndex > 0) {
         const currentStop = _schedule[_nextIndex - 1]
         const nextStop = _schedule[_nextIndex]
-        if (isAfterNow(currentStop.dep)) {
+        if (isAfterNow(currentStop.dep, timezone)) {
             return `<span style="color: var(--q-arrived)">${currentStop.stationName}</span> ~ <span style="color:var(--q-ontime);">${nextStop.stationName}</span>`
         } else {
             return `<span style="color: var(--q-grey-3)">${currentStop.stationName}</span> ~ <span style="color:var(--q-next-station);">${nextStop.stationName}</span>`
         }
     } else if (_schedule && _nextIndex === 0) {
-        const remainTime = diffFromNowFormatted(_schedule[0].arr, {
+        // Wait for departure (The first stop of the train)
+        const diffFromNowSeconds = diffFromNow(_schedule[0].arr, 'second', timezone)
+        const remainTime = diffFromNowFormatted(diffFromNowSeconds, {
             $hour: t('time.hour'),
             $minute: t('time.minute'),
             $second: t('time.second'),
@@ -235,6 +251,7 @@ const currentInterval = computed(() => {
 })
 const schedule = computed(() => {
     if (trainInfo.value) {
+        console.log('trainInfff', trainInfo.value)
         return calcSchedule(trainInfo.value)
     }
     return []
@@ -313,14 +330,19 @@ const updateStopStatus = (_schedule) => {
     if (!_schedule || isUpdatingStopStatus.value || _schedule.length === 0) {
         return
     }
+    const _firstStation = firstStation.value
+    if (!_firstStation) {
+        return
+    }
+    const timezone = _firstStation?.timezone
     let nextIndexValue = null
     let currentIndexValue = null
     isUpdatingStopStatus.value = true
     try {
         for (let index = 0; index < _schedule.length; index++) {
             const _stopInfo = _schedule[index]
-            if (isBeforeNow(_stopInfo.arr)) {
-                if (isAfterNow(_stopInfo.dep)) {
+            if (isBeforeNow(_stopInfo.arr, timezone)) {
+                if (isAfterNow(_stopInfo.dep, timezone)) {
                     currentIndexValue = index
                     if (index < _schedule.length - 1) {
                         nextIndexValue = index + 1
@@ -335,7 +357,7 @@ const updateStopStatus = (_schedule) => {
                 }
 
                 const previousStop = _schedule[index - 1]
-                if (isBeforeNow(previousStop.dep)) {
+                if (isBeforeNow(previousStop.dep, timezone)) {
                     nextIndexValue = index
                     break
                 }
@@ -473,24 +495,28 @@ watch(() => shownTrainInfo.value, (newVal, oldValue) => {
 const emit = defineEmits(['close'])
 
 async function loadTrainInfo(_trainInfoId, trainDate) {
+    firstStation.value = null
     if (loading.value || !_trainInfoId) {
         return
     }
     loading.value = true
-    return store.dispatch('realtime/getTrainInfoById', {
-        trainInfoId: _trainInfoId,
-        date: trainDate
-    }).then(_trainInfo => {
+    try {
+        const _trainInfo = await store.dispatch('realtime/getTrainInfoById', {
+            trainInfoId: _trainInfoId,
+            date: trainDate
+        })
+        const firstStationId = _trainInfo.schedule[0]?.stationId
+        firstStation.value = await store.dispatch('railsystem/getStation', {stationId: firstStationId})
         return _trainInfo
-    }).catch(err => {
-        console.warn('loadTrainInfo err:', err)
+    } catch (e) {
+        console.warn('loadTrainInfo err:', e)
         $q.notify.error(`Failed to get train info`)
-        return Promise.reject(err)
-    }).finally(_ => {
+        return Promise.reject(e)
+    } finally {
         if (trainInfoId.value === _trainInfoId) {
             loading.value = false
         }
-    })
+    }
 }
 
 watch(trainInfoId, (newVal, oldValue) => {

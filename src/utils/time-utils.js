@@ -119,8 +119,8 @@ export function isAfterNow(_date, timezone) {
     return diff > 0
 }
 
-export function isBeforeNow(_date) {
-    return !isAfterNow(_date)
+export function isBeforeNow(_date, timezone) {
+    return !isAfterNow(_date, timezone)
 }
 
 /**
@@ -195,8 +195,8 @@ export function diffFromNow(d1, unit = 'second', timezone = '+00:00') {
 }
 
 
-export function diffFromNowFormatted(d1, {$hour, $minute, $second}, format = null) {
-    const diffSeconds = Math.abs(diffFromNow(d1))
+export function diffFromNowFormatted(diffSeconds, {$hour, $minute, $second}, format = null) {
+    diffSeconds = Math.abs(diffSeconds)
     const hours = Math.floor(diffSeconds / 3600)
     const minutes = Math.floor((diffSeconds / 60) % 60)
     const seconds = diffSeconds % 60
