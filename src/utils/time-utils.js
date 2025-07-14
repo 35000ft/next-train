@@ -188,7 +188,7 @@ export function diffFromNow(d1, unit = 'second', timezone = '+00:00') {
         if (hasTimezone(d1)) {
             d1 = dayjs(d1).utc(false)
         } else {
-            d1 = dayjs(d1).utcOffset(parseTimezoneOffset(timezone))
+            d1 = dayjs(d1).utcOffset(parseTimezoneOffset(timezone), true).utc()
         }
     }
     return diff(d1, now, unit)
