@@ -180,7 +180,7 @@ function parseTimezoneOffset(offset) {
     }
 }
 
-export function diffFromNow(d1, unit = 'second', timezone = '+0000') {
+export function diffFromNow(d1, unit = 'second', timezone = '+00:00') {
     let now = dayjs().utc()
     if (!timezone) {
         d1 = dayjs(d1).utc()
