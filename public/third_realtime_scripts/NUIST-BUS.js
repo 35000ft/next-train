@@ -440,15 +440,21 @@ function calcTrainInfo(vehicleInfo, line, station, linePath, routePath) {
         remainStops
     } = calcETA(station, vehicleInfo, relativeDist, absoluteDist, stops)
     const curStationIndex = line.stations.findIndex(it => it.id === station.id)
-    let nextStationIndex = curStationIndex + 1
-    if (curStationIndex.index === line.stations.length - 1) {
-        nextStationIndex = 0
-    }
-    const nextStation = line.stations[nextStationIndex]
+
     let dest = '未知'
     if (vehicleInfo.direction === 'down') {
+        let nextStationIndex = curStationIndex + 1
+        if (curStationIndex.index === line.stations.length - 1) {
+            nextStationIndex = 0
+        }
+        const nextStation = line.stations[nextStationIndex]
         dest = `${nextStation?.name}·外环`
     } else if (vehicleInfo.direction === 'up') {
+        let nextStationIndex = curStationIndex - 1
+        if (curStationIndex.index === 0) {
+            nextStationIndex = line.stations.length - 1
+        }
+        const nextStation = line.stations[nextStationIndex]
         dest = `${nextStation?.name}·内环`
     }
     const direction = vehicleInfo.direction === 'down' ? 0 : 1
