@@ -24,3 +24,25 @@ function Util_getTimeInTimeZone(timeZone, date = new Date(), format = 'YYYY-MM-D
         .replace('mm', parts.minute)
         .replace('ss', parts.second);
 }
+
+/**
+ * 解决跨域、非HTTPS请求问题  ⚠ 仅限GET请求
+ * @param url 请求的url
+ * @param parseToJson 是否将结果转为json 默认是
+ * @returns {Promise<*>}
+ * @constructor
+ */
+async function Util_fetchThroughAllOrigins(url, parseToJson = true) {
+    const PROXY_URL_BASE = 'https://api.allorigins.win/get?url='
+    const proxyUrl = `${PROXY_URL_BASE}${encodeURIComponent(url)}`
+    const response = await fetch(proxyUrl, {
+        method: 'GET',
+    });
+    const json = await response.json()
+    if (parseToJson) {
+        return JSON.parse(json?.contents)
+    } else {
+        return json?.contents
+    }
+
+}

@@ -142,19 +142,13 @@ function gcjToTurfPoint(lng, lat) {
 
 
 async function getJSession() {
-    const url = "http://47.96.16.23:8080/StandardApiAction_login.action";
     const params = new URLSearchParams({
         account: "njxxgc",
         password: "guzhb791126"
     });
+    const url = `http://47.96.16.23:8080/StandardApiAction_login.action?${params.toString()}`
     try {
-        const response = await fetch(`${url}?${params.toString()}`, {
-            method: 'GET',
-        });
-        if (!response.ok) {
-            throw new Error(`登录失败，状态码: ${response.status}`);
-        }
-        const result = await response.json(); // 自动解析 JSON
+        const result = await Util_fetchThroughAllOrigins(url)
         const jsession = result?.jsession;
         if (!jsession) {
             throw new Error("未能从响应中获取到 jsession");
@@ -309,21 +303,17 @@ function initVehicleInfo(preVehicleInfo, currentVehicleInfo, routePath) {
 
 async function Third_FetchStationTrain(line, station) {
     let data
-    const url = `http://47.96.16.23:8080/StandardApiAction_getDeviceStatus.action`
+    const vehicleNoList = [
+        'NXD1', 'NXD2', 'NXD3', 'NXD5', 'NXD6', 'NXD7', 'NXD8', 'NXD9', 'NXD10', 'NXD11', 'NXD12', 'NXD13'
+    ]
+    const params = new URLSearchParams({
+        jsession: __NUIST__JSession,
+        vehiIdno: vehicleNoList.join(','),
+        toMap: 1,
+    });
+    const url = `http://47.96.16.23:8080/StandardApiAction_getDeviceStatus.action?${params.toString()}`
     try {
-        const vehicleNoList = [
-            'NXD1', 'NXD2', 'NXD3', 'NXD5', 'NXD6', 'NXD7', 'NXD8', 'NXD9', 'NXD10', 'NXD11', 'NXD12', 'NXD13'
-        ]
-        const params = new URLSearchParams({
-            jsession: __NUIST__JSession,
-            vehiIdno: vehicleNoList.join(','),
-            toMap: 1,
-        });
-        const response = await fetch(`${url}?${params.toString()}`, {
-            method: 'GET',
-            referrer: 'no-referrer'
-        })
-        data = await response.json()
+        data = await Util_fetchThroughAllOrigins(url)
         if (!data.status instanceof Array) {
             throw new Error("响应无车辆信息")
         }
