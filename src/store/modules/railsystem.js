@@ -35,6 +35,16 @@ const railSystems = {
         ownerId: 0,
         defaultStationId: "2676"
     },
+    'NUIST-BUS': {
+        name: '信大小公交',
+        city: '南京',
+        code: 'NUIST-BUS',
+        lang: 'zh-hans',
+        fullname: '南信大校园小公交',
+        timezone: '+08:00',
+        ownerId: 0,
+        defaultStationId: "2773"
+    },
 }
 const defaultSystemCode = (function () {
     const storageCode = localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM)

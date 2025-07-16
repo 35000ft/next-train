@@ -76,7 +76,6 @@ const actions = {
                 const line = await this.dispatch('railsystem/getLine', {lineId})
                 return new Promise((resolve, reject) => {
                     const functionName = 'Third_FetchStationTrain'
-                    console.log('third Function', window[functionName])
                     if (typeof window[functionName] === "function") {
                         window[functionName](line, station).then(_trains => {
                             commit('SET_STATION_TRAININFO', {trainInfoList: _trains, stationId, lineId})
