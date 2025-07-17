@@ -308,6 +308,9 @@ async function Third_FetchStationTrain(line, station) {
     if (!__NUIST__JSession) {
         console.warn('JSession is not loaded, waiting')
         await new Promise((resolve) => setTimeout(resolve, 2000))
+        if (!__NUIST__JSession) {
+            await getJSession()
+        }
     }
     const params = new URLSearchParams({
         jsession: __NUIST__JSession,
