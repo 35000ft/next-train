@@ -31,6 +31,7 @@ async function Third_FetchStationTrain(line, station) {
             "isFirstStop": false,
             "direction": direction,
             "terminal": dest,
+            "platform": item?.plat
         }
     }
     if (!line?.code || !station.code) {

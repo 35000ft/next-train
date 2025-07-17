@@ -11,12 +11,25 @@
                       style="color: var(--q-arrived);font-weight:bold;">{{ t('trainStatus.arrived') }}</span>
             </div>
         </div>
-        <div class="col-5">
+        <div class="col-6">
             <div v-overflow-auto-scroll
                  style="margin-left: auto;display: flex;align-items: center;justify-content: flex-end;width: 100%;">
                 <div style="flex-shrink: 0">
                     <DepTrainTime :train-data="trainData" :station="station"/>
                 </div>
+                <!-- Train Realtime Position -->
+                <span class="pill"
+                      style="flex-shrink: 0;padding-left: 5px;padding-right: 5px;background-color: var(--q-green);"
+                      v-if="trainData?.remainStops&&trainData?.distance">
+                    {{ `${trainData.remainStops} ${t('stop')} / ${Math.round(trainData.distance)} ${t('meterShort')}` }}
+                </span>
+                <!-- Platform -->
+                <span class="pill"
+                      style="flex-shrink: 0;padding-left: 5px;padding-right: 5px;background-color: var(--q-green);"
+                      v-if="trainData?.platform">
+                    {{ `Plat. ${trainData.platform}` }}
+                </span>
+                <!-- Train Category Pill -->
                 <span class="pill"
                       v-for="(trainCategory,index) in trainCategories" :key="index"
                       :style="{backgroundColor:trainCategory.bgColor}">
