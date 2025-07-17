@@ -313,7 +313,7 @@ async function Third_FetchStationTrain(line, station) {
     });
     const url = `http://47.96.16.23:8080/StandardApiAction_getDeviceStatus.action?${params.toString()}`
     try {
-        data = await Util_fetchThroughAllOrigins(url)
+        data = await Util_fetchThroughAllOrigins(url, {parseToJson: true, noCache: true})
         if (!data.status instanceof Array) {
             throw new Error("响应无车辆信息")
         }
