@@ -170,7 +170,6 @@ getJSession().then(jsession => {
         Third_FetchStationTrain(null, null).then(_ => {
             console.log(APPLICATION_NAME, ':初始化信息...')
         })
-
     }
 })
 
@@ -306,6 +305,10 @@ async function Third_FetchStationTrain(line, station) {
     const vehicleNoList = [
         'NXD1', 'NXD2', 'NXD3', 'NXD5', 'NXD6', 'NXD7', 'NXD8', 'NXD9', 'NXD10', 'NXD11', 'NXD12', 'NXD13'
     ]
+    if (!__NUIST__JSession) {
+        console.warn('JSession is not loaded, waiting')
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+    }
     const params = new URLSearchParams({
         jsession: __NUIST__JSession,
         vehiIdno: vehicleNoList.join(','),
@@ -330,7 +333,7 @@ async function Third_FetchStationTrain(line, station) {
         }
         if (THIRD_VehicleInfoMap.has(x.id)) {
             const vehicleInfo = initVehicleInfo(THIRD_VehicleInfoMap.get(x.id), x, circleRoutePath)
-            if (vehicleInfo) {
+            if (vehicleInfo && line && station) {
                 THIRD_VehicleInfoMap.set(x.id, vehicleInfo)
                 const t = calcTrainInfo(vehicleInfo, line, station, linePath, circleRoutePath)
                 if (t) {
