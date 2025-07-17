@@ -444,14 +444,14 @@ function calcTrainInfo(vehicleInfo, line, station, linePath, routePath) {
     let dest = '未知'
     if (vehicleInfo.direction === 'down') {
         let nextStationIndex = curStationIndex + 1
-        if (curStationIndex.index === line.stations.length - 1) {
+        if (curStationIndex === line.stations.length - 1) {
             nextStationIndex = 0
         }
         const nextStation = line.stations[nextStationIndex]
         dest = `${nextStation?.name}·外环`
     } else if (vehicleInfo.direction === 'up') {
         let nextStationIndex = curStationIndex - 1
-        if (curStationIndex.index === 0) {
+        if (curStationIndex === 0) {
             nextStationIndex = line.stations.length - 1
         }
         const nextStation = line.stations[nextStationIndex]
@@ -471,6 +471,7 @@ function calcTrainInfo(vehicleInfo, line, station, linePath, routePath) {
         "isFirstStop": false,
         "direction": direction,
         "terminal": dest,
-        "remainStops": remainStops
+        "remainStops": remainStops > 0 ? remainStops : null,
+        "distance": relativeDist,
     }
 }
