@@ -2,6 +2,7 @@
     <q-tab-panels v-cloak v-if="currentStation&&currentLine" class="full-height" v-model="currentStationId"
                   swipeable
                   animated
+                  :infinite="currentLine?.extra?.isCircle"
                   @touchstart.stop>
         <q-tab-panel v-for="station in currentLine.stations" :name="station.id" :key="station.id"
                      style="display: flex;flex-direction: column;">
@@ -67,6 +68,7 @@
             </div>
             <q-separator color="primary" size="2px" style="margin: 0 0 10px;"/>
 
+            <!-- Operation Messages -->
             <div v-if="operationMsgs.length>0" style="height: 70px;margin-bottom: 10px;">
                 <q-tab-panels v-model="curOpMsgId" swipeable animated @touchstart.stop infinite
                               style="height: 100%;opacity: 80%;border-radius: 10px;">
@@ -561,16 +563,38 @@ function calcRelativeStation(offset) {
         return null;
     }
     const _stations = currentLine.value.stations
-    const number = _stations.findIndex(it => it.id === currentStationId.value)
-    const station = _stations[number + offset]
+    const curStationIndex = _stations.findIndex(it => it.id === currentStationId.value)
+    let station = _stations[curStationIndex + offset]
+    let direction
 
-    if (station === undefined) return null;
+    // 判断是否为环线
+    if (currentLine.value?.extra?.isCircle) {
+        if (curStationIndex + offset === -1) {
+            station = _stations[_stations.length - 1]
+            direction = '内环'
+        } else if (curStationIndex + offset === _stations.length) {
+            station = _stations[0]
+            direction = '外环'
+        }
+        if (offset > 0) {
+            direction = '外环'
+        } else {
+            direction = '内环'
+        }
+    }
 
-    const newStation = Object.assign({}, station)
-    newStation.direction = offset > 0
-        ? _stations.slice(-1)[0].name
-        : _stations[0].name;
-    return newStation;
+    if (station !== undefined) {
+        const newStation = Object.assign({}, station)
+        if (direction) {
+            newStation.direction = direction
+        } else {
+            newStation.direction = offset > 0
+                ? _stations.slice(-1)[0].name
+                : _stations[0].name
+        }
+        return newStation
+    }
+    return null
 }
 
 const nextStation = computed(() => calcRelativeStation(1))
