@@ -112,7 +112,7 @@ let circleRoutePath = [
 ]
 THIRD_ROUTE_PATH_MAP.set('CIRCLE', circleRoutePath)
 const THIRD_VehicleInfoMap = new Map()
-const APPLICATION_NAME = '信大小公交'
+const THIRD_TrainInfoMap = new Map()
 
 // 对路线进行插值
 function densifyRoute(routePath, segmentLength = 5) {
@@ -141,7 +141,7 @@ function gcjToTurfPoint(lng, lat) {
 }
 
 
-async function getJSession() {
+async function intiJSession() {
     const params = new URLSearchParams({
         account: "njxxgc",
         password: "guzhb791126"
@@ -154,8 +154,8 @@ async function getJSession() {
             throw new Error("未能从响应中获取到 jsession");
         }
         console.log("NUIST小公交实时jsession:", jsession);
-        return jsession;
-
+        __NUIST__JSession = jsession
+        return jsession
     } catch (error) {
         console.error("NUIST小公交实时初始化失败: 获取 jsession 出错：", error);
         return null;
@@ -163,14 +163,8 @@ async function getJSession() {
 }
 
 let __NUIST__JSession;
-getJSession().then(jsession => {
-    if (jsession) {
-        __NUIST__JSession = jsession
-        circleRoutePath = densifyRoute(circleRoutePath, 5)
-        Third_FetchStationTrain(null, null).then(_ => {
-            console.log(APPLICATION_NAME, ':初始化信息...')
-        })
-    }
+intiJSession().then(jsession => {
+    circleRoutePath = densifyRoute(circleRoutePath, 5)
 })
 
 function calcTrainDirectionByHx(vehicleInfo, curPointOnLine, routePath) {
@@ -301,16 +295,17 @@ function initVehicleInfo(preVehicleInfo, currentVehicleInfo, routePath) {
 }
 
 async function Third_FetchStationTrain(line, station) {
+    if (!line || !station) {
+        return Promise.reject('Line and Station Information must be provided!')
+    }
     let data
+    const queryKey = `${station.code}-${line.code}`
     const vehicleNoList = [
         'NXD1', 'NXD2', 'NXD3', 'NXD5', 'NXD6', 'NXD7', 'NXD8', 'NXD9', 'NXD10', 'NXD11', 'NXD12', 'NXD13'
     ]
     if (!__NUIST__JSession) {
         console.warn('JSession is not loaded, waiting')
         await new Promise((resolve) => setTimeout(resolve, 2000))
-        if (!__NUIST__JSession) {
-            await getJSession()
-        }
     }
     const params = new URLSearchParams({
         jsession: __NUIST__JSession,
@@ -324,28 +319,47 @@ async function Third_FetchStationTrain(line, station) {
             throw new Error("响应无车辆信息")
         }
     } catch (e) {
-        console.log('Fetch position error', e)
-        return
+        console.warn('Fetch bus error', e)
+        if (THIRD_TrainInfoMap.has(queryKey)) {
+            return THIRD_TrainInfoMap.get(queryKey)
+        }
+        if (__NUIST__JSession) {
+            console.log('Try to renew JSession')
+            await intiJSession()
+            return Promise.reject('Try again')
+        }
     }
     const linePath = turf.lineString(circleRoutePath.map(p => [p.lng, p.lat]))
     const trains = []
-    for (let x of data.status) {
-        // 排除不在线的车辆
-        if (x.ol !== 1) {
-            continue
-        }
+    // 排除不在线的车辆
+    const onlineBuses = data.status.filter(it => it.ol === 1)
+    if (onlineBuses.length === 0) {
+        return []
+    }
+    let hasNewOnlineBus = false
+    for (let x of onlineBuses) {
         if (THIRD_VehicleInfoMap.has(x.id)) {
             const vehicleInfo = initVehicleInfo(THIRD_VehicleInfoMap.get(x.id), x, circleRoutePath)
             if (vehicleInfo && line && station) {
                 THIRD_VehicleInfoMap.set(x.id, vehicleInfo)
-                const t = calcTrainInfo(vehicleInfo, line, station, linePath, circleRoutePath)
+                const t = calcTrainInfo(vehicleInfo, line, station, linePath)
                 if (t) {
                     trains.push(t)
                 }
             }
         } else {
+            hasNewOnlineBus = true
             THIRD_VehicleInfoMap.set(x.id, x)
         }
+    }
+    // 有新上线的车 需要再fetch一次车辆
+    if (hasNewOnlineBus) {
+        await new Promise((resolve) => setTimeout(resolve, 5000))
+        return Third_FetchStationTrain(line, station)
+    }
+
+    if (trains.length > 0) {
+        THIRD_VehicleInfoMap.set(queryKey, trains)
     }
     return trains
 }
@@ -395,7 +409,6 @@ function calcETA(targetStation, vehicleInfo, relativeDist, absoluteDist, stops,)
         const depTime = new Date()
         depTime.setSeconds(depTime.getSeconds() + 60)
         const depTimeString = Util_getTimeInTimeZone('Asia/Shanghai', depTime)
-        console.log('车辆' + vehicleInfo?.vid, '到站:', targetStation.name)
         return {
             arrTime: nowTimeString,
             depTime: depTimeString,
@@ -425,7 +438,6 @@ function calcETA(targetStation, vehicleInfo, relativeDist, absoluteDist, stops,)
     const arrTime = Util_getTimeInTimeZone('Asia/Shanghai', arr)
     arr.setSeconds(arr.getSeconds() + 30)
     const depTime = Util_getTimeInTimeZone('Asia/Shanghai', arr)
-    console.log('距离', targetStation.name, remainStops + '站', relativeDist + '米', '预计用时:' + totalTime, 'ETA:' + arrTime)
     return {
         arrTime,
         depTime,
@@ -433,18 +445,42 @@ function calcETA(targetStation, vehicleInfo, relativeDist, absoluteDist, stops,)
     }
 }
 
-function calcTrainInfo(vehicleInfo, line, station, linePath, routePath) {
+function calcTrainInfo(vehicleInfo, line, station, linePath) {
     const {
         absoluteDist,
         relativeDist,
         stops,
     } = calculateDistanceOnLoop(vehicleInfo, station, linePath, line)
 
+    const trainSchedule = []
+    for (let s of stops) {
+        const {
+            arrTime,
+            depTime,
+            remainStops
+        } = calcETA(s.station, vehicleInfo, s.relativeDist, s.absoluteDist, stops)
+        trainSchedule.push({
+            stationId: s.station.id,
+            stationName: s.station.name,
+            arrTime,
+            depTime,
+        })
+    }
+    vehicleInfo.trainInfo = Util_toTrainInfoDetailResponse({
+        id: vehicleInfo.id,
+        schedule: trainSchedule,
+        direction: vehicleInfo.direction,
+        trainNo: vehicleInfo.vid,
+        category: 'LOCAL',
+    })
+
     const {
         arrTime,
         depTime,
         remainStops
     } = calcETA(station, vehicleInfo, relativeDist, absoluteDist, stops)
+    console.log('距离', station.name, remainStops + '站', relativeDist + '米', 'ETA:' + arrTime)
+
     const curStationIndex = line.stations.findIndex(it => it.id === station.id)
 
     let dest = '未知'

@@ -79,7 +79,37 @@ async function Util_fetchThroughAllOrigins(url, options) {
         }
     } catch (err) {
         console.error('Fetch error via AllOrigins:', err);
-        throw err; // 可视需求决定是否抛出错误
+        throw err;
     }
 
+}
+
+/**
+ * @typedef {Object} StopInfo
+ * @property {String} [stationId]
+ * @property {String} [stationName]
+ * @property {String} [arrTime]
+ * @property {String} [depTime]
+ */
+
+/**
+ * @typedef {Object} RawTrainInfoDetail
+ * @property {String} [id]
+ * @property {Array<StopInfo>} [schedule]
+ * @property {Number|String} [direction]
+ * @property {String?} [trainNo]
+ * @property {String?} [category]
+ */
+/**
+ *
+ * @param {RawTrainInfoDetail} rawData
+ * @constructor
+ */
+function Util_toTrainInfoDetailResponse(rawData) {
+    const schedule = rawData.schedule
+    if (!schedule) {
+        console.warn('Schedule can not be empty', rawData)
+        return null
+    }
+    return {}
 }
