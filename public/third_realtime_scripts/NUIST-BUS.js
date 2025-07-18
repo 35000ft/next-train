@@ -114,6 +114,11 @@ THIRD_ROUTE_PATH_MAP.set('CIRCLE', circleRoutePath)
 const THIRD_VehicleInfoMap = new Map()
 const THIRD_TrainInfoMap = new Map()
 
+const __STOP_TIME__ = {
+    '东苑南门': 120,
+    '西苑食堂': 120,
+}
+
 // 对路线进行插值
 function densifyRoute(routePath, segmentLength = 5) {
     const lineCoords = routePath.map(p => [p.lng, p.lat])
@@ -242,55 +247,61 @@ function calculateDistanceOnLoop(vehicle, station, linePath, lineInfo) {
 
 // 初始化车辆信息 主要是判断上下行 需要通过看前后两次信息的位置变化进行判断
 function initVehicleInfo(preVehicleInfo, currentVehicleInfo, routePath) {
+    if (!currentVehicleInfo) {
+        console.warn('currentVehicleInfo不能为空',)
+        return null
+    }
     if (isNaN(Number(currentVehicleInfo?.mlng)) || isNaN(Number(currentVehicleInfo?.mlat))) {
         console.warn('车辆坐标异常', currentVehicleInfo)
         return null
     }
-    if (!preVehicleInfo || !currentVehicleInfo) {
-        return currentVehicleInfo
-    }
     const linePath = turf.lineString(routePath.map(p => [p.lng, p.lat]))
-    if (!preVehicleInfo?.geoPoint) {
-        preVehicleInfo.geoPoint = turf.point(coordtransform.gcj02towgs84(Number(preVehicleInfo.mlng), Number(preVehicleInfo.mlat)))
-        preVehicleInfo.geoPointOnLine = turf.nearestPointOnLine(linePath, preVehicleInfo.geoPoint)
-    }
     const curPoint = turf.point(coordtransform.gcj02towgs84(Number(currentVehicleInfo?.mlng), Number(currentVehicleInfo?.mlat)));
     currentVehicleInfo.geoPoint = curPoint
     currentVehicleInfo.geoPointOnLine = turf.nearestPointOnLine(linePath, curPoint)
 
-    const preOnLine = preVehicleInfo.geoPointOnLine
     const curOnLine = currentVehicleInfo.geoPointOnLine
-
     const distanceInMeters = turf.distance(curPoint, curOnLine, {units: 'meters'});
     const bearing = turf.bearing(curOnLine, curOnLine)
     console.log('车辆位置', JSON.stringify(currentVehicleInfo.geoPoint?.geometry?.coordinates),
         '线上点位:' + JSON.stringify(curOnLine.geometry?.coordinates), '离线上最近的点距离:', distanceInMeters, '方向', bearing)
 
-    const startPoint = turf.point([routePath[0].lng, routePath[0].lat])
-    // 计算距离起点的距离（单位：米）
-    const preDist = turf.length(turf.lineSlice(startPoint, preOnLine, linePath), {units: 'meters'});
-    const curDist = turf.length(turf.lineSlice(startPoint, curOnLine, linePath), {units: 'meters'});
-    currentVehicleInfo.stop = preDist === curDist || preVehicleInfo.ps === currentVehicleInfo.ps;
-    if (preDist === curDist && !isNaN(Number(currentVehicleInfo?.hx))) {
-        currentVehicleInfo.stop = true
+    if (!preVehicleInfo) {
         currentVehicleInfo.direction = calcTrainDirectionByHx(currentVehicleInfo, curOnLine, routePath)
     } else {
-        currentVehicleInfo.stop = false
-        const isDownward = curDist > preDist;
-        // 判断车辆沿路线是上行还是下行
-        const d = isDownward ? 'down' : 'up'
-        if (typeof currentVehicleInfo.direction === "string" && d !== currentVehicleInfo.direction) {
-            currentVehicleInfo.suspectedDirection = d
+        preVehicleInfo.geoPoint = turf.point(coordtransform.gcj02towgs84(Number(preVehicleInfo.mlng), Number(preVehicleInfo.mlat)))
+        preVehicleInfo.geoPointOnLine = turf.nearestPointOnLine(linePath, preVehicleInfo.geoPoint)
+
+        const preOnLine = preVehicleInfo.geoPointOnLine
+        const startPoint = turf.point([routePath[0].lng, routePath[0].lat])
+
+        // 计算距离起点的距离（单位：米）
+        const preDist = turf.length(turf.lineSlice(startPoint, preOnLine, linePath), {units: 'meters'});
+        const curDist = turf.length(turf.lineSlice(startPoint, curOnLine, linePath), {units: 'meters'});
+
+        if (preDist === curDist && !isNaN(Number(currentVehicleInfo?.hx))) {
+            currentVehicleInfo.stop = true
+            currentVehicleInfo.direction = calcTrainDirectionByHx(currentVehicleInfo, curOnLine, routePath)
         } else {
-            currentVehicleInfo.direction = d
+            currentVehicleInfo.stop = false
+            const isDownward = curDist > preDist;
+            // 判断车辆沿路线是上行还是下行
+            const d = isDownward ? 'down' : 'up'
+            if (typeof currentVehicleInfo.direction === "string" && d !== currentVehicleInfo.direction) {
+                currentVehicleInfo.suspectedDirection = d
+            } else {
+                currentVehicleInfo.direction = d
+            }
+            //连续两次计算得出的方向一致 则更新方向
+            if (typeof currentVehicleInfo.suspectedDirection) {
+                currentVehicleInfo.suspectedDirection = null
+                currentVehicleInfo.direction = d
+            }
+            console.log('通过位置变化判断 车辆:', currentVehicleInfo.vid, '运行方向为:', currentVehicleInfo.direction)
         }
-        //连续两次计算得出的方向一致 则更新方向
-        if (typeof currentVehicleInfo.suspectedDirection) {
-            currentVehicleInfo.suspectedDirection = null
-            currentVehicleInfo.direction = d
-        }
-        console.log('通过位置变化判断 车辆:', currentVehicleInfo.vid, '运行方向为:', currentVehicleInfo.direction)
     }
+
+
     return currentVehicleInfo
 }
 
@@ -336,37 +347,21 @@ async function Third_FetchStationTrain(line, station) {
     if (onlineBuses.length === 0) {
         return []
     }
-    let hasNewOnlineBus = false
     for (let x of onlineBuses) {
-        if (THIRD_VehicleInfoMap.has(x.id)) {
-            const vehicleInfo = initVehicleInfo(THIRD_VehicleInfoMap.get(x.id), x, circleRoutePath)
-            if (vehicleInfo && line && station) {
-                THIRD_VehicleInfoMap.set(x.id, vehicleInfo)
-                const t = calcTrainInfo(vehicleInfo, line, station, linePath)
-                if (t) {
-                    trains.push(t)
-                }
+        const vehicleInfo = initVehicleInfo(THIRD_VehicleInfoMap.get(x.id), x, circleRoutePath)
+        if (vehicleInfo && line && station) {
+            THIRD_VehicleInfoMap.set(x.id, vehicleInfo)
+            const t = calcTrainInfo(vehicleInfo, line, station, linePath)
+            if (t) {
+                trains.push(t)
             }
-        } else {
-            hasNewOnlineBus = true
-            THIRD_VehicleInfoMap.set(x.id, x)
         }
-    }
-    // 有新上线的车 需要再fetch一次车辆
-    if (hasNewOnlineBus) {
-        await new Promise((resolve) => setTimeout(resolve, 5000))
-        return Third_FetchStationTrain(line, station)
     }
 
     if (trains.length > 0) {
         THIRD_VehicleInfoMap.set(queryKey, trains)
     }
     return trains
-}
-
-const __STOP_TIME__ = {
-    '东苑南门': 120,
-    '西苑食堂': 120,
 }
 
 /**
