@@ -1,3 +1,22 @@
+/**
+ * 获取指定时区的格式化时间字符串。
+ *
+ * @function Util_getTimeInTimeZone
+ * @param {string} timeZone - 时区名称（如 'Asia/Shanghai', 'UTC', 'America/New_York'）。
+ * @param {Date} [date=new Date()] - 要格式化的日期对象，默认为当前时间。
+ * @param {string} [format='YYYY-MM-DD HH:mm:ss'] - 时间格式模板。支持占位符：
+ *   - YYYY: 年
+ *   - MM: 月（两位）
+ *   - DD: 日（两位）
+ *   - HH: 小时（24小时制，两位）
+ *   - mm: 分钟（两位）
+ *   - ss: 秒（两位）
+ * @returns {string} 指定格式的时间字符串（对应时区）。
+ *
+ * @example
+ * Util_getTimeInTimeZone('Asia/Shanghai'); // '2025-07-17 14:30:45'
+ * Util_getTimeInTimeZone('UTC', new Date(), 'YYYY-MM-DDTHH:mm:ss'); // '2025-07-17T06:30:45'
+ */
 function Util_getTimeInTimeZone(timeZone, date = new Date(), format = 'YYYY-MM-DD HH:mm:ss') {
     const options = {
         timeZone,

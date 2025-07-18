@@ -15,7 +15,7 @@
                         @input="onSearch"
                     />
                 </div>
-                <div class="col-1" style="text-align: right;">
+                <div style="text-align: right;" class="col-5">
                     <div class="q-pa-md col"
                          style="display: inline-block;padding-left: 0;padding-right: 0;">
                         <q-btn-dropdown color="primary" icon="language" label="" unelevated padding="0">
@@ -31,8 +31,6 @@
                             </q-list>
                         </q-btn-dropdown>
                     </div>
-                </div>
-                <div style="text-align: right;" class="col-4">
                     <q-btn flat :label="currentRailSystem.name" class="text-white"
                            @click="handleClickSelectRailSystem"
                            style="font-size: 20px;font-weight:bold;padding-right: 5px;"/>

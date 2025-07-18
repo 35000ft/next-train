@@ -63,7 +63,8 @@ const trainCategories = computed(() => {
 })
 const arriveSeconds = computed(() => {
     const _ = props.trainData.updateTime
-    return diffFromNow(props.trainData.arr, 'second')
+    const timezone = props.station?.timezone
+    return diffFromNow(props.trainData.arr, 'second', timezone)
 })
 const emit = defineEmits(['showTrainDetail'])
 const handleShowTrainDetail = () => {
