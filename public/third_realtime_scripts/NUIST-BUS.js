@@ -152,6 +152,7 @@ async function intiJSession() {
         password: "guzhb791126"
     });
     const url = `http://47.96.16.23:8080/StandardApiAction_login.action?${params.toString()}`
+    isLoadingJSession = true
     try {
         const result = await Util_fetchThroughAllOrigins(url)
         const jsession = result?.jsession;
@@ -164,10 +165,13 @@ async function intiJSession() {
     } catch (error) {
         console.error("NUIST小公交实时初始化失败: 获取 jsession 出错：", error);
         return null;
+    } finally {
+        isLoadingJSession = false
     }
 }
 
 let __NUIST__JSession;
+let isLoadingJSession = false
 intiJSession().then(jsession => {
     circleRoutePath = densifyRoute(circleRoutePath, 5)
 })
@@ -314,9 +318,13 @@ async function Third_FetchStationTrain(line, station) {
     const vehicleNoList = [
         'NXD1', 'NXD2', 'NXD3', 'NXD5', 'NXD6', 'NXD7', 'NXD8', 'NXD9', 'NXD10', 'NXD11', 'NXD12', 'NXD13'
     ]
-    if (!__NUIST__JSession) {
+    while (!__NUIST__JSession) {
         console.warn('JSession is not loaded, waiting')
-        await new Promise((resolve) => setTimeout(resolve, 2000))
+        if (isLoadingJSession) {
+            await new Promise((resolve) => setTimeout(resolve, 2000))
+        } else {
+            await intiJSession()
+        }
     }
     const params = new URLSearchParams({
         jsession: __NUIST__JSession,
