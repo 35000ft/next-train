@@ -1,3 +1,6 @@
+COMMIT_SHA=$1
+echo "Current Commit SHA: $COMMIT_SHA"
+
 cd /usr/
 cd /home/ubuntu/projects/next-train
 git checkout quasar-dev

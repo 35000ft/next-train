@@ -24,4 +24,5 @@ jobs:
 
             -   name: Run deploy script on remote server
                 run: |
-                    ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_ACCOUNT }} 'bash -s' < .github/scripts/deploy.sh
+                    ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_ACCOUNT }} \
+                      'bash -s' -- ${GITHUB_SHA} < .github/scripts/deploy.sh
