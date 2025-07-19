@@ -33,7 +33,7 @@
                     </div>
                     <q-btn flat :label="currentRailSystem.name" class="text-white"
                            @click="handleClickSelectRailSystem"
-                           style="font-size: 20px;font-weight:bold;padding-right: 5px;"/>
+                           style="font-size: 20px;font-weight:bold;"/>
                 </div>
             </div>
         </q-toolbar>
