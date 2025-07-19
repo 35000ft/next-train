@@ -106,10 +106,25 @@ async function Util_fetchThroughAllOrigins(url, options) {
  * @constructor
  */
 function Util_toTrainInfoDetailResponse(rawData) {
-    const schedule = rawData.schedule
-    if (!schedule) {
-        console.warn('Schedule can not be empty', rawData)
-        return null
+    let direction
+
+    if (rawData.direction === 'down') {
+        direction = 0
+    } else if (rawData.direction === 'up') {
+        direction = 1
+    } else if (rawData.direction === 0) {
+        direction = 0
+    } else if (rawData.direction === 1) {
+        direction = 1
+    } else {
+        console.warn('direction is invalid', rawData)
+        throw new Error("direction is invalid")
     }
-    return {}
+    return {
+        id: rawData.id,
+        trainNo: rawData.trainNo,
+        schedule: rawData.schedule,
+        direction: direction,
+        category: rawData?.category || 'LOCAL',
+    }
 }

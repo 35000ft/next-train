@@ -331,6 +331,7 @@ async function Third_FetchStationTrain(line, station) {
         vehiIdno: vehicleNoList.join(','),
         toMap: 1,
     });
+    const fetchTime = Date.now()
     const url = `http://47.96.16.23:8080/StandardApiAction_getDeviceStatus.action?${params.toString()}`
     try {
         data = await Util_fetchThroughAllOrigins(url, {parseToJson: true, noCache: true})
@@ -358,6 +359,7 @@ async function Third_FetchStationTrain(line, station) {
     for (let x of onlineBuses) {
         const vehicleInfo = initVehicleInfo(THIRD_VehicleInfoMap.get(x.id), x, circleRoutePath)
         if (vehicleInfo && line && station) {
+            vehicleInfo.fetchTime = fetchTime
             THIRD_VehicleInfoMap.set(x.id, vehicleInfo)
             const t = calcTrainInfo(vehicleInfo, line, station, linePath)
             if (t) {
@@ -421,6 +423,9 @@ function calcETA(targetStation, vehicleInfo, relativeDist, absoluteDist, stops,)
     const targetStopIndex = stops.findIndex(it => it.station.id === targetStation.id)
     const remainStops = targetStopIndex + 1
     let totalTime = 0
+    // 当前时间与获取时的时间的时间差
+    const timeLag = vehicleInfo.fetchTime ? (Date.now() - vehicleInfo.fetchTime) / 1000 : 0
+
     for (let i = 0; i <= targetStopIndex; i++) {
         const currentStop = stops[i]
         let distance = currentStop.relativeDist
@@ -429,7 +434,7 @@ function calcETA(targetStation, vehicleInfo, relativeDist, absoluteDist, stops,)
             distance = distance - preStop.relativeDist
         }
         const sec = estimateSegmentTime(distance, 25 / 3.6, 1.0)
-        totalTime += sec
+        totalTime += sec - timeLag
         if (i < targetStopIndex) {
             //TODO 停站时间 改为模型计算
             const stopTime = __STOP_TIME__[currentStop.station.name] || 30
@@ -454,7 +459,6 @@ function calcTrainInfo(vehicleInfo, line, station, linePath) {
         relativeDist,
         stops,
     } = calculateDistanceOnLoop(vehicleInfo, station, linePath, line)
-
     const trainSchedule = []
     for (let s of stops) {
         const {
@@ -476,7 +480,6 @@ function calcTrainInfo(vehicleInfo, line, station, linePath) {
         trainNo: vehicleInfo.vid,
         category: 'LOCAL',
     })
-
     const {
         arrTime,
         depTime,
