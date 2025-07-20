@@ -128,8 +128,12 @@
                                      :key="index">
                                     <div class="col-4 grey-border-bottom">
                                         <span class="show-text-in-2-line station-name"
+                                              style="align-items: center;display: flex;justify-content: center;"
                                               @click="handleClickStationName(stop.stationId)">
-                                            {{ stop.stationName }}
+                                            <span>{{ stop.stationName }}</span>
+                                            <q-icon v-show="stop.stationId" name="fa-solid fa-circle-chevron-right"
+                                                    style="margin-left: 2px;"
+                                                    size="small"/>
                                         </span>
                                     </div>
                                     <div class="col-2"
