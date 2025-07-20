@@ -15,7 +15,7 @@
                         @input="onSearch"
                     />
                 </div>
-                <div class="col-5">
+                <div class="col-5" style="text-align: right;">
                     <div class="q-pa-md col"
                          style="display: inline-block;padding-left: 0;padding-right: 0;">
                         <q-btn-dropdown color="primary" icon="language" label="" unelevated padding="0">
