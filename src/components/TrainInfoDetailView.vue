@@ -295,6 +295,7 @@ const calcSchedule = (_trainInfo) => {
             it.lineId = lineMap.get(index)
         }))
         _schedule[_schedule.length - 1].depStr = '--:--'
+        console.log('scc', _schedule)
         return _schedule
     }
     return []

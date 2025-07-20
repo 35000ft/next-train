@@ -1,6 +1,6 @@
 import {
     diff,
-    diffFromNow,
+    diffFromNow, formatToHHMM,
     parseTimezoneOffset,
     secondsToHHMM,
     toDayjs,
@@ -160,6 +160,8 @@ const thirdTrainScheduleParser = (schedule, timezone) => {
                 stationName: it.stationName,
                 arr: toDayjs(it.arrTime, timezone),
                 dep: toDayjs(it.depTime, timezone),
+                arrStr: formatToHHMM(it.arrTime),
+                depStr: formatToHHMM(it.depTime),
                 platform: it?.platform,
             }
         })
