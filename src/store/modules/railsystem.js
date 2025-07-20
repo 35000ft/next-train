@@ -4,62 +4,35 @@ import {
     fetchDrawLineTemplate,
     fetchGraph,
     fetchLine,
-    fetchLines, fetchRailsystem,
+    fetchLines,
+    fetchRailsystem,
     fetchShowLineCanvasConfig,
     fetchStation,
     fetchStations,
-    fetchTransfers
+    fetchTransfers,
+    listRailsystem
 } from "src/apis/railsystem";
 
 const LOCAL_STORAGE_KEYS = {
-    CURRENT_RAILSYSTEM: 'RAILSYSTEM_CODE',
+    CURRENT_RAILSYSTEM: 'CURRENT_RAILSYSTEM',
 }
-const railSystems = {
-    'NJMTR': {
-        name: '南京',
-        city: '南京',
-        code: 'NJMTR',
-        lang: 'zh-hans',
-        fullname: '南京地铁',
-        timezone: '+08:00',
-        ownerId: 1,
-        defaultStationId: "13"
-    },
-    'HKMTR': {
-        name: '香港',
-        city: '香港',
-        code: 'HKMTR',
-        lang: 'zh-hant',
-        fullname: '香港地铁',
-        timezone: '+08:00',
-        ownerId: 0,
-        defaultStationId: "2676"
-    },
-    'NUIST-BUS': {
-        name: '信大小公交',
-        city: '南京',
-        code: 'NUIST-BUS',
-        lang: 'zh-hans',
-        fullname: '南信大校园小公交',
-        timezone: '+08:00',
-        ownerId: 0,
-        defaultStationId: "2773"
-    },
+const defaultRailSystems = {
+    name: '南京',
+    city: '南京',
+    code: 'NJMTR',
+    lang: 'zh-hans',
+    fullname: '南京地铁',
+    timezone: '+08:00',
+    ownerId: 1,
+    defaultStationId: "13"
 }
-const defaultSystemCode = (function () {
-    const storageCode = localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM)
-    if (storageCode && railSystems[storageCode]) {
-        return storageCode
+const currentRailsystem = (function () {
+    const currentRailsystem = localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM)
+    if (!currentRailsystem) {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, JSON.stringify(defaultRailSystems))
+        return defaultRailSystems
     }
-    const langMap = {
-        'zh-HK': 'HKMTR'
-    }
-    if (langMap[navigator.language]) {
-        localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, langMap[navigator.language])
-        return langMap[navigator.language]
-    }
-    localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, 'NJMTR')
-    return 'NJMTR'
+    return JSON.parse(currentRailsystem)
 })()
 
 const publicPath = process.env.PUBLIC_URL || '/';
@@ -81,11 +54,10 @@ const onChangeRailsystem = async (railsystem) => {
         document.head.appendChild(script);
     }
 }
-onChangeRailsystem(railSystems[defaultSystemCode]).then(_ => _)
-
+onChangeRailsystem(currentRailsystem).then(_ => _)
 const state = {
-    currentRailSystem: railSystems[defaultSystemCode],
-    railSystems: reactive(new Map(Object.entries(railSystems))),
+    currentRailSystem: currentRailsystem,
+    railSystems: reactive(new Map([[currentRailsystem.code, currentRailsystem]])),
     stations: reactive(new LRUCache(100)),
     lines: reactive(new LRUCache(50)),
     transferInfoMap: reactive(new LRUCache(5)),
@@ -95,7 +67,7 @@ const state = {
 const mutations = {
     SET_RAIL_SYSTEM_LINES(state, {railsystemCode, lines}) {
         const railsystem = state.railSystems.get(railsystemCode)
-        if (!railsystemCode) {
+        if (!railsystem || !railsystemCode) {
             console.warn(`Set railsystem lines err, railsystem:${railsystemCode} dones exist`)
             return
         }
@@ -116,12 +88,10 @@ const mutations = {
             state.railSystems.set(railsystem.id, railsystem)
         }
     },
-    SET_CURRENT_RAILSYSTEM(state, {code}) {
-        if (railSystems[code]) {
-            state.currentRailSystem = railSystems[code]
-            onChangeRailsystem(railSystems[code]).then(_ => _)
-            localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, code)
-        }
+    SET_CURRENT_RAILSYSTEM(state, {railsystem}) {
+        state.currentRailSystem = railsystem
+        onChangeRailsystem(railsystem).then(_ => _)
+        localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, JSON.stringify(railsystem))
     },
     SET_LINE_STATIONS(state, {lineId, stations}) {
         if (state.lines.has(lineId)) {
@@ -283,8 +253,26 @@ const actions = {
         commit('SET_LINE_STATIONS', {lineId, stations: _stations})
         return _stations
     },
-    async getRailSystems({state, commit, getters}) {
-        return Array.from(toRaw(state.railSystems).values())
+    async getRailSystems({state, commit}) {
+        if (state.railSystems && state.railSystems.length > 1) {
+            return Array.from(toRaw(state.railSystems).values())
+        }
+        try {
+            const railSystems = await listRailsystem()
+            const flatted = railSystems.map(it => {
+                if (it.extra && typeof it.extra === 'object') {
+                    const newItem = {...it, ...it.extra}
+                    delete newItem.extra
+                    return newItem
+                }
+                return it
+            })
+            flatted.forEach(it => commit('SET_RAILSYSTEM', {railsystem: it}))
+            return flatted
+        } catch (e) {
+            console.warn('Fail to get railsystem list', e)
+            return Promise.reject('获取线网列表失败')
+        }
     },
     /**
      * 获取线网的所有线路信息

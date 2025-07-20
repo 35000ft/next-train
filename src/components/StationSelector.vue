@@ -155,8 +155,10 @@ export default defineComponent({
         watch(currentSearchGroup, (newVal, oldValue) => {
             handleChangeSearchGroup(newVal)
         })
-        onMounted(() => {
-            init()
+        watch(display, (newVal, oldVal) => {
+            if (newVal) {
+                init()
+            }
         })
 
         const handleSearch = _.debounce(_keyword => {

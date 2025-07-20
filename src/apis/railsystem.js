@@ -19,10 +19,7 @@ export async function fetchStations(railsystemCode, update = false) {
             setCache(cacheKey, 86400 * 1000)
             return res.data.data || res.data
         })
-        .catch(err => {
-            console.log('err', err)
-            return Promise.reject(err)
-        })
+        .catch(err => Promise.reject(err))
 }
 
 export async function fetchLines(railsystemCode, update = false) {
@@ -36,9 +33,7 @@ export async function fetchLines(railsystemCode, update = false) {
         setCache(cacheKey, 86400 * 1000)
         return res.data.data || res.data
     })
-        .catch(err => {
-            return Promise.reject(err)
-        })
+        .catch(err => Promise.reject(err))
 }
 
 export async function fetchRailsystem(railsystemCode, update = false) {
@@ -50,10 +45,17 @@ export async function fetchRailsystem(railsystemCode, update = false) {
         }
     })
         .then(res => res.data.data || res.data)
-        .catch(err => {
-            return Promise.reject(err)
-        })
+        .catch(err => Promise.reject(err))
 }
+
+export async function listRailsystem() {
+    const url = `api/metro-realtime/query/railsystem/list`
+    return await axios.get(url)
+        .then(res => res.data.data || res.data)
+        .catch(err => Promise.reject(err)
+        )
+}
+
 
 /**
  * Fetch line by id
@@ -73,9 +75,7 @@ export async function fetchLine(lineId, update = false) {
             setCache(cacheKey, 86400 * 1000)
             return res.data.data || res.data
         })
-        .catch(err => {
-            return Promise.reject(err)
-        })
+        .catch(err => Promise.reject(err))
 }
 
 export async function fetchStation(stationId, update = false) {
@@ -91,9 +91,7 @@ export async function fetchStation(stationId, update = false) {
             setCache(cacheKey, 86400 * 1000)
             return res.data.data || res.data
         })
-        .catch(err => {
-            return Promise.reject(err)
-        })
+        .catch(err => Promise.reject(err))
 }
 
 export async function fetchGraph(railsystemCode, update = false) {
@@ -103,9 +101,7 @@ export async function fetchGraph(railsystemCode, update = false) {
         .then(res => {
             return res.data.data || res.data
         })
-        .catch(err => {
-            return Promise.reject(err)
-        })
+        .catch(err => Promise.reject(err))
 }
 
 export async function fetchTransfers(railsystemCode, update = false) {

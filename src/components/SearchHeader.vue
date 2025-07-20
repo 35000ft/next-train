@@ -31,7 +31,7 @@
                             </q-list>
                         </q-btn-dropdown>
                     </div>
-                    <q-btn flat :label="currentRailSystem.name" class="text-white"
+                    <q-btn flat :label="currentRailSystem.abbrName" class="text-white"
                            @click="handleClickSelectRailSystem"
                            style="font-size: 20px;font-weight:bold;padding-right: 1px;"/>
                 </div>
@@ -85,7 +85,7 @@ const handleSelectRailSystem = async (railsystem) => {
     if (!railsystem) {
         return
     }
-    store.commit('railsystem/SET_CURRENT_RAILSYSTEM', {code: railsystem?.code})
+    store.commit('railsystem/SET_CURRENT_RAILSYSTEM', {railsystem: railsystem})
     const station = await store.dispatch('railsystem/getStation', {stationId: railsystem.defaultStationId})
     if (station) {
         store.commit('preference/SET_CURRENT_STATION', {station})
