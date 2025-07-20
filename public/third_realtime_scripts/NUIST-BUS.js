@@ -340,13 +340,13 @@ async function Third_FetchStationTrain(line, station) {
         }
     } catch (e) {
         console.warn('Fetch bus error', e)
-        if (THIRD_TrainInfoMap.has(queryKey)) {
-            return THIRD_TrainInfoMap.get(queryKey)
-        }
         if (__NUIST__JSession) {
             console.log('Try to renew JSession')
             await intiJSession()
             return Promise.reject('Try again')
+        }
+        if (THIRD_TrainInfoMap.has(queryKey)) {
+            return THIRD_TrainInfoMap.get(queryKey)
         }
     }
     const linePath = turf.lineString(circleRoutePath.map(p => [p.lng, p.lat]))
@@ -369,9 +369,18 @@ async function Third_FetchStationTrain(line, station) {
     }
 
     if (trains.length > 0) {
-        THIRD_VehicleInfoMap.set(queryKey, trains)
+        THIRD_TrainInfoMap.set(queryKey, trains)
     }
     return trains
+}
+
+async function Third_FetchTrainInfoById(trainInfoId) {
+    const rawId = trainInfoId.split('@')[2]
+    if (!rawId) {
+        return Promise.reject(`车次id错误:${trainInfoId}`)
+    }
+    const vehicle = THIRD_VehicleInfoMap.get(rawId)
+    return vehicle.trainInfo
 }
 
 /**
@@ -479,7 +488,12 @@ function calcTrainInfo(vehicleInfo, line, station, linePath) {
         direction: vehicleInfo.direction,
         trainNo: vehicleInfo.vid,
         category: 'LOCAL',
-    })
+        trainVia: [{
+            fromIndex: 0,
+            toIndex: trainSchedule.length - 1,
+            lineId: line.id,
+        }]
+    }, 'NUIST-BUS')
     const {
         arrTime,
         depTime,
@@ -508,11 +522,11 @@ function calcTrainInfo(vehicleInfo, line, station, linePath) {
     const direction = vehicleInfo.direction === 'down' ? 0 : 1
 
     return {
+        "id": Util_generateTrainInfoId('NUIST-BUS', vehicleInfo.id),
         "arr": arrTime,
         "dep": depTime,
         "trainDate": depTime.slice(0, 10),
         "category": 'LOCAL',
-        "id": vehicleInfo.id,
         "trainInfoId": vehicleInfo.id,
         "trainCode": vehicleInfo?.vid,
         "isLastStop": false,
