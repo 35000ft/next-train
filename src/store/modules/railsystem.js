@@ -17,8 +17,7 @@ const LOCAL_STORAGE_KEYS = {
     CURRENT_RAILSYSTEM: 'CURRENT_RAILSYSTEM',
 }
 const defaultRailSystems = {
-    name: '南京',
-    city: '南京',
+    abbrName: '南京',
     code: 'NJMTR',
     lang: 'zh-hans',
     fullname: '南京地铁',
@@ -37,13 +36,13 @@ const currentRailsystem = (function () {
 
 const publicPath = process.env.PUBLIC_URL || '/';
 const onChangeRailsystem = async (railsystem) => {
-    if (railsystem?.ownerId === 0) {
+    if (railsystem?.isThirdParty && railsystem.realtimeScriptUrl) {
         const scriptNodeName = 'third_realtime_script'
         const existedScript = document.querySelector(`script[data-node-name="${scriptNodeName}"]`)
         if (existedScript) {
             document.head.removeChild(existedScript)
         }
-        const scriptUrl = `${publicPath}third_realtime_scripts/${railsystem.code}.js`
+        const scriptUrl = `${publicPath}${railsystem.realtimeScriptUrl}`
         const script = document.createElement('script');
         script.setAttribute('data-node-name', scriptNodeName)
         script.src = scriptUrl;
