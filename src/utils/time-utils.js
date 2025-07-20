@@ -3,6 +3,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import {localHostList} from "@quasar/app-vite/lib/helpers/net";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -157,7 +158,7 @@ export function diff(d1, d2, unit = 'second') {
     return d1UTC.diff(d2UTC, unit);
 }
 
-function parseTimezoneOffset(offset) {
+export function parseTimezoneOffset(offset) {
     // 匹配时区偏移字符串（例如 +0800, -0500）
     const match = offset.match(/^([+-])(\d{2}):?(\d{2})$/);
 
@@ -257,6 +258,7 @@ export function toDayjs(_date, timezone = null) {
         }
         return dayjs(_date)
     }
+
     if (_date instanceof Date) {
         return dayjs(_date)
     }
@@ -265,6 +267,23 @@ export function toDayjs(_date, timezone = null) {
     }
     console.warn(`${_date} is neither not string, nor Date, Dayjs!`)
     return null
+}
+
+/**
+ *
+ * @param _date 2024-01-01
+ * @param seconds 65400
+ * @param timezone +08:00
+ */
+export function toDayjsBySecondsOfDay(_date, seconds, timezone) {
+    // 计算小时、分钟、秒
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    // 构建完整时间字符串
+    const timeStr = `${_date}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}${timezone}`;
+    return dayjs(timeStr)
 }
 
 /**
@@ -313,6 +332,17 @@ export function formatToHHMM(_date) {
 
     // 格式化为 HH:MM
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+export function secondsToHHMM(secondsOfDay) {
+    secondsOfDay = secondsOfDay % 86400; // 限制在一天内
+    let totalMinutes = Math.round(secondsOfDay / 60); // 秒四舍五入成分钟
+    let hours = Math.floor(totalMinutes / 60);
+    let minutes = totalMinutes % 60;
+
+    const hh = String(hours).padStart(2, '0');
+    const mm = String(minutes).padStart(2, '0');
+    return `${hh}:${mm}`;
 }
 
 function timeStringToMinutes(timeStr) {

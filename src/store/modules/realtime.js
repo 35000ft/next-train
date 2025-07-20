@@ -268,12 +268,12 @@ const actions = {
                     return Promise.reject("No such trainInfo. id:" + trainInfoId)
                 }
                 trainInfo.trainVia = trainLineOfStopParser(trainInfo)
+                const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
                 if (!date) {
-                    const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
                     const nowTime = (railsystem && this.getters['application/getNowTime'](railsystem.timezone)) || dayjs()
                     date = nowTime.format('YYYY-MM-DD')
                 }
-                trainInfo.schedule = trainScheduleParser(trainInfo.schedule, date)
+                trainInfo.schedule = trainScheduleParser(trainInfo.schedule, date, railsystem.timezone)
             }
             commit('SET_TRAININFO', {trainInfo, trainInfoId})
         }

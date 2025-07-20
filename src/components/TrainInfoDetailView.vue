@@ -255,7 +255,6 @@ const currentInterval = computed(() => {
 })
 const schedule = computed(() => {
     if (trainInfo.value) {
-        console.log('trainInfff', trainInfo.value)
         return calcSchedule(trainInfo.value)
     }
     return []
@@ -294,10 +293,7 @@ const calcSchedule = (_trainInfo) => {
         }, new Map());
         _schedule.forEach(((it, index) => {
             it.lineId = lineMap.get(index)
-            it.arrStr = formatToHHMM(it.arr.toDate())
-            it.depStr = formatToHHMM(it.dep.toDate())
         }))
-        console.log('_sss', _schedule)
         _schedule[_schedule.length - 1].depStr = '--:--'
         return _schedule
     }
