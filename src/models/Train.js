@@ -1,4 +1,4 @@
-import {diff, diffFromNow} from "src/utils/time-utils";
+import {diff, diffFromNow, toDayjs} from "src/utils/time-utils";
 import dayjs from "dayjs";
 
 const TRAIN_CATEGORY = {
@@ -140,6 +140,22 @@ const trainScheduleParser = (schedule, date) => {
     }
     return []
 }
+
+const thirdTrainScheduleParser = (schedule, timezone) => {
+    if (schedule) {
+        return schedule.map(it => {
+            return {
+                stationId: it.stationId,
+                stationName: it.stationName,
+                arr: toDayjs(it.arrTime, timezone),
+                dep: toDayjs(it.depTime, timezone),
+                platform: it?.platform,
+            }
+        })
+    }
+    return []
+}
+
 /**
  *
  * @param {Object}trainInfo
@@ -213,5 +229,6 @@ export {
     stopInfoParse,
     categoryParser,
     trainLineOfStopParser,
-    trainScheduleParser
+    trainScheduleParser,
+    thirdTrainScheduleParser,
 }

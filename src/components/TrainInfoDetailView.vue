@@ -293,6 +293,7 @@ const calcSchedule = (_trainInfo) => {
             it.arrStr = formatToHHMM(it.arr.toDate())
             it.depStr = formatToHHMM(it.dep.toDate())
         }))
+        console.log('_sss', _schedule)
         _schedule[_schedule.length - 1].depStr = '--:--'
         return _schedule
     }

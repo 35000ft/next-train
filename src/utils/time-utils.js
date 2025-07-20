@@ -129,7 +129,7 @@ export function isBeforeNow(_date, timezone) {
  * @return {boolean}
  */
 export function hasTimezone(_date) {
-    const timezonePattern = /([+-]\d{4})$/;
+    const timezonePattern = /([+-]\d{2}:d\d{2})$/;
     return timezonePattern.test(_date)
 }
 
@@ -186,9 +186,9 @@ export function diffFromNow(d1, unit = 'second', timezone = '+00:00') {
         d1 = dayjs(d1).utc()
     } else {
         if (hasTimezone(d1)) {
-            d1 = dayjs(d1).utc(false)
+            d1 = toDayjs(d1)
         } else {
-            d1 = dayjs(d1).utcOffset(parseTimezoneOffset(timezone), true).utc()
+            d1 = toDayjs(d1, timezone)
         }
     }
     return diff(d1, now, unit)
@@ -240,14 +240,21 @@ export function fixedMins(seconds) {
 /**
  *
  * @param _date {Date|String|Dayjs}
+ * @param {String?}timezone
  * @returns {dayjs.Dayjs|null}
  */
-function toDayjs(_date) {
+export function toDayjs(_date, timezone = null) {
     if (!_date) {
         console.warn(`${_date} cannot be null`)
         return null
     }
     if (typeof _date === "string") {
+        if (hasTimezone(_date)) {
+            return dayjs(_date)
+        }
+        if (timezone) {
+            return dayjs(_date + timezone)
+        }
         return dayjs(_date)
     }
     if (_date instanceof Date) {

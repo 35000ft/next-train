@@ -99,13 +99,15 @@ async function Util_fetchThroughAllOrigins(url, options) {
  * @property {Number|String} [direction]
  * @property {String?} [trainNo]
  * @property {String?} [category]
+ * @property {Array} [trainVia]
  */
 /**
  *
  * @param {RawTrainInfoDetail} rawData
+ * @param {String} railsystemCode
  * @constructor
  */
-function Util_toTrainInfoDetailResponse(rawData) {
+function Util_toTrainInfoDetailResponse(rawData, railsystemCode) {
     let direction
 
     if (rawData.direction === 'down') {
@@ -121,10 +123,17 @@ function Util_toTrainInfoDetailResponse(rawData) {
         throw new Error("direction is invalid")
     }
     return {
-        id: rawData.id,
+        id: Util_generateTrainInfoId(railsystemCode, rawData.id),
         trainNo: rawData.trainNo,
         schedule: rawData.schedule,
         direction: direction,
         category: rawData?.category || 'LOCAL',
+        railsystemCode,
+        trainVia: rawData.trainVia,
     }
+}
+
+
+function Util_generateTrainInfoId(railsystemCode, rawId) {
+    return `THIRD@${railsystemCode}@${rawId}`
 }

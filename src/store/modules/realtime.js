@@ -1,10 +1,11 @@
 import dayjs from "dayjs";
 import LRU from "src/utils/LRU";
-import {trainScheduleParser, trainLineOfStopParser, stopInfoParse} from "src/models/Train";
+import {stopInfoParse, thirdTrainScheduleParser, trainLineOfStopParser, trainScheduleParser} from "src/models/Train";
 import {reactive} from "vue";
 import {diff, getNowByTimezone, isAfterNow, toLocalDatetime} from "src/utils/time-utils";
 import {
-    fetchLineOnServiceTrains, fetchOperationMsg,
+    fetchLineOnServiceTrains,
+    fetchOperationMsg,
     fetchScheduleHeader,
     fetchStationTrainInfo,
     fetchStationTrainInfoAtTime,
@@ -243,19 +244,37 @@ const actions = {
     async getTrainInfoById({commit, state,}, {trainInfoId, date}) {
         let trainInfo = state.trainInfoMap.get(trainInfoId);
         if (!trainInfo) {
-            trainInfo = await fetchTrainInfoById(trainInfoId)
-            if (!trainInfo) {
-                return Promise.reject("No such trainInfo. id:" + trainInfoId)
+            // 第三方车次
+            if (typeof trainInfoId === "string" && trainInfoId.startsWith('THIRD')) {
+                const functionName = 'Third_FetchTrainInfoById'
+                if (typeof window[functionName] === "function") {
+                    try {
+                        const thirdTrainInfo = await window[functionName](trainInfoId, date)
+                        if (!thirdTrainInfo) {
+                            return Promise.reject('车次不存在')
+                        }
+                        const railsystem = await this.dispatch("railsystem/getRailSystem", {code: thirdTrainInfo.railsystemCode})
+                        thirdTrainInfo.schedule = thirdTrainScheduleParser(thirdTrainInfo.schedule, railsystem.timezone)
+                        trainInfo = thirdTrainInfo
+                    } catch (e) {
+                        return Promise.reject('获取第三方车次详情失败')
+                    }
+                } else {
+                    return Promise.reject('该线网不支持查看车次详情')
+                }
+            } else {
+                trainInfo = await fetchTrainInfoById(trainInfoId)
+                if (!trainInfo) {
+                    return Promise.reject("No such trainInfo. id:" + trainInfoId)
+                }
+                trainInfo.trainVia = trainLineOfStopParser(trainInfo)
+                if (!date) {
+                    const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
+                    const nowTime = (railsystem && this.getters['application/getNowTime'](railsystem.timezone)) || dayjs()
+                    date = nowTime.format('YYYY-MM-DD')
+                }
+                trainInfo.schedule = trainScheduleParser(trainInfo.schedule, date)
             }
-            //TODO 待实现根据车次时刻表设置默认date设置
-            trainInfo.trainVia = trainLineOfStopParser(trainInfo)
-            if (!date) {
-                const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
-                console.log('rail', railsystem)
-                const nowTime = (railsystem && this.getters['application/getNowTime'](railsystem.timezone)) || dayjs()
-                date = nowTime.format('YYYY-MM-DD')
-            }
-            trainInfo.schedule = trainScheduleParser(trainInfo.schedule, date)
             commit('SET_TRAININFO', {trainInfo, trainInfoId})
         }
         if (trainInfo) {
