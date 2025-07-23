@@ -154,7 +154,7 @@ async function intiJSession() {
     const url = `http://47.96.16.23:8080/StandardApiAction_login.action?${params.toString()}`
     isLoadingJSession = true
     try {
-        const result = await Util_fetchThroughAllOrigins(url)
+        const result = await Util_fetchThroughAllOrigins(url, {authCode: '7356433c6fee2d5d5a1051ca748736a4'})
         const jsession = result?.jsession;
         if (!jsession) {
             throw new Error("未能从响应中获取到 jsession");
@@ -320,10 +320,9 @@ async function Third_FetchStationTrain(line, station) {
     ]
     while (!__NUIST__JSession) {
         console.warn('JSession is not loaded, waiting')
-        if (isLoadingJSession) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        if (!isLoadingJSession) {
             await new Promise((resolve) => setTimeout(resolve, 2000))
-        } else {
-            await intiJSession()
         }
     }
     const params = new URLSearchParams({
@@ -334,7 +333,11 @@ async function Third_FetchStationTrain(line, station) {
     const fetchTime = Date.now()
     const url = `http://47.96.16.23:8080/StandardApiAction_getDeviceStatus.action?${params.toString()}`
     try {
-        data = await Util_fetchThroughAllOrigins(url, {parseToJson: true, noCache: true})
+        data = await Util_fetchThroughAllOrigins(url, {
+            parseToJson: true,
+            noCache: true,
+            authCode: 'ee453754bc1c86855cb54423b5daf057'
+        })
         if (!data.status instanceof Array) {
             throw new Error("响应无车辆信息")
         }
