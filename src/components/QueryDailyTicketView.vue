@@ -63,7 +63,7 @@
 <script setup>
 import {ref} from "vue";
 import StationSelector from "components/StationSelector.vue";
-import {queryDailyTicket} from "src/apis/metro-trace";
+import {queryDailyTicket} from "src/apis/metro-utils";
 import {useStore} from "vuex";
 import {useThrottled} from "src/utils/common_utils";
 import {useQuasar} from "quasar";

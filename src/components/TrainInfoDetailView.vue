@@ -512,7 +512,7 @@ async function loadTrainInfo(_trainInfoId, trainDate) {
         return _trainInfo
     } catch (e) {
         console.warn('loadTrainInfo err:', e)
-        $q.notify.error(`Failed to get train info`)
+        $q.notify.error(e)
         return Promise.reject(e)
     } finally {
         if (trainInfoId.value === _trainInfoId) {

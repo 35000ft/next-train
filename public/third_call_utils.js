@@ -48,6 +48,7 @@ function Util_getTimeInTimeZone(timeZone, date = new Date(), format = 'YYYY-MM-D
  * @typedef {Object} FetchOptions
  * @property {boolean} [noCache] - 是否跳过缓存
  * @property {boolean} [parseToJson] - 是否将结果转换为 JSON 对象
+ * @property {String} [authCode] - url对应的授权码 一个url对应一个授权码
  */
 /**
  * 解决跨域、非HTTPS请求问题  ⚠ 仅限GET请求
@@ -57,8 +58,10 @@ function Util_getTimeInTimeZone(timeZone, date = new Date(), format = 'YYYY-MM-D
  * @constructor
  */
 async function Util_fetchThroughAllOrigins(url, options) {
-    const PROXY_URL_BASE = 'https://api.allorigins.win/get?url='
-    let proxyUrl = `${PROXY_URL_BASE}${encodeURIComponent(url)}`
+    // const proxySources = ['https://api.allorigins.win/get?url=', 'https://nmtr.online/api/metro-trace/common/proxy/get?url=']
+    const proxySources = ['https://nmtr.online/api/metro-trace/common/proxy/get?url=']
+    const PROXY_URL_BASE = proxySources[Math.floor(Math.random() * proxySources.length)];
+    let proxyUrl = `${PROXY_URL_BASE}${encodeURIComponent(url)}&auth_code=${options.authCode}`
     if (options?.noCache) {
         proxyUrl += `&t=${Date.now()}`
     }
