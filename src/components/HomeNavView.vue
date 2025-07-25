@@ -21,20 +21,21 @@
                 </q-card>
             </div>
 
-            <div class="middle-card">
-                <q-card class="my-card">
-                    <FocusTrainsView/>
-                </q-card>
-            </div>
-            <div class="middle-card">
-                <q-card class="my-card">
-                    <q-card-section>
-                        <FavouredStationListCard/>
-                    </q-card-section>
-                </q-card>
-            </div>
-
-            <div class="col-12" style="height: 55vh;">
+            <div style="min-height: 500px;max-width: 400px;width: 100%;z-index: 100;position: absolute;">
+                <div style="display: flex;justify-content: space-around;margin-bottom: 10px;">
+                    <div class="my-card middle-card">
+                        <q-card>
+                            <FocusTrainsView/>
+                        </q-card>
+                    </div>
+                    <div class="my-card middle-card">
+                        <q-card>
+                            <q-card-section>
+                                <FavouredStationListCard/>
+                            </q-card-section>
+                        </q-card>
+                    </div>
+                </div>
                 <q-card class="my-card full-height">
                     <q-card-section class="full-height" style="padding: 0;">
                         <StationRealtimeView :current-station-id-prop="currentStationId"
@@ -42,13 +43,17 @@
                     </q-card-section>
                 </q-card>
             </div>
+
+            <OpenStreetMap v-if="isWideScreen" style="width: 100%; height:100vh;position: fixed;z-index: 0"
+                           :center="mapProps.center" :point-name="mapProps.pointName"
+            />
         </div>
     </q-page-container>
 </template>
 
 <script setup>
 import SearchHeader from "components/SearchHeader.vue";
-import {computed, onMounted, ref} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";
@@ -56,10 +61,27 @@ import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
 import CurrentTrip from "components/CurrentTrip.vue";
 import LeftDrawer from "components/LeftDrawer.vue";
-
+import 'leaflet/dist/leaflet.css';
+import OpenStreetMap from "components/OpenStreetMap.vue";
 
 defineOptions({
     name: 'HomeView'
+})
+
+const isWideScreen = ref(window.innerWidth > 1024)
+const handleResize = () => {
+    isWideScreen.value = window.innerWidth > 1024
+}
+onMounted(() => {
+    init()
+})
+
+async function init() {
+    window.addEventListener('resize', handleResize)
+}
+
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', handleResize)
 })
 
 const store = useStore()
@@ -88,8 +110,21 @@ const loadRuleFavStation = () => {
     })
 
 }
+const mapProps = ref({
+    center: [32.04386, 118.778934],
+    pointName: "南京"
+})
 
 const handleChangeStation = (station) => {
+    if (station.location) {
+        const [wgsLng, wgsLat] = coordtransform.gcj02towgs84(...station.location.split(',').map(it => Number(it)))
+        if (wgsLat && wgsLng) {
+            mapProps.value = {
+                center: [wgsLat, wgsLng],
+                pointName: station.name,
+            }
+        }
+    }
     store.commit('preference/SET_CURRENT_STATION', {station})
 }
 
