@@ -9,7 +9,7 @@
         swipe-open
         @hide="onHide"
         :width="200"
-        :breakpoint="700"
+        :breakpoint="600"
     >
         <q-list>
             <q-item-label

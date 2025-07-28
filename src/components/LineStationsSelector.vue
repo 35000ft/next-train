@@ -1,7 +1,8 @@
 <template>
     <div class="modal-overlay" @click.self="handleClose" v-show="showBg" @touchstart.stop>
         <transition name="zoom-in-zoom-out">
-            <div class="wrapper" :style="{maxHeight:height+'px',top:positionY+'px'}" v-show="display">
+            <div class="wrapper" :style="{maxHeight:height+'px',top:positionY+'px', left:positionX+'px'}"
+                 v-show="display">
                 <div v-if="loading">
                     <q-skeleton :height="height+'px'"/>
                 </div>
@@ -61,6 +62,16 @@ export default defineComponent({
                 return Math.ceil(elementRect.value.y + elementRect.value.height + 5)
             }
         })
+        const positionX = computed(() => {
+            if (!elementRect.value) {
+                return Math.ceil(window.innerWidth / 2)
+            }
+            if (elementRect.value.x + elementRect.value.width + props.width >= window.innerWidth) {
+                return elementRect.value.x
+            } else {
+                return Math.ceil(elementRect.value.x + elementRect.value.width)
+            }
+        })
         const showSelector = ({lineProp, currentStationIdProp, position}) => {
             if (lineProp) {
                 lineProp = _.cloneDeep(toRaw(lineProp))
@@ -101,6 +112,7 @@ export default defineComponent({
             currentStationId,
             classGetter,
             positionY,
+            positionX,
             loading
         }
     }
@@ -126,7 +138,7 @@ export default defineComponent({
 
 .wrapper {
     position: fixed;
-    width: 90vw;
+    width: 500px;
     background-color: var(--q-grey-2);
     border-bottom: 2px solid var(--q-primary);
     border-radius: 10px;

@@ -2,7 +2,7 @@
 
     <q-layout view="lHh Lpr lFf" class="full-height">
         <q-page-container class="full-height" style="padding-top: 0; ">
-            <q-tab-panels class="full-height page-background" swipeable animated v-model="tab"
+            <q-tab-panels class="full-height page-background" :swipeable="swipeable" animated v-model="tab"
                           @update:model-value="updateRoute">
                 <q-tab-panel name="home">
                     <router-view/>
@@ -47,6 +47,7 @@ import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
 import LineRealtimeView from "components/LineRealtimeView.vue";
 import RouteSolutionDetailView from "components/RouteSolutionDetailView.vue";
 import {useStore} from "vuex";
+import {isPCMode} from "src/utils/navigator_utils";
 
 const {t} = useI18n();
 
@@ -55,11 +56,19 @@ defineOptions({
 })
 const store = useStore()
 const showSolutionDetail = computed(() => store.getters['application/shownSolution'])
-const tab = ref('station'); // 默认激活的导航项
+const tab = ref('home')
 const router = useRouter()
 const handleCloseSolutionDetail = () => {
     store.commit('application/SET_SHOWN_SOLUTION', {solution: null})
 }
+const swipeable = computed(() => {
+    if (isPCMode(1024)) {
+        if (tab.value === 'home') {
+            return false
+        }
+    }
+    return true
+})
 watch(showSolutionDetail, (newVal, oldVle) => {
     const name = '#solution-detail-view'
     const hasName = window.location.href.endsWith(name)

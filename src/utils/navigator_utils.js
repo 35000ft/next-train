@@ -77,3 +77,15 @@ export function genBaiduPositionUrl(location, title = "", osType = getOSType()) 
     }
 }
 
+export function isPCAgent() {
+    const ua = navigator.userAgent.toLowerCase()
+    const mobileRegex = /android|iphone|ipad|ipod|mobile|tablet|blackberry|phone/
+    return !mobileRegex.test(ua)
+}
+
+export function isPCMode(thresholdWidth) {
+    if (isNaN(Number(thresholdWidth))) {
+        thresholdWidth = 600
+    }
+    return window.innerWidth > thresholdWidth || isPCAgent()
+}

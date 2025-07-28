@@ -21,39 +21,67 @@
                 </q-card>
             </div>
 
-            <div style="min-height: 500px;max-width: 400px;width: 100%;z-index: 100;position: absolute;">
-                <div style="display: flex;justify-content: space-around;margin-bottom: 10px;">
-                    <div class="my-card middle-card">
-                        <q-card>
-                            <FocusTrainsView/>
-                        </q-card>
+            <div v-if="pcMode" style="left: 0;position: absolute;top: 55px;">
+                <div
+                    style="min-height: 500px;max-width: 380px;width: 100%;z-index: 100;position: fixed; left: 35px; top:70px;">
+                    <div style="display: flex;justify-content: space-around;margin-bottom: 10px;">
+                        <div class="my-card middle-card">
+                            <q-card>
+                                <FocusTrainsView/>
+                            </q-card>
+                        </div>
+                        <div class="my-card middle-card">
+                            <q-card>
+                                <q-card-section>
+                                    <FavouredStationListCard/>
+                                </q-card-section>
+                            </q-card>
+                        </div>
                     </div>
-                    <div class="my-card middle-card">
-                        <q-card>
-                            <q-card-section>
-                                <FavouredStationListCard/>
-                            </q-card-section>
-                        </q-card>
-                    </div>
+                    <q-card class="my-card full-height">
+                        <q-card-section class="full-height" style="padding: 0;">
+                            <StationRealtimeView :current-station-id-prop="currentStationId"
+                                                 @change-station="handleChangeStation"/>
+                        </q-card-section>
+                    </q-card>
                 </div>
-                <q-card class="my-card full-height">
-                    <q-card-section class="full-height" style="padding: 0;">
-                        <StationRealtimeView :current-station-id-prop="currentStationId"
-                                             @change-station="handleChangeStation"/>
-                    </q-card-section>
-                </q-card>
+
+                <OpenStreetMap style="width: 100%; height:100vh;position: fixed;z-index: 0"
+                               :center="mapProps.center" :point-name="mapProps.pointName"
+                />
+            </div>
+            <div v-else class="col-12">
+                <div style="width: 100%;">
+                    <div style="display: flex;justify-content: space-around;margin-bottom: 10px;">
+                        <div class="my-card middle-card">
+                            <q-card>
+                                <FocusTrainsView/>
+                            </q-card>
+                        </div>
+                        <div class="my-card middle-card">
+                            <q-card>
+                                <q-card-section>
+                                    <FavouredStationListCard/>
+                                </q-card-section>
+                            </q-card>
+                        </div>
+                    </div>
+                    <q-card class="my-card full-height">
+                        <q-card-section class="full-height" style="padding: 0;">
+                            <StationRealtimeView :current-station-id-prop="currentStationId"
+                                                 @change-station="handleChangeStation"/>
+                        </q-card-section>
+                    </q-card>
+                </div>
             </div>
 
-            <OpenStreetMap v-if="isWideScreen" style="width: 100%; height:100vh;position: fixed;z-index: 0"
-                           :center="mapProps.center" :point-name="mapProps.pointName"
-            />
         </div>
     </q-page-container>
 </template>
 
 <script setup>
 import SearchHeader from "components/SearchHeader.vue";
-import {computed, onBeforeUnmount, onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
 import FocusTrainsView from "components/FocusTrainsView.vue";
@@ -63,26 +91,14 @@ import CurrentTrip from "components/CurrentTrip.vue";
 import LeftDrawer from "components/LeftDrawer.vue";
 import 'leaflet/dist/leaflet.css';
 import OpenStreetMap from "components/OpenStreetMap.vue";
+import {isPCMode} from "src/utils/navigator_utils";
 
 defineOptions({
     name: 'HomeView'
 })
 
-const isWideScreen = ref(window.innerWidth > 1024)
-const handleResize = () => {
-    isWideScreen.value = window.innerWidth > 1024
-}
-onMounted(() => {
-    init()
-})
+const pcMode = ref(isPCMode(1024))
 
-async function init() {
-    window.addEventListener('resize', handleResize)
-}
-
-onBeforeUnmount(() => {
-    window.removeEventListener('resize', handleResize)
-})
 
 const store = useStore()
 const props = defineProps({})
