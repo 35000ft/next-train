@@ -21,6 +21,9 @@
             <q-item clickable v-ripple>
                 <q-item-section>Author: @雲上</q-item-section>
             </q-item>
+            <q-item clickable v-ripple>
+                <q-item-section>Version: {{ appVersion }}</q-item-section>
+            </q-item>
         </q-list>
     </q-drawer>
 </template>
@@ -40,6 +43,7 @@ onMounted(() => {
         leftDrawerOpen.value = props.open
     }
 })
+const appVersion = process.env.APP_VERSION
 const store = useStore()
 const onHide = () => {
     store.commit('application/SET_SHOW_LEFT_DRAWER', false)
