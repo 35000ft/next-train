@@ -1,6 +1,5 @@
 import {boot} from 'quasar/wrappers';
 
-//TODO
 if (!Array.prototype.contains) {
     Array.prototype.contains = function (element) {
         return this.indexOf(element) !== -1;
@@ -20,12 +19,21 @@ export default boot(({app}) => {
     const $q = app.config.globalProperties.$q
 
     // 通用的通知函数
-    function notify({type, message, timeout}) {
+    function notify({type, message, timeout, onClick}) {
         let config = {
             message,
             timeout: timeout || 3000,
             position: 'bottom',
             offset: [0, 100],
+            actions: onClick && onClick.func
+                ? [
+                    {
+                        label: onClick.name || '查看',
+                        color: onClick.color || 'white',
+                        handler: onClick.func,
+                    },
+                ]
+                : [],
         };
         // 根据类型设置不同的颜色和图标
         switch (type) {
@@ -53,8 +61,8 @@ export default boot(({app}) => {
     }
 
     // 为 $q.notify 添加自定义方法
-    $q.notify.info = (message) => notify({type: 'info', message});
-    $q.notify.warn = (message) => notify({type: 'warn', message});
-    $q.notify.error = (message) => notify({type: 'error', message});
-    $q.notify.ok = (message) => notify({type: 'ok', message});
+    $q.notify.info = (message, onClick = null) => notify({type: 'info', message, onClick});
+    $q.notify.warn = (message, onClick = null) => notify({type: 'warn', message, onClick});
+    $q.notify.error = (message, onClick = null) => notify({type: 'error', message, onClick});
+    $q.notify.ok = (message, onClick = null) => notify({type: 'ok', message, onClick});
 });

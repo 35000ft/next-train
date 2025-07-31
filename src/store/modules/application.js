@@ -6,6 +6,7 @@ import {generateUUID} from "src/utils/crypto_utils";
 const LOCAL_STORAGE_KEYS = {
     METRO_GO_CONFIG: 'MetroGoConfig',
 }
+
 const state = {
     shownStationId: null,
     overlayStack: reactive([]),
@@ -19,10 +20,14 @@ const state = {
     usedSolution: null,
     shownSolution: null,
     showLeftDrawer: false,
+    appVersion: null,
 };
 const mutations = {
     SET_SHOWN_TRAININFO(state, {trainInfo}) {
         state.shownTrainInfo = trainInfo
+    },
+    SET_APP_VERSION(state, {appVersion}) {
+        state.appVersion = appVersion
     },
     SET_SHOWN_SOLUTION(state, {solution}) {
         state.shownSolution = solution
@@ -150,6 +155,7 @@ const getters = {
     usedSolution: state => state.usedSolution,
     shownSolution: state => state.shownSolution,
     showLeftDrawer: state => state.showLeftDrawer,
+    appVersion: state => state.appVersion,
 };
 
 export default {

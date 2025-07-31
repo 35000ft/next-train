@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import {computed, ref, watch} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n';
 import {useRouter} from "vue-router";
 import StationRealtimeModal from "components/StationRealtimeModal.vue";
@@ -48,6 +48,8 @@ import LineRealtimeView from "components/LineRealtimeView.vue";
 import RouteSolutionDetailView from "components/RouteSolutionDetailView.vue";
 import {useStore} from "vuex";
 import {isPCMode} from "src/utils/navigator_utils";
+import {getLatestVersionInfo} from "src/apis/common";
+import {useQuasar} from "quasar";
 
 const {t} = useI18n();
 
@@ -58,6 +60,28 @@ const store = useStore()
 const showSolutionDetail = computed(() => store.getters['application/shownSolution'])
 const tab = ref('home')
 const router = useRouter()
+const currentVersion = process.env.APP_VERSION
+const $q = useQuasar()
+onMounted(() => {
+    checkLatestVersion()
+})
+
+async function checkLatestVersion() {
+    try {
+        const versionInfo = await getLatestVersionInfo()
+        if (versionInfo.version !== currentVersion) {
+            $q.notify.info('发现新版本，点击更新', {
+                name: '更新',
+                func: () => {
+                    window.location.href = `${window.location.origin}${window.location.pathname}?t=${Date.now()}`
+                }
+            })
+        }
+        store.commit('application/SET_APP_VERSION', {appVersion: versionInfo})
+    } catch (e) {
+    }
+}
+
 const handleCloseSolutionDetail = () => {
     store.commit('application/SET_SHOWN_SOLUTION', {solution: null})
 }
