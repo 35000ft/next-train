@@ -37,6 +37,6 @@ span {
     align-items: center;
     display: inline-block;
     vertical-align: middle;
-    pointer-events: none;
+    cursor: default;
 }
 </style>

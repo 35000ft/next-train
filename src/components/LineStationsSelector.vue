@@ -1,7 +1,7 @@
 <template>
     <div class="modal-overlay" @click.self="handleClose" v-show="showBg" @touchstart.stop>
         <transition name="zoom-in-zoom-out">
-            <div class="wrapper" :style="{maxHeight:height+'px',top:positionY+'px', left:positionX+'px'}"
+            <div class="wrapper" :style="wrapperStyles"
                  v-show="display">
                 <div v-if="loading">
                     <q-skeleton :height="height+'px'"/>
@@ -26,6 +26,7 @@
 import {computed, defineComponent, ref, toRaw} from "vue";
 import {useStore} from "vuex";
 import _ from "lodash";
+import {isPCMode} from "src/utils/navigator_utils";
 
 
 export default defineComponent({
@@ -45,6 +46,16 @@ export default defineComponent({
         const showBg = ref(false)
         const classGetter = computed(() => (_stationId) => {
             return _stationId === currentStationId.value ? 'current-station' : 'other-station'
+        })
+        const wrapperStyles = computed(() => {
+            const pcMode = isPCMode(1024)
+            const styles = {
+                maxHeight: props.height + 'px', top: positionY.value + 'px',
+            }
+            if (pcMode) {
+                styles['left'] = positionX.value + 'px'
+            }
+            return styles
         })
         const handleClose = () => {
             display.value = false
@@ -111,9 +122,8 @@ export default defineComponent({
             handleClose,
             currentStationId,
             classGetter,
-            positionY,
-            positionX,
-            loading
+            loading,
+            wrapperStyles,
         }
     }
 })
@@ -138,7 +148,7 @@ export default defineComponent({
 
 .wrapper {
     position: fixed;
-    width: 500px;
+    max-width: 500px;
     background-color: var(--q-grey-2);
     border-bottom: 2px solid var(--q-primary);
     border-radius: 10px;

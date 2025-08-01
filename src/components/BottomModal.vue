@@ -3,7 +3,7 @@
          :style="{backgroundColor:`rgb(0,0,0,${overlayOpacity})`}">
         <transition name="bottom-modal">
             <div class="modal-content" v-show="display" ref="modalContent"
-                 :style="{height:contentHeight,width:contentWidth}">
+                 :style="{height:contentHeight,width:contentWidth,maxWidth:maxWidth}">
                 <div class="movable-banner" ref="movableBanner"><span></span></div>
                 <div class="main-content">
                     <slot></slot>
@@ -26,11 +26,15 @@ const props = defineProps({
     },
     contentHeight: {
         type: String,
-        default: "35vh"
+        default: "40vh"
     },
     contentWidth: {
         type: String,
-        default: "90%"
+        default: "100%"
+    },
+    maxWidth: {
+        type: String,
+        default: "500px"
     },
     name: {
         type: String,

@@ -1,6 +1,8 @@
 import axios from "src/utils/axios"
 import {setCache} from "src/utils/common_utils";
 
+const baseUrl = 'api/metro-realtime'
+
 /**
  * Fetch all stations of a rail system
  * @param {String} railsystemCode Code of Rail system, like "NJMTR"
@@ -96,9 +98,15 @@ export async function fetchStation(stationId, update = false) {
 
 export async function fetchGraph(railsystemCode, update = false) {
     const url = `api/file/railsystem/graphs/${railsystemCode}${update ? '?v=latest' : ''}`
+    const cacheKey = `railsystems-graphs-${railsystemCode}`
     return await axios
-        .get(url)
+        .get(url, {
+            fetchOptions: {
+                cacheKey: cacheKey, forceUpdate: update
+            }
+        })
         .then(res => {
+            setCache(cacheKey, 86400 * 1000)
             return res.data.data || res.data
         })
         .catch(err => Promise.reject(err))
@@ -129,3 +137,47 @@ export async function fetchShowLineCanvasConfig(railsystemCode) {
     return await axios.get(url).then(res => res.data.data)
         .catch(err => Promise.reject(err))
 }
+
+export async function createRailsystem(data) {
+    const url = `${baseUrl}/railsystems/create`;
+    return axios.post(url, data).then(res => res.data.data);
+}
+
+export async function updateRailsystem(id, data) {
+    const url = `${baseUrl}/railsystems/${id}`;
+    return axios.post(url, data).then(res => res.data.data)
+}
+
+export async function createLine(data) {
+    const url = `${baseUrl}/lines/create`;
+    return axios.post(url, data).then(res => res.data.data)
+}
+
+export async function updateLine(id, data) {
+    const url = `${baseUrl}/lines/update/${id}`;
+    return axios.post(url, data).then(res => res.data.data)
+}
+
+export async function createStation(data) {
+    const url = `${baseUrl}/station/create`;
+    return axios.post(url, data).then(res => res.data.data)
+}
+
+export async function updateStation(id, data) {
+    const url = `${baseUrl}/station/update/${id}`;
+    return axios.post(url, data).then(res => res.data.data)
+}
+
+export async function deleteStation(id, authCode) {
+    if (!authCode) {
+        return Promise.reject('Authcode can not be empty')
+    }
+    const url = `${baseUrl}/station/update/${id}?authCode=${authCode}`;
+    return axios.post(url).then(res => res.data.data)
+}
+
+export async function preDeleteStation(id) {
+    const url = `${baseUrl}/station/pre-delete-check/${id}`;
+    return axios.post(url).then(res => res.data.data)
+}
+

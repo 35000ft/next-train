@@ -54,9 +54,8 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => {
         if (response.status === 200) {
-            const _data = response.data
-            if (_data.failed) {
-                return Promise.reject(_data.msg)
+            if (response.data?.failed === true) {
+                return Promise.reject(response.data?.msg)
             }
         } else if (response.status === 401) {
             return Promise.reject('Unauthorized')
@@ -68,7 +67,7 @@ axiosInstance.interceptors.response.use(
         return response
     },
     (response) => {
-
+        return Promise.reject('Fail to get response')
     }
 )
 
