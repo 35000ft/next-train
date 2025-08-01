@@ -40,8 +40,8 @@
 </template>
 <script setup>
 import OverlayView from "components/OverlayView.vue";
-import {computed, onMounted, ref, watch} from "vue";
-import {useRoute, useRouter} from "vue-router";
+import {onMounted, ref} from "vue";
+import {useRoute} from "vue-router";
 import {planRoute, planShortestSolution} from "src/utils/route-plan";
 import {diff, getNowByTimezone} from "src/utils/time-utils";
 import {useStore} from "vuex";

@@ -90,8 +90,18 @@
                 </q-tab-panels>
             </div>
 
+            <div v-if="externalStations instanceof Array" class="col-12"
+                 style="overflow-x: scroll;white-space: nowrap;margin-bottom: 5px;">
+                <q-icon name="fa-solid fa-person-walking"/>
+                <q-icon name="fas fa-ellipsis-h"/>
+                <q-icon name="fa-solid fa-arrows-rotate" style="margin-right: 5px;"/>
+                <StationIcon v-for="s in externalStations" :station="s" :key="s.id"
+                             class="line-icon"/>
+            </div>
+            <q-skeleton v-else class="col-12" height="40px" style="margin-bottom: 5px;"/>
+            <!-- 选择线路 -->
             <q-skeleton v-if="!currentLine" class="col-12" style="height: 25px;margin-bottom: 5px;"/>
-            <div v-if="currentLine" class="col-12" style="overflow-x: scroll;white-space: nowrap;margin-bottom: 5px;"
+            <div v-else class="col-12" style="overflow-x: scroll;white-space: nowrap;margin-bottom: 5px;"
                  @touchstart="handleTouchLineIconRegionStart" ref="lineIconRegion">
                 <LineIcon class="line-icon" v-show="currentStation.lines.length>1"
                           :line="{name:t('all'),color:'#36598f'}"
@@ -190,6 +200,7 @@ import {useRouter} from "vue-router";
 import EditFavouriteStationDialog from "components/EditFavouriteStationDialog.vue";
 import OpenMapSelector from "components/OpenMapSelector.vue";
 import OperationMsgDetailView from "components/OperationMsgDetailView.vue";
+import StationIcon from "components/StationIcon.vue";
 
 const router = useRouter()
 const $q = useQuasar()
@@ -250,6 +261,8 @@ watch(props, (newVal, oldValue) => {
         }
     }
 })
+const externalStations = ref(null)
+
 
 const showSkeleton = computed(() => {
     return isLoadingTrains.value && (currentTrains.value && currentTrains.value.length === 0)
@@ -450,11 +463,24 @@ const handleChangeStation = (stationId, lineId, source) => {
         }
         currentStation.value = station
         currentStationId.value = station.id
+
+        // 外部连接车站（出站换乘）
+        const externalIds = station?.extra?.externalStations
+        if (externalIds instanceof Array) {
+            const promises = externalIds.map(it => store.dispatch('railsystem/getStation', {stationId: it}))
+            Promise.all(promises).then(r => {
+                if (!checkIsChanged(stationId)) {
+                    externalStations.value = r
+                }
+            })
+        }
+
         updateCurrentTrains(true)
         emit('changeStation', station)
     }).finally(_ => {
         isLoadingStation.value = false
     })
+
 }
 
 async function changeStation(stationId, lineId) {
