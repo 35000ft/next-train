@@ -1,6 +1,8 @@
 import axios from "src/utils/axios"
 import {setCache} from "src/utils/common_utils";
 
+const baseUrl = 'api/metro-realtime'
+
 /**
  * Fetch all stations of a rail system
  * @param {String} railsystemCode Code of Rail system, like "NJMTR"
@@ -129,3 +131,34 @@ export async function fetchShowLineCanvasConfig(railsystemCode) {
     return await axios.get(url).then(res => res.data.data)
         .catch(err => Promise.reject(err))
 }
+
+export async function createRailsystem(data) {
+    const url = `${baseUrl}/railsystem/create`;
+    return axios.post(url, data).then(res => res.data.data);
+}
+
+export async function updateRailsystem(id, data) {
+    const url = `${baseUrl}/railsystem/${id}`;
+    return axios.post(url, data).then(res => res.data.data);
+}
+
+export async function createLine(data) {
+    const url = `${baseUrl}/line/create`;
+    return axios.post(url, data).then(res => res.data.data);
+}
+
+export async function updateLine(id, data) {
+    const url = `${baseUrl}/line/${id}`;
+    return axios.post(url, data).then(res => res.data.data);
+}
+
+export async function createStation(data) {
+    const url = `${baseUrl}/station/create`;
+    return axios.post(url, data).then(res => res.data.data);
+}
+
+export async function updateStation(id, data) {
+    const url = `${baseUrl}/station/${id}`;
+    return axios.post(url, data).then(res => res.data.data);
+}
+
