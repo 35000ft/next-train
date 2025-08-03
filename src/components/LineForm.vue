@@ -1,63 +1,170 @@
 <template>
-    <q-form @submit.prevent="submitForm">
-        <q-input v-model="name" label="线路名称" required class="q-mb-md"/>
+    <q-card style="width: 90vw; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
+        <q-card-section>
+            <div class="text-h6">{{ lineData?.id ? '编辑线路' : '新建线路' }}</div>
+        </q-card-section>
 
-        <q-item-label class="q-mt-sm">车站列表</q-item-label>
-        <draggable v-model="stations" item-key="id" tag="q-list" class="q-mb-md">
-            <template #item="{ element, index }">
-                <q-item>
-                    <q-item-section>{{ element.name }}</q-item-section>
-                    <q-item-section side>
-                        <q-btn dense flat icon="delete" color="negative" @click="removeStation(index)"/>
-                    </q-item-section>
-                </q-item>
-            </template>
-        </draggable>
+        <q-separator/>
 
-        <q-select
-            v-model="selectedStation"
-            :options="unselectedStations.map(s => ({ label: s.name, value: s }))"
-            label="添加车站"
-            emit-value
-            map-options
-            use-input
-            fill-input
-            clearable
-            class="q-mb-md"
-        />
-        <q-btn label="添加车站" color="secondary" @click="addStation" :disable="!selectedStation" flat/>
+        <q-card-section style="flex: 1; overflow-y: auto;">
+            <q-form @submit.prevent="submitForm">
+                <!-- 线路名称 -->
+                <q-input
+                    v-model="lineData.name"
+                    label="线路名称"
+                    required
+                    class="q-mb-md"
+                />
 
-        <q-btn label="保存线路" type="submit" color="primary" class="q-mt-md"/>
-    </q-form>
+                <q-input
+                    v-model="lineData.code"
+                    label="线路代码"
+                    class="q-mb-md"
+                />
+
+                <!-- 线路英文名称 -->
+                <q-input
+                    v-model="lineData.enName"
+                    label="英文名称"
+                    class="q-mb-md"
+                />
+
+                <!-- 线路状态 -->
+                <q-select
+                    v-model="lineData.status"
+                    :options="statusOptions"
+                    label="线路状态"
+                    class="q-mb-md"
+                    required
+                />
+
+                <!-- 线路类别 -->
+                <q-select
+                    v-model="lineData.category"
+                    :options="categoryOptions"
+                    label="线路类别"
+                    class="q-mb-md"
+                    required
+                />
+
+                <!-- 环线选择 -->
+                <q-checkbox
+                    v-model="lineData.isCircle"
+                    label="是否为环线"
+                    class="q-mb-md"
+                />
+
+                <!-- 线路颜色选择 -->
+                <q-item-label class="q-mt-sm">线路颜色</q-item-label>
+                <q-color
+                    v-model="lineData.color"
+                    label="选择颜色"
+                    format-model="hex"
+                    display-mode="compact"
+                    class="q-mb-md"
+                />
+
+                <q-expansion-item expand-separator default-opened>
+                    <template v-slot:header>
+                        <q-item-label class="q-mt-sm text-weight-bold">车站列表</q-item-label>
+                    </template>
+                    <!-- 车站列表 -->
+                    <draggable
+                        v-model="allStations"
+                        item-key="id"
+                        tag="q-list"
+                        class="q-mb-md"
+                    >
+                        <template #item="{ element, index }">
+                            <q-item class="row">
+                                <q-item-section class="col-2">
+                                    <q-avatar color="primary" text-color="white" size="24px">
+                                        {{ index + 1 }}
+                                    </q-avatar>
+                                </q-item-section>
+                                <q-item-section>{{ element.name }}</q-item-section>
+                                <q-item-section side>
+                                    <q-btn
+                                        dense
+                                        flat
+                                        icon="delete"
+                                        color="negative"
+                                        @click="removeStation(index)"
+                                    />
+                                </q-item-section>
+                            </q-item>
+                        </template>
+                    </draggable>
+                </q-expansion-item>
+
+                <div class="row q-gutter-sm justify-around" style="margin-top: 5px;">
+                    <q-btn
+                        label="添加车站"
+                        color="blue"
+                        @click="addStation"
+                    />
+                    <q-btn
+                        label="创建车站"
+                        color="green"
+                        @click="addStation"
+                    />
+                    <q-btn
+                        label="默认车站"
+                        color="grey"
+                        @click="restoreStations"
+                    />
+                </div>
+
+                <!-- 保存按钮 -->
+                <div class="q-mt-md">
+                    <q-btn
+                        label="保存线路"
+                        type="submit"
+                        color="primary"
+                    />
+                </div>
+            </q-form>
+        </q-card-section>
+    </q-card>
+    <station-selector ref="stationSelector" :railsystem-code="lineData?.railsystemCode" @select="handleSelectStation"/>
+
 </template>
 
 <script setup>
-import {ref, onMounted, computed} from 'vue';
+import {ref, onMounted} from 'vue';
 import draggable from 'vuedraggable';
 import {fetchLine, updateLine, createLine} from 'src/apis/railsystem';
+import StationSelector from "components/StationSelector.vue";
 
 const props = defineProps({
-    railsystemId: {
-        type: [String, Number],
-        required: true
-    },
     initial: Object
-});
+})
 const emits = defineEmits(['saved']);
+const stationSelector = ref(null)
 
-const name = ref('');
-const id = ref(null);
-const stations = ref([]); // 当前已选车站
+const rawStations = ref([]); // 当前已选车站
 const allStations = ref([]); // 所有可选车站（从 line.stations 加载）
-const selectedStation = ref(null);
+const statusOptions = ref([
+    {label: '关闭', value: 0},
+    {label: '运营中', value: 1}
+]);
 
+const categoryOptions = ref([
+    {label: 'METRO', value: 'METRO'},
+    {label: 'RAILWAY', value: 'RAILWAY'},
+    {label: 'TRAM', value: 'TRAM'},
+    {label: 'LIGHT_RAIL', value: 'LIGHT_RAIL'},
+    {label: 'BUS', value: 'BUS'},
+    {label: 'MINIBUS', value: 'MINIBUS'}
+]);
+const lineData = ref({})
 onMounted(async () => {
     if (props.initial?.id) {
         try {
             const line = await fetchLine(props.initial.id);
-            id.value = line.id;
-            name.value = line.name;
-            stations.value = [...line.stations];
+            Object.assign(lineData.value, line,)
+
+            rawStations.value = [...line.stations];
             allStations.value = [...line.stations];
         } catch (err) {
             console.error('加载线路失败:', err);
@@ -65,33 +172,32 @@ onMounted(async () => {
     } else {
         name.value = '';
         id.value = null;
-        stations.value = [];
-        allStations.value = []; // 空也行
+        rawStations.value = [];
+        allStations.value = [];
     }
 });
 
-const unselectedStations = computed(() =>
-    allStations.value.filter(s => !stations.value.some(st => st.id === s.id))
-);
-
-function addStation() {
-    if (selectedStation.value && !stations.value.find(s => s.id === selectedStation.value.id)) {
-        stations.value.push(selectedStation.value);
-        selectedStation.value = null;
+const handleSelectStation = async ({station, event}) => {
+    if (station) {
+        allStations.value.push(station)
     }
 }
 
+const restoreStations = () => {
+    allStations.value = [...rawStations.value]
+}
+
+function addStation() {
+    stationSelector.value.showSelector('addLineStation')
+}
+
 function removeStation(index) {
-    stations.value.splice(index, 1);
+    allStations.value.splice(index, 1);
 }
 
 async function submitForm() {
     try {
-        const payload = {
-            railsystem_id: props.railsystemId,
-            name: name.value,
-            station_ids: stations.value.map(s => s.id)
-        };
+        const payload = {};
         let saved;
         if (id.value) {
             saved = await updateLine(id.value, payload);
@@ -103,6 +209,7 @@ async function submitForm() {
         console.error('保存失败:', err);
     }
 }
+
 </script>
 
 <style scoped>

@@ -90,15 +90,15 @@
                 </q-tab-panels>
             </div>
 
-            <div v-if="externalStations instanceof Array" class="col-12"
+            <div v-if="externalStations?.length>0" class="col-12"
                  style="overflow-x: scroll;white-space: nowrap;margin-bottom: 5px;">
                 <q-icon name="fa-solid fa-person-walking"/>
                 <q-icon name="fas fa-ellipsis-h"/>
                 <q-icon name="fa-solid fa-arrows-rotate" style="margin-right: 5px;"/>
                 <StationIcon v-for="s in externalStations" :station="s" :key="s.id"
+                             @click="handleShowExternalStation(s)"
                              class="line-icon"/>
             </div>
-            <q-skeleton v-else class="col-12" height="40px" style="margin-bottom: 5px;"/>
             <!-- 选择线路 -->
             <q-skeleton v-if="!currentLine" class="col-12" style="height: 25px;margin-bottom: 5px;"/>
             <div v-else class="col-12" style="overflow-x: scroll;white-space: nowrap;margin-bottom: 5px;"
@@ -312,6 +312,13 @@ async function calcCurrentTrains(_lineId, _station) {
 }
 
 
+function handleShowExternalStation(externalStation) {
+    console.log('exttttt', externalStation)
+    if (externalStation?.id) {
+        store.commit('application/SET_SHOWN_STATION_ID', {stationId: externalStation.id})
+    }
+}
+
 async function loadLineTrains(lineId, _stationId) {
     console.log('loading line trains', 'lineId:', lineId, 'stationId:', _stationId)
     if (!isNumber(lineId)) {
@@ -473,6 +480,8 @@ const handleChangeStation = (stationId, lineId, source) => {
                     externalStations.value = r
                 }
             })
+        } else {
+            externalStations.value = []
         }
 
         updateCurrentTrains(true)

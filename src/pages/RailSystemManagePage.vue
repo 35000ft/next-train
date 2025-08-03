@@ -7,61 +7,85 @@
 
         <q-card flat bordered class="q-pa-md q-mb-md">
             <q-item-label header>线网列表</q-item-label>
-            <q-list>
-                <q-item
-                    v-for="rs in railsystems"
-                    :key="rs.code"
-                    clickable
-                    @click="editRailsystem(rs)"
-                >
-                    <q-item-section>{{ rs.name }}</q-item-section>
-                </q-item>
-            </q-list>
+
+            <q-tree
+                :nodes="railsystems"
+                node-key="id"
+                :lazy-load="true"
+                @lazy-load="loadRailLines"
+                label-key="label"
+                default-expand-all
+            >
+                <template v-slot:default-header="props">
+                    <div class="row items-center q-gutter-sm" style="width: 100%;">
+                        <div>{{ props.node.label }}</div>
+                        <q-space/>
+                        <q-btn
+                            flat
+                            dense
+                            icon="fa fa-plus"
+                            size="sm"
+                            @click.stop="addLine(props.node)"
+                        />
+                        <q-btn
+                            flat
+                            dense
+                            icon="fa fa-pen-to-square"
+                            size="sm"
+                            @click.stop="editNode(props.node)"
+                        />
+                    </div>
+                </template>
+                <!-- 为所有 line 节点定义专属模板 -->
+                <template v-slot:header-line="{ node }">
+                    <div @click.stop class="row q-gutter-sm " style="width: 100%">
+                        <LineIcon :line="node.lineData"/>
+                        <q-space/>
+                        <q-btn
+                            size="small"
+                            flat
+                            dense
+                            icon="fa fa-pen-to-square"
+                            @click.stop.prevent="editLine(node)"
+                        />
+                    </div>
+                </template>
+            </q-tree>
         </q-card>
 
-        <q-card v-if="selectedRailsystem" flat bordered class="q-pa-md q-mb-md">
-            <q-item-label header>线路列表（{{ selectedRailsystem.name }}）</q-item-label>
-            <q-list>
-                <q-item
-                    v-for="line in lines"
-                    :key="line.id"
-                    clickable
-                    @click="selectLine(line)"
-                >
-                    <q-item-section>{{ line.name }}</q-item-section>
-                </q-item>
-            </q-list>
-        </q-card>
 
-        <q-card v-if="selectedLine" flat bordered class="q-pa-md q-mb-md">
-            <line-form :railsystem-id="selectedRailsystem.id" :initial="selectedLine" @saved="reloadLines"/>
-        </q-card>
-
-        <q-card v-if="selectedLine" flat bordered class="q-pa-md">
-            <station-form :line-id="selectedLine.id"/>
-        </q-card>
+        <q-dialog v-model="showLineForm" @close="()=>{selectedLine=null}">
+            <line-form :initial="selectedLine" @saved="reloadLines"/>
+        </q-dialog>
 
         <!-- 弹出创建/编辑线网 -->
         <q-dialog v-model="showRailsystemForm">
             <railsystem-form :initial="editingRailsystem" @saved="onRailsystemSaved"/>
         </q-dialog>
+
     </q-page>
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue';
+import {onMounted, ref} from 'vue';
 import RailsystemForm from 'components/RailsystemForm.vue';
 import LineForm from 'components/LineForm.vue';
-import StationForm from 'components/StationForm.vue';
-import {listRailsystem, fetchLines} from 'src/apis/railsystem';
+import {fetchLines, listRailsystem} from 'src/apis/railsystem';
+import {useStore} from "vuex";
+import {useQuasar} from "quasar";
+import LineIcon from "components/LineIcon.vue";
+import StationSelector from "components/StationSelector.vue";
 
+const $q = useQuasar()
 const railsystems = ref([]);
 const selectedRailsystem = ref(null);
 const selectedLine = ref(null);
 const lines = ref([]);
 
 const showRailsystemForm = ref(false);
+const showLineForm = ref(false);
 const editingRailsystem = ref(null);
+const store = useStore()
 
 function openCreateRailsystem() {
     editingRailsystem.value = null;
@@ -74,8 +98,24 @@ function editRailsystem(rs) {
     selectRailsystem(rs);
 }
 
+function addLine(node) {
+    showLineForm.value = true
+    selectedLine.value = {
+        railsystem: node.railsystem
+    }
+}
+
+
 async function loadRailsystems() {
-    railsystems.value = await listRailsystem();
+    const rawList = await listRailsystem();
+
+    railsystems.value = rawList.map(rs => ({
+        id: `rs_${rs.id}`,         // 唯一ID
+        label: rs.name,              // 展示名称
+        railsystemCode: rs.code,
+        railsystem: rs,
+        lazy: true,
+    }));
 }
 
 async function selectRailsystem(rs) {
@@ -84,8 +124,37 @@ async function selectRailsystem(rs) {
     lines.value = await fetchLines(rs.code);
 }
 
-function selectLine(line) {
-    selectedLine.value = line;
+function editNode(node) {
+    if (node.isLine) {
+        editLine(node);
+    } else {
+        editRailsystem(node);
+    }
+}
+
+async function loadRailLines({node, key, done, fail}) {
+    try {
+        const lines = await store.dispatch('railsystem/getRailSystemLines', {
+            railsystemCode: node.railsystemCode
+        });
+        const childNodes = lines.map(line => ({
+            id: `line_${line.id}`,
+            label: line.name,
+            lineData: line,
+            lazy: false,
+            children: [],
+            header: 'line',
+        }));
+        console.log('child', childNodes)
+        done(childNodes);
+    } catch (err) {
+        fail();
+    }
+}
+
+function editLine(node) {
+    showLineForm.value = true
+    selectedLine.value = node.lineData;
 }
 
 async function reloadLines() {
