@@ -95,25 +95,25 @@
                             </q-item>
                         </template>
                     </draggable>
+                    <div class="row q-gutter-sm justify-around" style="margin-top: 5px;">
+                        <q-btn
+                            label="添加车站"
+                            color="blue"
+                            @click="addStation"
+                        />
+                        <q-btn
+                            label="创建车站"
+                            color="green"
+                            @click="createStation"
+                        />
+                        <q-btn
+                            label="默认车站"
+                            color="grey"
+                            @click="restoreStations"
+                        />
+                    </div>
                 </q-expansion-item>
 
-                <div class="row q-gutter-sm justify-around" style="margin-top: 5px;">
-                    <q-btn
-                        label="添加车站"
-                        color="blue"
-                        @click="addStation"
-                    />
-                    <q-btn
-                        label="创建车站"
-                        color="green"
-                        @click="addStation"
-                    />
-                    <q-btn
-                        label="默认车站"
-                        color="grey"
-                        @click="restoreStations"
-                    />
-                </div>
 
                 <!-- 保存按钮 -->
                 <div class="q-mt-md">
@@ -127,7 +127,9 @@
         </q-card-section>
     </q-card>
     <station-selector ref="stationSelector" :railsystem-code="lineData?.railsystemCode" @select="handleSelectStation"/>
-
+    <q-dialog v-model="showStationForm">
+        <station-form :initial="{}" @saved="handleCreateStation"/>
+    </q-dialog>
 </template>
 
 <script setup>
@@ -135,7 +137,9 @@ import {ref, onMounted} from 'vue';
 import draggable from 'vuedraggable';
 import {fetchLine, updateLine, createLine} from 'src/apis/railsystem';
 import StationSelector from "components/StationSelector.vue";
+import StationForm from "components/StationForm.vue";
 
+const showStationForm = ref(false)
 const props = defineProps({
     initial: Object
 })
@@ -170,8 +174,6 @@ onMounted(async () => {
             console.error('加载线路失败:', err);
         }
     } else {
-        name.value = '';
-        id.value = null;
         rawStations.value = [];
         allStations.value = [];
     }
@@ -189,6 +191,14 @@ const restoreStations = () => {
 
 function addStation() {
     stationSelector.value.showSelector('addLineStation')
+}
+
+function createStation() {
+    showStationForm.value = true
+}
+
+async function handleCreateStation(stationForm) {
+
 }
 
 function removeStation(index) {

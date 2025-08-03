@@ -74,7 +74,6 @@ import {fetchLines, listRailsystem} from 'src/apis/railsystem';
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineIcon from "components/LineIcon.vue";
-import StationSelector from "components/StationSelector.vue";
 
 const $q = useQuasar()
 const railsystems = ref([]);
