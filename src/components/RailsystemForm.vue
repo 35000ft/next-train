@@ -119,6 +119,7 @@
 <script setup>
 import {ref, onMounted} from 'vue';
 import {createRailsystem, updateRailsystem} from 'src/apis/railsystem';
+import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
 
 const props = defineProps({initial: Object});
 const emits = defineEmits(['saved']);
@@ -180,13 +181,7 @@ const statusOptions = [
     {label: 'CLOSED', value: '3'},
 ]
 
-const categoryOptions = [
-    {label: 'METRO', value: 'METRO'},
-    {label: 'RAILWAY', value: 'RAILWAY'},
-    {label: 'BUS', value: 'BUS'},
-    {label: 'MINIBUS', value: 'MINIBUS'},
-    {label: 'FERRY', value: 'FERRY'},
-]
+const categoryOptions = RAILSYSTEM_CATEGORIES
 // 生成时区偏移选项
 const timezoneOptions = ref([]);
 

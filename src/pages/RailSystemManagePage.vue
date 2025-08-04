@@ -18,22 +18,39 @@
             >
                 <template v-slot:default-header="props">
                     <div class="row items-center q-gutter-sm" style="width: 100%;">
-                        <div>{{ props.node.label }}</div>
-                        <q-space/>
-                        <q-btn
-                            flat
-                            dense
-                            icon="fa fa-plus"
-                            size="sm"
-                            @click.stop="addLine(props.node)"
-                        />
-                        <q-btn
-                            flat
-                            dense
-                            icon="fa fa-pen-to-square"
-                            size="sm"
-                            @click.stop="editNode(props.node)"
-                        />
+                        <div class="col-6">{{ props.node.label }}</div>
+                        <div class="col-5" style="text-align: right;">
+                            <q-btn
+                                flat
+                                dense
+                                icon="train"
+                                size="sm"
+                            />
+                            <q-btn
+                                flat
+                                dense
+                                icon="fa fa-plus"
+                                color="green"
+                                size="sm"
+                                @click.stop="_createStation(props.node)"
+                            />
+                            <q-btn
+                                flat
+                                dense
+                                icon="timeline"
+                                color="green"
+                                size="sm"
+                                @click.stop="_createLine(props.node)"
+                            />
+                            <q-btn
+                                flat
+                                dense
+                                color="primary"
+                                icon="fa fa-pen-to-square"
+                                size="sm"
+                                @click.stop="editNode(props.node)"
+                            />
+                        </div>
                     </div>
                 </template>
                 <!-- 为所有 line 节点定义专属模板 -->
@@ -45,6 +62,7 @@
                             size="small"
                             flat
                             dense
+                            color="primary"
                             icon="fa fa-pen-to-square"
                             @click.stop.prevent="editLine(node)"
                         />
@@ -56,6 +74,9 @@
 
         <q-dialog v-model="showLineForm" @close="()=>{selectedLine=null}">
             <line-form :initial="selectedLine" @saved="reloadLines"/>
+        </q-dialog>
+        <q-dialog v-model="showStationForm">
+            <station-form :initial="selectedStation"/>
         </q-dialog>
 
         <!-- 弹出创建/编辑线网 -->
@@ -74,15 +95,18 @@ import {fetchLines, listRailsystem} from 'src/apis/railsystem';
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineIcon from "components/LineIcon.vue";
+import StationForm from "components/StationForm.vue";
 
 const $q = useQuasar()
 const railsystems = ref([]);
 const selectedRailsystem = ref(null);
 const selectedLine = ref(null);
+const selectedStation = ref(null);
 const lines = ref([]);
 
 const showRailsystemForm = ref(false);
 const showLineForm = ref(false);
+const showStationForm = ref(false);
 const editingRailsystem = ref(null);
 const store = useStore()
 
@@ -97,9 +121,16 @@ function editRailsystem(rs) {
     selectRailsystem(rs);
 }
 
-function addLine(node) {
+function _createLine(node) {
     showLineForm.value = true
     selectedLine.value = {
+        railsystem: node.railsystem
+    }
+}
+
+function _createStation(node) {
+    showStationForm.value = true
+    selectedStation.value = {
         railsystem: node.railsystem
     }
 }
@@ -109,8 +140,8 @@ async function loadRailsystems() {
     const rawList = await listRailsystem();
 
     railsystems.value = rawList.map(rs => ({
-        id: `rs_${rs.id}`,         // 唯一ID
-        label: rs.name,              // 展示名称
+        id: `rs_${rs.id}`,
+        label: rs.name,
         railsystemCode: rs.code,
         railsystem: rs,
         lazy: true,
@@ -144,7 +175,6 @@ async function loadRailLines({node, key, done, fail}) {
             children: [],
             header: 'line',
         }));
-        console.log('child', childNodes)
         done(childNodes);
     } catch (err) {
         fail();

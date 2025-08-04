@@ -6,13 +6,12 @@
         <q-separator/>
         <q-card-section style="flex: 1; overflow-y: auto;">
             <q-form @submit.prevent="submitForm" ref="stationForm">
-                <q-input v-model="stationData.code" label="车站代码"/>
-
                 <q-input
                     v-model="stationData.name"
                     label="名称"
                     :rules="[val => !!val || '名称不能为空']"
                 />
+                <q-input v-model="stationData.code" label="车站代码"/>
 
                 <q-input v-model="stationData.enName" label="英文名称"/>
 
@@ -26,8 +25,13 @@
                     emit-value
                     map-options
                 />
-
-                <q-input v-model="stationData.category" label="分类"/>
+                <q-select
+                    v-model="stationData.category"
+                    :options="categoryOptions"
+                    label="类型"
+                    emit-value
+                    map-options
+                />
 
                 <osm-location-picker
                     v-model="stationData.location"
@@ -35,7 +39,7 @@
 
                 <div class="q-gutter-md row justify-end q-mt-md">
                     <q-btn label="取消" flat color="grey"/>
-                    <q-btn label="保存" type="submit" color="primary"/>
+                    <q-btn label="保存" type="submit" color="primary" :loading="loading"/>
                 </div>
             </q-form>
         </q-card-section>
@@ -47,13 +51,16 @@ import {ref, onMounted} from 'vue';
 import {createStation, updateStation} from 'src/apis/railsystem';
 import {useStore} from "vuex";
 import OsmLocationPicker from "components/OsmLocationPicker.vue";
+import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
 
 const props = defineProps({
-    initial: Object // 可选，用于编辑模式
+    initial: Object
 });
 const emits = defineEmits(['saved']);
 const store = useStore()
 const stationData = ref({})
+const loading = ref(false)
+const categoryOptions = ref(RAILSYSTEM_CATEGORIES);
 
 onMounted(async () => {
     if (props.initial) {
@@ -62,19 +69,26 @@ onMounted(async () => {
 });
 
 async function submitForm() {
+    let result;
     try {
-        let result;
-        const payload = {};
-        if (id.value) {
-            result = await updateStation(id.value, payload);
+        loading.value = true
+        await new Promise((resolve, reject) => setTimeout(resolve, 5000))
+        const payload = {...stationData.value}
+        console.log('payload', payload)
+        if (payload.id) {
+            result = await updateStation(payload.id, payload);
         } else {
             result = await createStation(payload);
         }
-        emits('saved', result);
     } catch (err) {
         console.error('保存车站失败:', err);
+        return
     } finally {
-        stationData.value = null
+        stationData.value = {}
+        loading.value = false
+        console.log('set loading false', loading.value);
     }
+    emits('saved', result);
+
 }
 </script>

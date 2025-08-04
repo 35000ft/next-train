@@ -120,6 +120,7 @@
                     <q-btn
                         label="保存线路"
                         type="submit"
+                        :loading="loading"
                         color="primary"
                     />
                 </div>
@@ -128,7 +129,7 @@
     </q-card>
     <station-selector ref="stationSelector" :railsystem-code="lineData?.railsystemCode" @select="handleSelectStation"/>
     <q-dialog v-model="showStationForm">
-        <station-form :initial="{}" @saved="handleCreateStation"/>
+        <station-form :initial="{}"/>
     </q-dialog>
 </template>
 
@@ -138,6 +139,8 @@ import draggable from 'vuedraggable';
 import {fetchLine, updateLine, createLine} from 'src/apis/railsystem';
 import StationSelector from "components/StationSelector.vue";
 import StationForm from "components/StationForm.vue";
+import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
+import {useQuasar} from "quasar";
 
 const showStationForm = ref(false)
 const props = defineProps({
@@ -145,7 +148,8 @@ const props = defineProps({
 })
 const emits = defineEmits(['saved']);
 const stationSelector = ref(null)
-
+const loading = ref(false)
+const $q = useQuasar()
 const rawStations = ref([]); // 当前已选车站
 const allStations = ref([]); // 所有可选车站（从 line.stations 加载）
 const statusOptions = ref([
@@ -153,14 +157,7 @@ const statusOptions = ref([
     {label: '运营中', value: 1}
 ]);
 
-const categoryOptions = ref([
-    {label: 'METRO', value: 'METRO'},
-    {label: 'RAILWAY', value: 'RAILWAY'},
-    {label: 'TRAM', value: 'TRAM'},
-    {label: 'LIGHT_RAIL', value: 'LIGHT_RAIL'},
-    {label: 'BUS', value: 'BUS'},
-    {label: 'MINIBUS', value: 'MINIBUS'}
-]);
+const categoryOptions = RAILSYSTEM_CATEGORIES;
 const lineData = ref({})
 onMounted(async () => {
     if (props.initial?.id) {
@@ -197,9 +194,6 @@ function createStation() {
     showStationForm.value = true
 }
 
-async function handleCreateStation(stationForm) {
-
-}
 
 function removeStation(index) {
     allStations.value.splice(index, 1);
@@ -207,16 +201,23 @@ function removeStation(index) {
 
 async function submitForm() {
     try {
+        loading.value = true
         const payload = {};
         let saved;
         if (id.value) {
             saved = await updateLine(id.value, payload);
+            $q.notify.ok('保存线路成功')
         } else {
             saved = await createLine(payload);
+            $q.notify.ok('创建线路成功')
         }
-        emits('saved', saved);
+        emits('saved', saved)
     } catch (err) {
-        console.error('保存失败:', err);
+        console.error('保存线路失败:', err)
+        $q.notify.error('保存线路失败')
+    } finally {
+        lineData.value = {}
+        loading.value = false
     }
 }
 
