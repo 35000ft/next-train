@@ -1,6 +1,7 @@
 <template>
-
     <q-layout view="lHh Lpr lFf" class="full-height">
+        <LeftDrawer :open="leftDrawerOpen"/>
+        <SearchHeader/>
         <q-page-container class="full-height" style="padding-top: 0; ">
             <q-tab-panels class="full-height page-background" :swipeable="swipeable" animated v-model="tab"
                           @update:model-value="updateRoute">
@@ -50,6 +51,8 @@ import {useStore} from "vuex";
 import {isPCMode} from "src/utils/navigator_utils";
 import {getLatestVersionInfo} from "src/apis/common";
 import {useQuasar} from "quasar";
+import SearchHeader from "components/SearchHeader.vue";
+import LeftDrawer from "components/LeftDrawer.vue";
 
 const {t} = useI18n();
 
@@ -65,6 +68,7 @@ const $q = useQuasar()
 onMounted(() => {
     checkLatestVersion()
 })
+const leftDrawerOpen = computed(() => store.getters['application/showLeftDrawer'])
 
 async function checkLatestVersion() {
     try {

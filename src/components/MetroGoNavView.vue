@@ -1,9 +1,4 @@
 <template>
-    <q-header>
-        <q-toolbar>
-            <q-toolbar-title>Next Train</q-toolbar-title>
-        </q-toolbar>
-    </q-header>
     <q-page-container style="padding-top: 40px;">
         <div class="top-area">
             <span class="drug">地铁日票

@@ -1,10 +1,4 @@
 <template>
-    <q-header>
-        <q-toolbar>
-            <q-toolbar-title>Next Train</q-toolbar-title>
-        </q-toolbar>
-    </q-header>
-
     <q-page-container>
         <!--        <LineRealtimeView :line-id-prop="'51'"/>-->
         <q-card
@@ -23,7 +17,6 @@
                             class="station-name">{{ line.stations[0].name + '~' + line.stations.slice(-1)[0].name }}
                         </div>
                     </div>
-
                 </div>
             </div>
             <div v-show="showLines.length===0"

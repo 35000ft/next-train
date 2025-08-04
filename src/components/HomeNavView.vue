@@ -1,6 +1,4 @@
 <template>
-    <LeftDrawer :open="leftDrawerOpen"/>
-    <SearchHeader/>
     <q-page-container style=" max-height: 85vh; overflow-y: auto">
         <div class="row" style="gap:20px;justify-content: space-between;">
             <div class="col-12 row-card" v-if="usedSolution">
@@ -80,7 +78,6 @@
 </template>
 
 <script setup>
-import SearchHeader from "components/SearchHeader.vue";
 import {computed, onMounted, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
@@ -88,7 +85,6 @@ import FocusTrainsView from "components/FocusTrainsView.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
 import CurrentTrip from "components/CurrentTrip.vue";
-import LeftDrawer from "components/LeftDrawer.vue";
 import 'leaflet/dist/leaflet.css';
 import OpenStreetMap from "components/OpenStreetMap.vue";
 import {isPCMode} from "src/utils/navigator_utils";
@@ -104,7 +100,6 @@ const store = useStore()
 const props = defineProps({})
 const topBanner = ref('currentTrip')
 const $q = useQuasar()
-const leftDrawerOpen = computed(() => store.getters['application/showLeftDrawer'])
 const currentStationId = computed(() => {
     const currentStation = store.getters['preference/currentStation']
     if (currentStation) {
