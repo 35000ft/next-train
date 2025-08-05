@@ -1,76 +1,91 @@
 <template>
-    <q-page padding>
-        <div class="row items-center justify-between q-mb-md">
-            <div class="text-h6">线路线网管理</div>
-            <q-btn label="新建线网" color="primary" @click="openCreateRailsystem"/>
-        </div>
+    <q-page padding class="row" style="gap: 10px;">
+        <div style="max-width: 500px;" class="col-12 col-sm-4">
+            <div class="row items-center justify-between q-mb-md">
+                <div class="text-h6">线网管理</div>
+                <q-btn label="新建线网" color="primary" @click="openCreateRailsystem"/>
+            </div>
+            <q-card flat bordered class="q-pa-md q-mb-md">
+                <q-item-label header>线网列表</q-item-label>
 
-        <q-card flat bordered class="q-pa-md q-mb-md">
-            <q-item-label header>线网列表</q-item-label>
+                <q-tree
+                    :nodes="railsystems"
+                    node-key="id"
+                    :lazy-load="true"
+                    @lazy-load="loadRailLines"
+                    label-key="label"
+                    default-expand-all
+                >
+                    <template v-slot:default-header="props">
+                        <div class="row items-center q-gutter-sm" style="width: 100%;justify-content: space-around;">
+                            <div class="col-6">{{ props.node.label }}</div>
+                            <div class="col-5" style="text-align: right;">
+                                <q-btn
+                                    flat
+                                    dense
+                                    icon="fa fa-plus"
+                                    color="green"
+                                    size="sm"
+                                    @click.stop="_createLine(props.node)"
+                                />
 
-            <q-tree
-                :nodes="railsystems"
-                node-key="id"
-                :lazy-load="true"
-                @lazy-load="loadRailLines"
-                label-key="label"
-                default-expand-all
-            >
-                <template v-slot:default-header="props">
-                    <div class="row items-center q-gutter-sm" style="width: 100%;">
-                        <div class="col-6">{{ props.node.label }}</div>
-                        <div class="col-5" style="text-align: right;">
+                                <q-btn
+                                    flat
+                                    dense
+                                    color="primary"
+                                    icon="fa fa-pen-to-square"
+                                    size="sm"
+                                    @click.stop="editNode(props.node)"
+                                />
+                            </div>
+                        </div>
+                    </template>
+                    <!-- 为所有 line 节点定义专属模板 -->
+                    <template v-slot:header-line="{ node }">
+                        <div @click.stop class="row q-gutter-sm " style="width: 100%">
+                            <LineIcon :line="node.lineData"/>
+                            <q-space/>
+                            <div>
+                                <q-btn
+                                    flat
+                                    dense
+                                    icon="fa fa-plus"
+                                    color="green"
+                                    size="sm"
+                                    @click.stop="_createStation(props.node)"
+                                />
+                                <q-btn
+                                    size="small"
+                                    flat
+                                    dense
+                                    color="primary"
+                                    icon="fa fa-pen-to-square"
+                                    @click.stop.prevent="editLine(node)"
+                                />
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-slot:header-station="{ node }">
+                        <div class="row items-center q-gutter-sm" style="width: 100%;">
+                            <div
+                                style="color: var(--q-primary); font-weight: bold; font-size: 18px;">
+                                {{ node?.stationData?.name }}
+                            </div>
+                            <q-space/>
                             <q-btn
-                                flat
-                                dense
-                                icon="train"
                                 size="sm"
-                            />
-                            <q-btn
-                                flat
-                                dense
-                                icon="fa fa-plus"
-                                color="green"
-                                size="sm"
-                                @click.stop="_createStation(props.node)"
-                            />
-                            <q-btn
-                                flat
-                                dense
-                                icon="timeline"
-                                color="green"
-                                size="sm"
-                                @click.stop="_createLine(props.node)"
-                            />
-                            <q-btn
                                 flat
                                 dense
                                 color="primary"
                                 icon="fa fa-pen-to-square"
-                                size="sm"
-                                @click.stop="editNode(props.node)"
+                                @click.stop.prevent="editStation(node)"
                             />
                         </div>
-                    </div>
-                </template>
-                <!-- 为所有 line 节点定义专属模板 -->
-                <template v-slot:header-line="{ node }">
-                    <div @click.stop class="row q-gutter-sm " style="width: 100%">
-                        <LineIcon :line="node.lineData"/>
-                        <q-space/>
-                        <q-btn
-                            size="small"
-                            flat
-                            dense
-                            color="primary"
-                            icon="fa fa-pen-to-square"
-                            @click.stop.prevent="editLine(node)"
-                        />
-                    </div>
-                </template>
-            </q-tree>
-        </q-card>
-
+                    </template>
+                </q-tree>
+            </q-card>
+        </div>
 
         <q-dialog v-model="showLineForm" @close="()=>{selectedLine=null}">
             <line-form :initial="selectedLine" @saved="reloadLines"/>
@@ -162,6 +177,17 @@ function editNode(node) {
     }
 }
 
+const stationToNode = (s) => {
+    return {
+        id: `station_${s.id}`,
+        label: s.name,
+        stationData: s,
+        lazy: false,
+        children: [],
+        header: 'station',
+    }
+}
+
 async function loadRailLines({node, key, done, fail}) {
     try {
         const lines = await store.dispatch('railsystem/getRailSystemLines', {
@@ -172,7 +198,7 @@ async function loadRailLines({node, key, done, fail}) {
             label: line.name,
             lineData: line,
             lazy: false,
-            children: [],
+            children: line?.stations ? line.stations.map(stationToNode) : [],
             header: 'line',
         }));
         done(childNodes);
@@ -181,9 +207,15 @@ async function loadRailLines({node, key, done, fail}) {
     }
 }
 
+
 function editLine(node) {
     showLineForm.value = true
     selectedLine.value = node.lineData;
+}
+
+function editStation(node) {
+    showStationForm.value = true
+    selectedStation.value = node.stationData;
 }
 
 async function reloadLines() {
