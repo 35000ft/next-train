@@ -25,16 +25,10 @@
                     emit-value
                     map-options
                 />
-                <q-select
-                    v-model="stationData.category"
-                    :options="categoryOptions"
-                    label="类型"
-                    emit-value
-                    map-options
-                />
 
                 <osm-location-picker
                     v-model="stationData.location"
+                    format="lon-lat"
                 />
 
                 <div class="q-gutter-md row justify-end q-mt-md">
@@ -65,6 +59,7 @@ const categoryOptions = ref(RAILSYSTEM_CATEGORIES);
 onMounted(async () => {
     if (props.initial) {
         stationData.value = await store.dispatch('railsystem/getStation', {stationId: props.initial.id})
+        console.log('stationData', stationData)
     }
 });
 
@@ -74,7 +69,6 @@ async function submitForm() {
         loading.value = true
         await new Promise((resolve, reject) => setTimeout(resolve, 5000))
         const payload = {...stationData.value}
-        console.log('payload', payload)
         if (payload.id) {
             result = await updateStation(payload.id, payload);
         } else {

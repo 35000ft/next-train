@@ -77,31 +77,24 @@
 
 
                 <!-- logo 文件上传 -->
-                <q-uploader
-                    ref="uploader"
-                    label="上传 Logo"
-                    url=""
-                    :auto-upload="false"
-                    accept="image/*"
-                    max-files="1"
-                    @added="onLogoAdded"
-                    :hide-upload-btn="true"
-                    :file-list="logoFile ? [logoFile] : []"
-                >
-                    <template v-slot:header>
-                        <q-btn color="primary" label="选择文件" @click="$refs.uploader.pickFiles()"/>
-                    </template>
-                    <template v-slot:after>
-                        <q-img
-                            v-if="logoPreview"
-                            :src="logoPreview"
-                            style="max-width: 120px; max-height: 60px; margin-top: 8px;"
-                            :alt="'logo预览'"
-                        />
-                    </template>
-                </q-uploader>
+                <div>
+                    <q-file
+                        v-model="logoFile"
+                        label="选择线网Logo"
+                        filled
+                        outlined
+                        accept=".jpg, .jpeg, .png, .gif"
+                        @update:model-value="handleFileChange"
+                    >
+                        <template v-slot:prepend>
+                            <q-icon name="attach_file"/>
+                        </template>
+                    </q-file>
+                    <div v-if="previewUrl" class="q-mt-md row justify-center">
+                        <q-img :src="previewUrl" :ratio="1" class="rounded-borders" style="max-width: 150px;"/>
+                    </div>
+                </div>
 
-                <!-- 编辑时显示默认车站ID -->
                 <q-input
                     v-if="id"
                     v-model.number="defaultStationId"
@@ -134,13 +127,11 @@ const status = ref('PRIVATE');
 const timezone = ref('');
 const category = ref('');
 const logoFile = ref(null); // 上传的文件对象
-const logoPreview = ref(''); // 预览图片URL
+const previewUrl = ref(null); // 预览图片URL
 const defaultStationId = ref(null);
 
 const formRef = ref(null);
-const uploader = ref(null);
 
-// 语言选项示例，按需增删
 const languageOptions = [
     {label: 'العربية', value: 'ar'},     // Arabic
     {label: 'বাংলা', value: 'bn'},       // Bengali
@@ -220,24 +211,27 @@ onMounted(() => {
         defaultStationId.value = props.initial.defaultStationId || null;
 
         if (props.initial.logo) {
-            logoPreview.value = props.initial.logo;
-            logoFile.value = null;
+            logoFile.value = null
+            previewUrl.value = props.initial.logo
         }
     }
 });
 
-function onLogoAdded(files) {
-    if (files.length === 0) return;
-    const file = files[0];
-    logoFile.value = file;
+const handleFileChange = (newFile) => {
+    if (previewUrl.value) {
+        try {
+            URL.revokeObjectURL(previewUrl.value);
+        } catch (e) {
+        }
+    }
 
-    // 生成本地预览
-    const reader = new FileReader();
-    reader.onload = e => {
-        logoPreview.value = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
+    previewUrl.value = null;
+    if (newFile instanceof File) {
+        previewUrl.value = URL.createObjectURL(newFile);
+    } else {
+        console.warn('Error type', newFile)
+    }
+};
 
 async function submitForm() {
     if (formRef.value) {
@@ -257,7 +251,7 @@ async function submitForm() {
         language: language.value,
         timezone: timezone.value,
         category: category.value,
-        logo: logoPreview.value,
+        logo: previewUrl.value,
         defaultStationId: defaultStationId.value,
     };
 

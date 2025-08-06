@@ -133,32 +133,32 @@ export async function fetchShowLineCanvasConfig(railsystemCode) {
 }
 
 export async function createRailsystem(data) {
-    const url = `${baseUrl}/railsystem/create`;
+    const url = `${baseUrl}/railsystems/create`;
     return axios.post(url, data).then(res => res.data.data);
 }
 
 export async function updateRailsystem(id, data) {
-    const url = `${baseUrl}/railsystem/${id}`;
+    const url = `${baseUrl}/railsystems/${id}`;
     return axios.post(url, data).then(res => res.data.data);
 }
 
 export async function createLine(data) {
-    const url = `${baseUrl}/line/create`;
+    const url = `${baseUrl}/lines/create`;
     return axios.post(url, data).then(res => res.data.data);
 }
 
 export async function updateLine(id, data) {
-    const url = `${baseUrl}/line/${id}`;
+    const url = `${baseUrl}/lines/${id}`;
     return axios.post(url, data).then(res => res.data.data);
 }
 
 export async function createStation(data) {
-    const url = `${baseUrl}/station/create`;
+    const url = `${baseUrl}/stations/create`;
     return axios.post(url, data).then(res => res.data.data);
 }
 
 export async function updateStation(id, data) {
-    const url = `${baseUrl}/station/${id}`;
+    const url = `${baseUrl}/stations/${id}`;
     return axios.post(url, data).then(res => res.data.data);
 }
 

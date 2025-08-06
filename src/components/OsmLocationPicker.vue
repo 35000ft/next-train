@@ -16,7 +16,11 @@ import 'leaflet/dist/leaflet.css';
 
 const props = defineProps({
     modelValue: String,
-    readonly: Boolean
+    readonly: Boolean,
+    format: {
+        type: String,
+        default: "lat-lon"
+    }
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -37,6 +41,51 @@ watch(() => props.modelValue, (val) => {
     }
 });
 
+/**
+ * Parses a coordinate string based on the format prop.
+ * @param {string} value - The coordinate string.
+ * @param {string} format - The coordinate string.
+ * @returns {L.LatLng | null} - The Leaflet LatLng object or null if parsing fails.
+ */
+function parseCoordinates(value, format) {
+    if (!value) {
+        return null;
+    }
+    const parts = value.split(',').map(part => part.trim());
+    if (parts.length !== 2) {
+        return null;
+    }
+    const [latStr, lonStr] = parts;
+    const lat = Number(latStr);
+    const lon = Number(lonStr);
+    if (isNaN(lat) || isNaN(lon)) {
+        return null;
+    }
+
+    if (format === 'lat-lon') {
+        return L.latLng(lat, lon);
+    } else if (format === 'lon-lat') {
+        return L.latLng(lon, lat); // Swapping them for lon-lat format
+    }
+    return null;
+}
+
+/**
+ * Formats a LatLng object into a string based on the format prop.
+ * @param {L.LatLng} latlng - The Leaflet LatLng object.
+ * @param format lan-lon lon-lat
+ * @returns {string} - The formatted coordinate string.
+ */
+function formatCoordinates(latlng, format) {
+    const lat = latlng.lat.toFixed(6);
+    const lon = latlng.lng.toFixed(6);
+    if (format === 'lon-lat') {
+        return `${lon}, ${lat}`;
+    }
+    // Default to lat-lon
+    return `${lat}, ${lon}`;
+}
+
 onMounted(() => {
     map = L.map(mapContainer.value).setView([34.0522, 118.2437], 12);
 
@@ -45,21 +94,32 @@ onMounted(() => {
     }).addTo(map);
 
     if (props.modelValue) {
-        const [lat, lng] = props.modelValue.split(',').map(Number);
-        const latlng = L.latLng(lat, lng);
-        marker = L.marker(latlng).addTo(map);
-        map.setView(latlng, 15);
+        const latlng = parseCoordinates(props.modelValue, props.format);
+        console.log('latlng', latlng)
+        if (latlng) {
+            marker = L.marker(latlng).addTo(map);
+            map.setView(latlng, 15);
+        }
     }
 
     if (!props.readonly) {
         map.on('click', (e) => {
             const latlng = e.latlng;
-            const value = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+            const value = formatCoordinates(latlng, props.format);
             marker?.setLatLng(latlng) || (marker = L.marker(latlng).addTo(map));
             emit('update:modelValue', value);
         });
     }
 });
+
+watch(props, (newVal, oldVal) => {
+    const latlng = parseCoordinates(props.modelValue, props.format);
+    if (latlng) {
+        marker = L.marker(latlng).addTo(map);
+        map.setView(latlng, 15);
+    }
+})
+
 </script>
 
 <style scoped>
