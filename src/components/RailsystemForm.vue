@@ -21,7 +21,7 @@
                     </template>
                 </q-input>
 
-                <q-input v-model="abbrName" label="类型简称" clearable/>
+                <q-input v-model="abbrName" label="简称" clearable/>
 
                 <q-input
                     v-model="code"
@@ -98,24 +98,31 @@
                 <q-input
                     v-if="id"
                     v-model.number="defaultStationId"
-                    label="默认车站ID"
+                    label="默认车站"
                     type="number"
                     clearable
                 />
 
-                <q-btn label="保存" type="submit" color="primary"/>
+                <q-btn label="保存" type="submit" color="primary" :loading="loading"/>
             </q-form>
         </q-card-section>
     </q-card>
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue';
+import {ref, onMounted, watch} from 'vue';
 import {createRailsystem, updateRailsystem} from 'src/apis/railsystem';
 import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
 
 const props = defineProps({initial: Object});
 const emits = defineEmits(['saved']);
+const loading = ref(false);
+
+const statusOptions = [
+    {label: 'PRIVATE', value: '0'},
+    {label: 'PUBLIC', value: '1'},
+    {label: 'CLOSED', value: '3'},
+]
 
 const id = ref(null);
 const code = ref('');
@@ -123,7 +130,7 @@ const name = ref('');
 const abbrName = ref('');
 const enName = ref('');
 const language = ref('');
-const status = ref('PRIVATE');
+const status = ref(statusOptions[0])
 const timezone = ref('');
 const category = ref('');
 const logoFile = ref(null); // 上传的文件对象
@@ -166,11 +173,6 @@ const languageOptions = [
     {label: 'Tiếng Việt', value: 'vi'}   // Vietnamese
 ];
 
-const statusOptions = [
-    {label: 'PRIVATE', value: '0'},
-    {label: 'PUBLIC', value: '1'},
-    {label: 'CLOSED', value: '3'},
-]
 
 const categoryOptions = RAILSYSTEM_CATEGORIES
 // 生成时区偏移选项
@@ -199,22 +201,8 @@ function initTimezoneOptions() {
 initTimezoneOptions();
 
 onMounted(() => {
-    if (props.initial) {
-        id.value = props.initial.id || null;
-        code.value = props.initial.code || '';
-        name.value = props.initial.name || '';
-        abbrName.value = props.initial.abbrName || '';
-        enName.value = props.initial.enName || '';
-        language.value = props.initial.language || '';
-        timezone.value = props.initial.timezone || '';
-        category.value = props.initial.category || '';
-        defaultStationId.value = props.initial.defaultStationId || null;
+    initForm(props.initial)
 
-        if (props.initial.logo) {
-            logoFile.value = null
-            previewUrl.value = props.initial.logo
-        }
-    }
 });
 
 const handleFileChange = (newFile) => {
@@ -233,6 +221,29 @@ const handleFileChange = (newFile) => {
     }
 };
 
+function initForm(d) {
+    if (d) {
+        id.value = d.id || null;
+        code.value = d.code || '';
+        name.value = d.name || '';
+        abbrName.value = d.abbrName || '';
+        enName.value = d.enName || '';
+        language.value = d.language || '';
+        timezone.value = d.timezone || '';
+        category.value = d.category || '';
+        defaultStationId.value = d.defaultStationId || null;
+
+        if (d.logo) {
+            logoFile.value = null
+            previewUrl.value = d.logo
+        }
+    }
+}
+
+watch(props, (newVal, oldVal) => {
+    initForm(newVal?.initial)
+})
+
 async function submitForm() {
     if (formRef.value) {
         const valid = await formRef.value.validate();
@@ -240,7 +251,7 @@ async function submitForm() {
             return;
         }
     }
-
+    loading.value = true
     // 这里的logo上传逻辑需要你自己实现，示例暂时直接传logoPreview（base64或旧URL）
     const data = {
         id: id.value,
@@ -248,9 +259,9 @@ async function submitForm() {
         name: name.value,
         abbrName: abbrName.value,
         enName: enName.value,
-        language: language.value,
-        timezone: timezone.value,
-        category: category.value,
+        language: language.value?.value,
+        timezone: timezone.value?.value,
+        category: category.value?.value,
         logo: previewUrl.value,
         defaultStationId: defaultStationId.value,
     };
@@ -264,6 +275,8 @@ async function submitForm() {
         emits('saved');
     } catch (err) {
         console.error('保存线网失败', err);
+    } finally {
+        loading.value = false
     }
 }
 </script>

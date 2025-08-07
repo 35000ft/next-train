@@ -96,7 +96,7 @@
 
         <!-- 弹出创建/编辑线网 -->
         <q-dialog v-model="showRailsystemForm">
-            <railsystem-form :initial="editingRailsystem" @saved="onRailsystemSaved"/>
+            <railsystem-form :initial="selectedRailsystem" @saved="onRailsystemSaved"/>
         </q-dialog>
 
     </q-page>
@@ -122,18 +122,20 @@ const lines = ref([]);
 const showRailsystemForm = ref(false);
 const showLineForm = ref(false);
 const showStationForm = ref(false);
-const editingRailsystem = ref(null);
 const store = useStore()
 
 function openCreateRailsystem() {
-    editingRailsystem.value = null;
+    selectedRailsystem.value = null;
     showRailsystemForm.value = true;
 }
 
-function editRailsystem(rs) {
-    editingRailsystem.value = rs;
-    showRailsystemForm.value = true;
-    selectRailsystem(rs);
+async function editRailsystem(node) {
+    if (node?.railsystem) {
+        selectedRailsystem.value = node?.railsystem
+        showRailsystemForm.value = true
+        selectedLine.value = null
+        lines.value = await fetchLines(node?.railsystem?.code)
+    }
 }
 
 function _createLine(node) {
@@ -164,9 +166,7 @@ async function loadRailsystems() {
 }
 
 async function selectRailsystem(rs) {
-    selectedRailsystem.value = rs;
-    selectedLine.value = null;
-    lines.value = await fetchLines(rs.code);
+
 }
 
 function editNode(node) {
