@@ -7,14 +7,18 @@
         <q-separator/>
 
         <q-card-section style="flex: 1; overflow-y: auto;">
-            <q-form @submit.prevent="submitForm">
+            <q-form @submit.prevent="submitForm" ref="formRef">
                 <!-- 线路名称 -->
                 <q-input
                     v-model="lineData.name"
-                    label="线路名称"
                     required
+                    :rules="[val => !!val || 'Line name can not be empty']"
                     class="q-mb-md"
-                />
+                    label-slot>
+                    <template #label>
+                        <span>线路名称 <span class="text-negative">*</span></span>
+                    </template>
+                </q-input>
 
                 <q-input
                     v-model="lineData.code"
@@ -22,14 +26,12 @@
                     class="q-mb-md"
                 />
 
-                <!-- 线路英文名称 -->
                 <q-input
                     v-model="lineData.enName"
                     label="英文名称"
                     class="q-mb-md"
                 />
 
-                <!-- 线路状态 -->
                 <q-select
                     v-model="lineData.status"
                     :options="statusOptions"
@@ -69,6 +71,12 @@
                         <q-item-label class="q-mt-sm text-weight-bold">车站列表</q-item-label>
                     </template>
                     <!-- 车站列表 -->
+                    <q-item class="row text-primary">
+                        <q-item-section>序号</q-item-section>
+                        <q-item-section>车站名</q-item-section>
+                        <q-item-section>前站距离(m)</q-item-section>
+                        <q-item-section>下站距离(m)</q-item-section>
+                    </q-item>
                     <draggable
                         v-model="allStations"
                         item-key="id"
@@ -77,12 +85,19 @@
                     >
                         <template #item="{ element, index }">
                             <q-item class="row">
-                                <q-item-section class="col-2">
+                                <q-item-section class="col-1 items-center justify-center" style="text-align: center;">
                                     <q-avatar color="primary" text-color="white" size="24px">
                                         {{ index + 1 }}
                                     </q-avatar>
                                 </q-item-section>
                                 <q-item-section>{{ element.name }}</q-item-section>
+                                <q-item-section>
+                                    <q-input v-model="element.preDistance" type="number" :disable="index===0"/>
+                                </q-item-section>
+                                <q-item-section>
+                                    <q-input v-model="element.nextDistance" type="number"
+                                             :disable="index===allStations.length-1"/>
+                                </q-item-section>
                                 <q-item-section side>
                                     <q-btn
                                         dense
@@ -142,20 +157,21 @@ import StationForm from "components/StationForm.vue";
 import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
 import {useQuasar} from "quasar";
 
+const formRef = ref(null);
 const showStationForm = ref(false)
 const props = defineProps({
     initial: Object
 })
-const emits = defineEmits(['saved']);
+const emits = defineEmits(['saved'])
 const stationSelector = ref(null)
 const loading = ref(false)
 const $q = useQuasar()
-const rawStations = ref([]); // 当前已选车站
-const allStations = ref([]); // 所有可选车站（从 line.stations 加载）
+const rawStations = ref([])
+const allStations = ref([])
 const statusOptions = ref([
     {label: '关闭', value: 0},
     {label: '运营中', value: 1}
-]);
+])
 
 const categoryOptions = RAILSYSTEM_CATEGORIES;
 const lineData = ref({})
@@ -174,7 +190,7 @@ onMounted(async () => {
         rawStations.value = [];
         allStations.value = [];
     }
-});
+})
 
 const handleSelectStation = async ({station, event}) => {
     if (station) {
@@ -200,12 +216,29 @@ function removeStation(index) {
 }
 
 async function submitForm() {
+    if (formRef.value) {
+        const valid = await formRef.value.validate();
+        if (!valid) {
+            return
+        }
+    }
     try {
         loading.value = true
-        const payload = {};
-        let saved;
-        if (id.value) {
-            saved = await updateLine(id.value, payload);
+        const payload = {
+            ...lineData.value
+        }
+        payload.status = payload?.status?.value
+        payload.category = payload?.category?.value
+        payload.stations = allStations.value.map(it => {
+            return {
+                id: it.id,
+                nextDistance: it?.nextDistance,
+                preDistance: it?.preDistance,
+            }
+        })
+        let saved
+        if (lineData.value?.id) {
+            saved = await updateLine(lineData.value?.id, payload);
             $q.notify.ok('保存线路成功')
         } else {
             saved = await createLine(payload);
@@ -216,7 +249,6 @@ async function submitForm() {
         console.error('保存线路失败:', err)
         $q.notify.error('保存线路失败')
     } finally {
-        lineData.value = {}
         loading.value = false
     }
 }

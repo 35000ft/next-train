@@ -2,13 +2,14 @@
     <q-page padding class="row" style="gap: 10px;">
         <div style="max-width: 500px;" class="col-12 col-sm-4">
             <div class="row items-center justify-between q-mb-md">
-                <div class="text-h6">线网管理</div>
-                <q-btn label="新建线网" color="primary" @click="openCreateRailsystem"/>
+                <div class="text-h5 text-primary" style="font-weight: bold;">线网管理</div>
+                <q-btn label="新建线网" color="green" @click="openCreateRailsystem"/>
             </div>
             <q-card flat bordered class="q-pa-md q-mb-md">
                 <q-item-label header>线网列表</q-item-label>
 
                 <q-tree
+                    ref="railsystemTree"
                     :nodes="railsystems"
                     node-key="id"
                     :lazy-load="true"
@@ -28,7 +29,6 @@
                                     size="sm"
                                     @click.stop="_createLine(props.node)"
                                 />
-
                                 <q-btn
                                     flat
                                     dense
@@ -40,9 +40,8 @@
                             </div>
                         </div>
                     </template>
-                    <!-- 为所有 line 节点定义专属模板 -->
                     <template v-slot:header-line="{ node }">
-                        <div @click.stop class="row q-gutter-sm " style="width: 100%">
+                        <div @click="toggleLine(node)" class="row q-gutter-sm " style="width: 100%">
                             <LineIcon :line="node.lineData"/>
                             <q-space/>
                             <div>
@@ -52,7 +51,7 @@
                                     icon="fa fa-plus"
                                     color="green"
                                     size="sm"
-                                    @click.stop="_createStation(props.node)"
+                                    @click.stop="_createStation(node)"
                                 />
                                 <q-btn
                                     size="small"
@@ -65,7 +64,6 @@
                             </div>
                         </div>
                     </template>
-
                     <template v-slot:header-station="{ node }">
                         <div class="row items-center q-gutter-sm" style="width: 100%;">
                             <div
@@ -106,7 +104,7 @@
 import {onMounted, ref} from 'vue';
 import RailsystemForm from 'components/RailsystemForm.vue';
 import LineForm from 'components/LineForm.vue';
-import {fetchLines, listRailsystem} from 'src/apis/railsystem';
+import {fetchLine, fetchLines, listRailsystem} from 'src/apis/railsystem';
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineIcon from "components/LineIcon.vue";
@@ -129,6 +127,8 @@ function openCreateRailsystem() {
     showRailsystemForm.value = true;
 }
 
+const railsystemTree = ref(null);
+
 async function editRailsystem(node) {
     if (node?.railsystem) {
         selectedRailsystem.value = node?.railsystem
@@ -142,6 +142,16 @@ function _createLine(node) {
     showLineForm.value = true
     selectedLine.value = {
         railsystem: node.railsystem
+    }
+}
+
+function toggleLine(node) {
+    if (node.children.length) {
+        if (node.isExpanded) {
+            railsystemTree.value.collapseNode(node.id);
+        } else {
+            railsystemTree.value.expandNode(node.id);
+        }
     }
 }
 
@@ -210,7 +220,7 @@ async function loadRailLines({node, key, done, fail}) {
 
 function editLine(node) {
     showLineForm.value = true
-    selectedLine.value = node.lineData;
+    selectedLine.value = fetchLine(node.lineData.id, true)
 }
 
 function editStation(node) {
