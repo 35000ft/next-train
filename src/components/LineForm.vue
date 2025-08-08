@@ -164,32 +164,43 @@ const props = defineProps({
 })
 const emits = defineEmits(['saved'])
 const stationSelector = ref(null)
-const loading = ref(false)
 const $q = useQuasar()
+const loading = ref(false)
 const rawStations = ref([])
 const allStations = ref([])
 const statusOptions = ref([
     {label: '关闭', value: 0},
     {label: '运营中', value: 1}
 ])
-
 const categoryOptions = RAILSYSTEM_CATEGORIES;
 const lineData = ref({})
 onMounted(async () => {
+    let dialog
     if (props.initial?.id) {
         try {
-            const line = await fetchLine(props.initial.id);
+            dialog = $q.dialog({
+                // 配置模态框
+                message: '加载线路中',
+                persistent: true,
+                ok: false,
+                progress: true,
+                // 可自定义样式
+                style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
+            })
+            const line = await fetchLine(props.initial.id, true)
             Object.assign(lineData.value, line,)
-
-            rawStations.value = [...line.stations];
-            allStations.value = [...line.stations];
+            rawStations.value = [...line.stations]
+            allStations.value = [...line.stations]
         } catch (err) {
-            console.error('加载线路失败:', err);
+            $q.notify.error('加载线路失败')
+        } finally {
+            dialog?.hide()
         }
     } else {
-        rawStations.value = [];
-        allStations.value = [];
+        rawStations.value = []
+        allStations.value = []
     }
+    lineData.value.railsystem = props.initial?.railsystem
 })
 
 const handleSelectStation = async ({station, event}) => {
@@ -227,6 +238,7 @@ async function submitForm() {
         const payload = {
             ...lineData.value
         }
+        payload.railsystemId = lineData.value?.railsystem?.id
         payload.status = payload?.status?.value
         payload.category = payload?.category?.value
         payload.stations = allStations.value.map(it => {
@@ -260,5 +272,12 @@ async function submitForm() {
     border: 1px solid #ccc;
     border-radius: 4px;
     min-height: 50px;
+}
+
+.square-dialog .q-card {
+    width: 100px; /* 设置宽度 */
+    height: 100px; /* 设置高度 */
+    max-width: 100%; /* 防止超出屏幕 */
+    max-height: 100%; /* 防止超出屏幕 */
 }
 </style>
