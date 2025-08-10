@@ -27,6 +27,7 @@
                 />
 
                 <osm-location-picker
+                    show-input
                     v-model="stationData.location"
                     format="lon-lat"
                 />
@@ -42,45 +43,67 @@
 
 <script setup>
 import {ref, onMounted} from 'vue';
-import {createStation, updateStation} from 'src/apis/railsystem';
-import {useStore} from "vuex";
+import {createStation, fetchStation, updateStation} from 'src/apis/railsystem';
 import OsmLocationPicker from "components/OsmLocationPicker.vue";
 import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
+import {useQuasar} from "quasar";
 
+const $q = useQuasar()
 const props = defineProps({
     initial: Object
 });
 const emits = defineEmits(['saved']);
-const store = useStore()
 const stationData = ref({})
 const loading = ref(false)
-const categoryOptions = ref(RAILSYSTEM_CATEGORIES);
-
+ref(RAILSYSTEM_CATEGORIES);
 onMounted(async () => {
-    if (props.initial) {
-        stationData.value = await store.dispatch('railsystem/getStation', {stationId: props.initial.id})
-        console.log('stationData', stationData)
+    let dialog
+    if (props.initial?.id) {
+        try {
+            dialog = $q.dialog({
+                // 配置模态框
+                message: '加载车站中',
+                persistent: true,
+                ok: false,
+                progress: true,
+                // 可自定义样式
+                style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
+            })
+            const line = await fetchStation(props.initial.id, true)
+            Object.assign(stationData.value, line,)
+        } catch (err) {
+            $q.notify.error('加载线路失败')
+            return
+        } finally {
+            dialog?.hide()
+        }
     }
+    stationData.value.railsystem = props.initial?.railsystem
 });
 
 async function submitForm() {
     let result;
     try {
         loading.value = true
-        await new Promise((resolve, reject) => setTimeout(resolve, 5000))
         const payload = {...stationData.value}
+        payload.railsystemId = payload.railsystem?.id
+        if (!payload.railsystemId) {
+            $q.notify.error('线网ID不能为空')
+            return
+        }
+        console.log('payload', payload,)
         if (payload.id) {
             result = await updateStation(payload.id, payload);
+            $q.notify.ok('创建车站成功成功')
         } else {
             result = await createStation(payload);
+            $q.notify.ok('保存线路成功')
         }
     } catch (err) {
+        $q.notify.ok('保存车站失败')
         console.error('保存车站失败:', err);
-        return
     } finally {
-        stationData.value = {}
         loading.value = false
-        console.log('set loading false', loading.value);
     }
     emits('saved', result);
 

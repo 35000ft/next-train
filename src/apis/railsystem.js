@@ -139,26 +139,26 @@ export async function createRailsystem(data) {
 
 export async function updateRailsystem(id, data) {
     const url = `${baseUrl}/railsystems/${id}`;
-    return axios.post(url, data).then(res => res.data.data);
+    return axios.post(url, data).then(res => res.data.data)
 }
 
 export async function createLine(data) {
     const url = `${baseUrl}/lines/create`;
-    return axios.post(url, data).then(res => res.data.data);
+    return axios.post(url, data).then(res => res.data.data)
 }
 
 export async function updateLine(id, data) {
     const url = `${baseUrl}/lines/${id}`;
-    return axios.post(url, data).then(res => res.data.data);
+    return axios.post(url, data).then(res => res.data.data)
 }
 
 export async function createStation(data) {
-    const url = `${baseUrl}/stations/create`;
-    return axios.post(url, data).then(res => res.data.data);
+    const url = `${baseUrl}/station/create`;
+    return axios.post(url, data).then(res => res.data.data)
 }
 
 export async function updateStation(id, data) {
-    const url = `${baseUrl}/stations/${id}`;
-    return axios.post(url, data).then(res => res.data.data);
+    const url = `${baseUrl}/station/${id}`;
+    return axios.post(url, data).then(res => res.data.data)
 }
 

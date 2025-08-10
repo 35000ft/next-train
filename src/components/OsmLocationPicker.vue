@@ -1,135 +1,222 @@
 <template>
     <div>
         <q-input
+            v-if="showInput"
             v-model="modelValueFormatted"
-            label="坐标 (纬度, 经度)"
+            :label="multiple ? '坐标列表' : '坐标 (纬度, 经度)'"
             readonly
         />
-        <div ref="mapContainer" style="height: 250px; margin-top: 8px;"/>
+        <!-- 小地图 -->
+        <div
+            v-if="showInput"
+            ref="mapContainerSmall"
+            style="height: 250px; margin-top: 8px; cursor: pointer;"
+            @click="openDialog"
+        />
     </div>
+    <!-- 大地图对话框 -->
+    <q-dialog v-model="showBigMapDialog" persistent maximized>
+        <div style="width: 100vw; height: 100vh;">
+            <div
+                ref="mapContainerLarge"
+                style="width: 100%; height: 100vh;position: fixed;z-index: 0;"
+            />
+            <q-card-actions align="right">
+                <q-btn flat label="关闭" color="primary" @click="handleCloseBigMap"/>
+            </q-card-actions>
+        </div>
+    </q-dialog>
 </template>
 
 <script setup>
-import {ref, onMounted, watch} from 'vue';
+import {ref, onMounted, watch, nextTick} from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const props = defineProps({
-    modelValue: String,
+    modelValue: [String, Array],
     readonly: Boolean,
+    multiple: {
+        type: Boolean,
+        default: false
+    },
+    showInput: {
+        type: Boolean,
+        default: false
+    },
     format: {
         type: String,
-        default: "lat-lon"
+        default: 'lat-lon'
+    },
+    display: {
+        type: Boolean,
+        default: false
     }
 });
+const emit = defineEmits(['update:modelValue', 'close']);
 
-const emit = defineEmits(['update:modelValue']);
+// 小地图 / 大地图容器
+const mapContainerSmall = ref(null);
+const mapContainerLarge = ref(null);
 
-const mapContainer = ref(null);
-let map = null;
-let marker = null;
+// 对话框开关
+const showBigMapDialog = ref(false);
 
-const modelValueFormatted = ref(props.modelValue || '');
 
-watch(() => props.modelValue, (val) => {
-    modelValueFormatted.value = val || '';
-    if (val && map && !props.readonly) {
-        const [lat, lng] = val.split(',').map(Number);
-        const latlng = L.latLng(lat, lng);
-        marker?.setLatLng(latlng);
-        map.setView(latlng, 15);
-    }
-});
+// Leaflet map 实例
+let mapSmall = null;
+let mapLarge = null;
+let markersSmall = [];
+let markersLarge = [];
 
-/**
- * Parses a coordinate string based on the format prop.
- * @param {string} value - The coordinate string.
- * @param {string} format - The coordinate string.
- * @returns {L.LatLng | null} - The Leaflet LatLng object or null if parsing fails.
- */
+const modelValueFormatted = ref(
+    props.multiple
+        ? JSON.stringify(props.modelValue || [])
+        : props.modelValue || ''
+);
+
+watch(
+    () => props.modelValue,
+    () => {
+        modelValueFormatted.value = props.multiple
+            ? JSON.stringify(props.modelValue || [])
+            : props.modelValue || '';
+        refreshMarkers(mapSmall, markersSmall);
+        if (mapLarge) refreshMarkers(mapLarge, markersLarge);
+    },
+    {deep: true}
+);
+
 function parseCoordinates(value, format) {
-    if (!value) {
-        return null;
-    }
-    const parts = value.split(',').map(part => part.trim());
-    if (parts.length !== 2) {
-        return null;
-    }
-    const [latStr, lonStr] = parts;
-    const lat = Number(latStr);
-    const lon = Number(lonStr);
-    if (isNaN(lat) || isNaN(lon)) {
-        return null;
-    }
-
-    if (format === 'lat-lon') {
-        return L.latLng(lat, lon);
-    } else if (format === 'lon-lat') {
-        return L.latLng(lon, lat); // Swapping them for lon-lat format
-    }
-    return null;
+    if (!value) return null;
+    const parts = value.split(',').map((p) => p.trim());
+    if (parts.length !== 2) return null;
+    let [lat, lon] = parts.map(Number);
+    if (isNaN(lat) || isNaN(lon)) return null;
+    if (format === 'lon-lat') [lat, lon] = [lon, lat];
+    return L.latLng(lat, lon);
 }
 
-/**
- * Formats a LatLng object into a string based on the format prop.
- * @param {L.LatLng} latlng - The Leaflet LatLng object.
- * @param format lan-lon lon-lat
- * @returns {string} - The formatted coordinate string.
- */
+function handleCloseBigMap() {
+    emit('close')
+    if (!props.multiple) {
+        showBigMapDialog.value = false
+        mapLarge = null
+    }
+}
+
 function formatCoordinates(latlng, format) {
     const lat = latlng.lat.toFixed(6);
     const lon = latlng.lng.toFixed(6);
-    if (format === 'lon-lat') {
-        return `${lon}, ${lat}`;
-    }
-    // Default to lat-lon
-    return `${lat}, ${lon}`;
+    return format === 'lon-lat' ? `${lon}, ${lat}` : `${lat}, ${lon}`;
 }
 
-onMounted(() => {
-    map = L.map(mapContainer.value).setView([34.0522, 118.2437], 12);
+function refreshMarkers(map, markers) {
+    markers.forEach((m) => map.removeLayer(m));
+    markers.length = 0;
 
+    const coords = props.multiple
+        ? props.modelValue || []
+        : props.modelValue
+            ? [props.modelValue]
+            : [];
+
+    coords.forEach((coord, idx) => {
+        const latlng = parseCoordinates(coord, props.format);
+        if (latlng) {
+            const marker = L.marker(latlng, {
+                icon: L.divIcon({
+                    className: 'marker-label',
+                    html: props.multiple
+                        ? `<div style="background:#1976d2;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;">${idx + 1}</div>`
+                        : ''
+                })
+            }).addTo(map);
+            markers.push(marker);
+        }
+    });
+
+    if (coords.length) {
+        map.setView(parseCoordinates(coords[0], props.format), 12);
+    }
+}
+
+function initMap(container, markersArr, clickHandler) {
+    const map = L.map(container).setView([32.3022, 118.2533], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    if (props.modelValue) {
-        const latlng = parseCoordinates(props.modelValue, props.format);
-        console.log('latlng', latlng)
-        if (latlng) {
-            marker = L.marker(latlng).addTo(map);
-            map.setView(latlng, 15);
-        }
-    }
+    refreshMarkers(map, markersArr);
 
     if (!props.readonly) {
-        map.on('click', (e) => {
-            const latlng = e.latlng;
-            const value = formatCoordinates(latlng, props.format);
-            marker?.setLatLng(latlng) || (marker = L.marker(latlng).addTo(map));
-            emit('update:modelValue', value);
-        });
+        map.on('click', clickHandler);
     }
-});
 
-watch(props, (newVal, oldVal) => {
-    const latlng = parseCoordinates(props.modelValue, props.format);
-    if (latlng) {
-        marker = L.marker(latlng).addTo(map);
-        map.setView(latlng, 15);
+    return map;
+}
+
+function handleMapClick(e, markersArr, targetModel) {
+    const latlng = e.latlng;
+    const value = formatCoordinates(latlng, props.format);
+    if (props.multiple) {
+        const arr = Array.isArray(props.modelValue)
+            ? [...props.modelValue, value]
+            : [value];
+        emit('update:modelValue', arr);
+    } else {
+        emit('update:modelValue', value)
+        handleCloseBigMap()
+    }
+}
+
+function openDialog() {
+    if (props.readonly) return;
+    showBigMapDialog.value = true;
+
+    nextTick(() => {
+        if (!mapLarge) {
+            mapLarge = initMap(
+                mapContainerLarge.value,
+                markersLarge,
+                (e) => handleMapClick(e, markersLarge, 'large')
+            );
+        }
+        mapLarge.invalidateSize();
+    });
+}
+
+watch(() => props.display, () => {
+    if (props.display) {
+        openDialog()
+    } else {
+        showBigMapDialog.value = false
+        mapLarge = null
     }
 })
+
+onMounted(() => {
+    if (props.showInput) {
+        mapSmall = initMap(
+            mapContainerSmall.value,
+            markersSmall,
+            () => openDialog() // 小地图点击只打开大地图
+        );
+    }
+})
+
 
 </script>
 
 <style scoped>
-/* Leaflet 默认样式补丁（修复图标不显示问题） */
 .leaflet-container {
     width: 100%;
     height: 100%;
 }
 
-.leaflet-control-attribution {
-    font-size: 10px;
+.marker-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

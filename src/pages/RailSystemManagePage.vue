@@ -104,7 +104,7 @@
 import {onMounted, ref} from 'vue';
 import RailsystemForm from 'components/RailsystemForm.vue';
 import LineForm from 'components/LineForm.vue';
-import {fetchLine, fetchLines, listRailsystem} from 'src/apis/railsystem';
+import {fetchLines, listRailsystem} from 'src/apis/railsystem';
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineIcon from "components/LineIcon.vue";
@@ -157,8 +157,10 @@ function toggleLine(node) {
 
 function _createStation(node) {
     showStationForm.value = true
+    console.log('node', node)
     selectedStation.value = {
-        railsystem: node.railsystem
+        railsystem: node.railsystem,
+        line: node.lineData,
     }
 }
 

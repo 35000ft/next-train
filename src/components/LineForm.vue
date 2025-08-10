@@ -113,15 +113,24 @@
                     <div class="row q-gutter-sm justify-around" style="margin-top: 5px;">
                         <q-btn
                             label="添加车站"
+                            icon="playlist_add"
                             color="blue"
                             @click="addStation"
                         />
                         <q-btn
                             label="创建车站"
                             color="green"
+                            icon="add"
                             @click="createStation"
                         />
                         <q-btn
+                            label="地图选点"
+                            color="green"
+                            icon="map"
+                            @click="showStationLocationPicker"
+                        />
+                        <q-btn
+                            icon="restore"
                             label="默认车站"
                             color="grey"
                             @click="restoreStations"
@@ -146,6 +155,9 @@
     <q-dialog v-model="showStationForm">
         <station-form :initial="{}"/>
     </q-dialog>
+    <OsmLocationPicker multiple :display="displayLocationPicker"
+                       @close="displayLocationPicker=false"
+    />
 </template>
 
 <script setup>
@@ -156,7 +168,9 @@ import StationSelector from "components/StationSelector.vue";
 import StationForm from "components/StationForm.vue";
 import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
 import {useQuasar} from "quasar";
+import OsmLocationPicker from "components/OsmLocationPicker.vue";
 
+const displayLocationPicker = ref(false)
 const formRef = ref(null);
 const showStationForm = ref(false)
 const props = defineProps({
@@ -219,6 +233,10 @@ function addStation() {
 
 function createStation() {
     showStationForm.value = true
+}
+
+function showStationLocationPicker() {
+    displayLocationPicker.value = true
 }
 
 
