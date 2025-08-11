@@ -153,7 +153,7 @@
     </q-card>
     <station-selector ref="stationSelector" :railsystem-code="lineData?.railsystemCode" @select="handleSelectStation"/>
     <q-dialog v-model="showStationForm">
-        <station-form :initial="{}"/>
+        <station-form :initial="{railsystemId:props.initial?.railsystem?.id}"/>
     </q-dialog>
     <OsmLocationPicker multiple :display="displayLocationPicker"
                        @close="displayLocationPicker=false"
@@ -171,7 +171,7 @@ import {useQuasar} from "quasar";
 import OsmLocationPicker from "components/OsmLocationPicker.vue";
 
 const displayLocationPicker = ref(false)
-const formRef = ref(null);
+const formRef = ref(null)
 const showStationForm = ref(false)
 const props = defineProps({
     initial: Object

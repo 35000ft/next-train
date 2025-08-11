@@ -252,7 +252,6 @@ async function submitForm() {
         }
     }
     loading.value = true
-    // 这里的logo上传逻辑需要你自己实现，示例暂时直接传logoPreview（base64或旧URL）
     const data = {
         id: id.value,
         code: code.value,
@@ -269,12 +268,15 @@ async function submitForm() {
     try {
         if (id.value) {
             await updateRailsystem(id.value, data);
+            $q.notify.ok('修改线网成功')
         } else {
             await createRailsystem(data);
+            $q.notify.ok('创建线网成功')
         }
         emits('saved');
     } catch (err) {
         console.error('保存线网失败', err);
+        $q.notify.error('保存线网失败')
     } finally {
         loading.value = false
     }

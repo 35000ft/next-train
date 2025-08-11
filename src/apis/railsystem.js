@@ -158,7 +158,20 @@ export async function createStation(data) {
 }
 
 export async function updateStation(id, data) {
-    const url = `${baseUrl}/station/${id}`;
+    const url = `${baseUrl}/station/update/${id}`;
     return axios.post(url, data).then(res => res.data.data)
+}
+
+export async function deleteStation(id, authCode) {
+    if (!authCode) {
+        return Promise.reject('Authcode can not be empty')
+    }
+    const url = `${baseUrl}/station/update/${id}?authCode=${authCode}`;
+    return axios.post(url).then(res => res.data.data)
+}
+
+export async function preDeleteStation(id) {
+    const url = `${baseUrl}/station/pre-delete-check/${id}`;
+    return axios.post(url).then(res => res.data.data)
 }
 

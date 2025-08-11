@@ -85,11 +85,11 @@
             </q-card>
         </div>
 
-        <q-dialog v-model="showLineForm" @close="()=>{selectedLine=null}">
+        <q-dialog v-model="showLineForm" @close="()=>{selectedLine=null;showLineForm=false}">
             <line-form :initial="selectedLine" @saved="reloadLines"/>
         </q-dialog>
         <q-dialog v-model="showStationForm">
-            <station-form :initial="selectedStation"/>
+            <station-form :initial="selectedStation" @close="()=>{showStationForm=false;selectedStation=null}"/>
         </q-dialog>
 
         <!-- 弹出创建/编辑线网 -->
@@ -156,12 +156,11 @@ function toggleLine(node) {
 }
 
 function _createStation(node) {
-    showStationForm.value = true
-    console.log('node', node)
     selectedStation.value = {
         railsystem: node.railsystem,
         line: node.lineData,
     }
+    showStationForm.value = true
 }
 
 
@@ -205,6 +204,7 @@ async function loadRailLines({node, key, done, fail}) {
             id: `line_${line.id}`,
             label: line.name,
             lineData: line,
+            railsystem: node?.railsystem,
             lazy: false,
             children: line?.stations ? line.stations.map(stationToNode) : [],
             header: 'line',
