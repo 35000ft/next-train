@@ -69,6 +69,8 @@
                 <q-expansion-item expand-separator default-opened>
                     <template v-slot:header>
                         <q-item-label class="q-mt-sm text-weight-bold">车站列表</q-item-label>
+                        <q-space/>
+                        <q-checkbox v-model="enableDistanceLock" label="距离联动"></q-checkbox>
                     </template>
                     <!-- 车站列表 -->
                     <q-item class="row text-primary">
@@ -92,10 +94,12 @@
                                 </q-item-section>
                                 <q-item-section>{{ element.name }}</q-item-section>
                                 <q-item-section>
-                                    <q-input v-model="element.preDistance" type="number" :disable="index===0"/>
+                                    <q-input v-model="element.preDistance" type="number" :disable="index===0"
+                                             @update:model-value="(val)=>handleDistanceChange(index,val,'previous')"/>
                                 </q-item-section>
                                 <q-item-section>
                                     <q-input v-model="element.nextDistance" type="number"
+                                             @update:model-value="(val)=>handleDistanceChange(index,val,'next')"
                                              :disable="index===allStations.length-1"/>
                                 </q-item-section>
                                 <q-item-section side>
@@ -176,6 +180,17 @@ const showStationForm = ref(false)
 const props = defineProps({
     initial: Object
 })
+const enableDistanceLock = ref(true)
+const handleDistanceChange = (index, value, distanceType) => {
+    if (!enableDistanceLock.value) return;
+    if (isNaN(Number(value))) return
+    if (distanceType === 'previous' && index > 0) {
+        allStations.value[index - 1].nextDistance = value
+    } else if (distanceType === 'next' && index < allStations.value.length - 1) {
+        allStations.value[index + 1].preDistance = value
+    }
+}
+
 const emits = defineEmits(['saved'])
 const stationSelector = ref(null)
 const $q = useQuasar()

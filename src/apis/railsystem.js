@@ -98,9 +98,15 @@ export async function fetchStation(stationId, update = false) {
 
 export async function fetchGraph(railsystemCode, update = false) {
     const url = `api/file/railsystem/graphs/${railsystemCode}${update ? '?v=latest' : ''}`
+    const cacheKey = `railsystems-graphs-${railsystemCode}`
     return await axios
-        .get(url)
+        .get(url, {
+            fetchOptions: {
+                cacheKey: cacheKey, forceUpdate: update
+            }
+        })
         .then(res => {
+            setCache(cacheKey, 86400 * 1000)
             return res.data.data || res.data
         })
         .catch(err => Promise.reject(err))
@@ -148,7 +154,7 @@ export async function createLine(data) {
 }
 
 export async function updateLine(id, data) {
-    const url = `${baseUrl}/lines/${id}`;
+    const url = `${baseUrl}/lines/update/${id}`;
     return axios.post(url, data).then(res => res.data.data)
 }
 

@@ -178,7 +178,7 @@ async function loadRailsystems() {
 
 function editNode(node) {
     if (node.isLine) {
-        editLine(node);
+        editLine(node)
     } else {
         editRailsystem(node);
     }
@@ -218,7 +218,10 @@ async function loadRailLines({node, key, done, fail}) {
 
 function editLine(node) {
     showLineForm.value = true
-    selectedLine.value = node?.lineData
+    selectedLine.value = {
+        ...node?.lineData,
+        railsystem: node?.railsystem
+    }
 }
 
 function editStation(node) {
