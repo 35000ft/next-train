@@ -76,6 +76,11 @@ async function checkLatestVersion() {
         const versionInfo = await getLatestVersionInfo()
         if (versionInfo.version !== currentVersion) {
             removeKeysStartingWith('railsystem')
+            caches.keys().then(function (cacheNames) {
+                cacheNames.forEach(function (cacheName) {
+                    caches.delete(cacheName)
+                })
+            })
             $q.notify.info('发现新版本，点击更新', {
                 name: '更新',
                 func: () => {
