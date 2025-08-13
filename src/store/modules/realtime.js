@@ -241,7 +241,7 @@ const actions = {
      * @param {String} date
      * @returns {Promise<Awaited<*>>}
      */
-    async getTrainInfoById({commit, state,}, {trainInfoId, date}) {
+    async getTrainsInfoById({commit, state,}, {trainInfoId, date}) {
         let trainInfo = state.trainInfoMap.get(trainInfoId);
         if (!trainInfo) {
             // 第三方车次
@@ -310,6 +310,7 @@ const actions = {
         }
         const station = await this.dispatch('railsystem/getStation', {stationId})
         const now = getNowByTimezone(station.timezone)
+        console.log('lines', station.lines)
         const lineIds = station.lines.map(it => it.id)
         const form = {
             stationId,

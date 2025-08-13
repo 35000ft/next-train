@@ -42,3 +42,14 @@ export function checkCacheExpired(cacheKey) {
         return true;
     }
 }
+
+export function removeKeysStartingWith(prefix) {
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) {
+            console.log('remove', key)
+            localStorage.removeItem(key);
+            i = -1;
+        }
+    }
+}
