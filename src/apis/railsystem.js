@@ -21,8 +21,9 @@ export async function fetchStations(railsystemCode, update = false) {
             if (!stations instanceof Array) {
                 console.warn('stations is not a Array!', stations)
                 localStorage.removeItem(cacheKey)
-                return fetchStations(railsystemCode, true)
+                return Promise.reject('Invalid Cache')
             }
+            return stations
         })
         .catch(err => Promise.reject(err))
 }
