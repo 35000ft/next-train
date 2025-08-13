@@ -70,6 +70,9 @@ function init() {
             // lines 是按 lineIds 顺序的数组
             lines.forEach((line, index) => {
                 // 按照 lineIds 中的顺序将每个 line 推入 showLines
+                if (!line?.stations) {
+                    return
+                }
                 showLines.value.push(line)
             })
         })
