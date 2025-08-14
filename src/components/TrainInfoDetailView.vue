@@ -295,7 +295,6 @@ const calcSchedule = (_trainInfo) => {
             it.lineId = lineMap.get(index)
         }))
         _schedule[_schedule.length - 1].depStr = '--:--'
-        console.log('scc', _schedule)
         return _schedule
     }
     return []
@@ -336,6 +335,7 @@ const updateStopStatus = (_schedule) => {
     if (!_firstStation) {
         return
     }
+    const lineMap = trainInfo.value?.lineMap
     const timezone = _firstStation?.timezone
     let nextIndexValue = null
     let currentIndexValue = null
@@ -378,7 +378,7 @@ const updateStopStatus = (_schedule) => {
             }
             for (let i = nextIndexValue + 1; i < _schedule.length; i++) {
                 const stopInfo = _schedule[i]
-                const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
+                const _line = lineMap[stopInfo.lineId]
                 if (stopInfo.statusClass !== TRAIN_STATUS.ONTIME.code) {
                     _schedule[i].statusClass = TRAIN_STATUS.ONTIME.code
                     _schedule[i].lineStyle = {
@@ -389,7 +389,7 @@ const updateStopStatus = (_schedule) => {
             }
 
             const stopInfo = _schedule[nextIndexValue]
-            const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
+            const _line = lineMap[stopInfo.lineId]
             _schedule[nextIndexValue].statusClass = 'next-station'
             _schedule[nextIndexValue].lineStyle = {
                 backgroundColor: _line.color || 'var(--q-primary)',
@@ -408,7 +408,7 @@ const updateStopStatus = (_schedule) => {
         if (currentIndexValue) {
             const stopInfo = _schedule[currentIndexValue]
             if (stopInfo) {
-                const _line = store.getters["railsystem/lines"].get(stopInfo.lineId)
+                const _line = lineMap[stopInfo.lineId]
                 _schedule[currentIndexValue].statusClass = TRAIN_STATUS.ARRIVED.code
                 _schedule[currentIndexValue].lineStyle = {
                     backgroundColor: _line.color || 'var(--q-primary)',
@@ -503,7 +503,7 @@ async function loadTrainInfo(_trainInfoId, trainDate) {
     }
     loading.value = true
     try {
-        const _trainInfo = await store.dispatch('realtime/getTrainInfoById', {
+        const _trainInfo = await store.dispatch('realtime/getTrainsInfoById', {
             trainInfoId: _trainInfoId,
             date: trainDate
         })

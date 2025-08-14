@@ -268,7 +268,8 @@ const actions = {
                     return Promise.reject("No such trainInfo. id:" + trainInfoId)
                 }
                 trainInfo.trainVia = trainLineOfStopParser(trainInfo)
-                const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
+                const firstLine = Object.values(trainInfo?.lineMap)[0]
+                const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: firstLine?.id})
                 if (!date) {
                     const nowTime = (railsystem && this.getters['application/getNowTime'](railsystem.timezone)) || dayjs()
                     date = nowTime.format('YYYY-MM-DD')
@@ -280,7 +281,7 @@ const actions = {
         if (trainInfo) {
             return Promise.resolve(trainInfo)
         } else {
-            return Promise.reject('No such trainInfo. id:' + trainInfoId)
+            return Promise.reject('No such traininfo. id:' + trainInfoId)
         }
     },
 
