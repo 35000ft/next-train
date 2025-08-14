@@ -17,7 +17,13 @@ export async function fetchStations(railsystemCode, update = false) {
         })
         .then(res => {
             setCache(cacheKey, 86400 * 1000)
-            return res.data.data || res.data
+            const stations = res.data.data || res.data
+            if (!stations instanceof Array) {
+                console.warn('stations is not a Array!', stations)
+                localStorage.removeItem(cacheKey)
+                return Promise.reject('Invalid Cache')
+            }
+            return stations
         })
         .catch(err => Promise.reject(err))
 }
