@@ -232,13 +232,13 @@ async function init(stationId, lineId) {
             $q.notify.error('No such station!', err)
             router.push('/')
         })
-        const _line = await store.dispatch('railsystem/getLine', {lineId}).then(_line => {
+        await store.dispatch('railsystem/getLine', {lineId}).then(_line => {
             line.value = _line
             return _line
         }).catch(err => {
             $q.notify.error('No such line!', err)
             router.push('/')
-        })
+        });
         store.dispatch('realtime/getLineScheduleHeaders', {lineId}).then(async _lineScheduleHeaders => {
             const railsystem = await store.dispatch('railsystem/getRailsystemByLineId', {lineId})
             const date = getToday(railsystem.timezone)
@@ -250,6 +250,7 @@ async function init(stationId, lineId) {
     }
 
 }
+
 
 const processScheduleData = (scheduleData, _line) => {
     const rawSchedule = scheduleData.schedules || []

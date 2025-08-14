@@ -313,7 +313,6 @@ async function calcCurrentTrains(_lineId, _station) {
 
 
 function handleShowExternalStation(externalStation) {
-    console.log('exttttt', externalStation)
     if (externalStation?.id) {
         store.commit('application/SET_SHOWN_STATION_ID', {stationId: externalStation.id})
     }
