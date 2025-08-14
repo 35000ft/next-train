@@ -9,4 +9,4 @@ npm install
 echo "APP_VERSION=$COMMIT_SHA" >> ./.env.production
 
 quasar build -m pwa
-cp -rf /home/ubuntu/projects/next-train/dist/spa/* /usr/share/nginx/html/next-train
+cp -rf /home/ubuntu/projects/next-train/dist/pwa/* /usr/share/nginx/html/next-train
