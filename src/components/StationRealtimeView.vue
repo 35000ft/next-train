@@ -2,9 +2,9 @@
     <q-tab-panels v-cloak v-if="currentStation&&currentLine" class="full-height" v-model="currentStationId"
                   swipeable
                   animated
-                  :infinite="currentLine?.extra?.isCircle"
+                  :infinite="!!(currentLine?.extra?.isCircle)"
                   @touchstart.stop>
-        <q-tab-panel v-for="station in currentLine.stations" :name="station.id" :key="station.id"
+        <q-tab-panel v-for="station in (currentLine?.stations || [])" :name="station.id" :key="station.id"
                      style="display: flex;flex-direction: column;">
             <div class="row">
                 <div class="col-3 station-name-row small text-left">
@@ -178,6 +178,41 @@
             </div>
         </q-tab-panel>
     </q-tab-panels>
+    <q-tab-panel v-else name="skeleton">
+        <div class="row">
+            <div class="col-12 station-name-row" style="display: flex;align-items: center;justify-content: center;">
+                <div class="tool-bar" style="z-index: 10">
+                    <div>
+                        <q-icon style="color:white" name="star"/>
+                    </div>
+                    <div>
+                        <q-icon name="departure_board"/>
+                    </div>
+                    <div>
+                        <q-icon name="map"/>
+                    </div>
+                </div>
+                <div style="margin-top: 5px;max-width: 40%;">
+                    <div class="text-h6 station-name-text current-station"
+                         style="border-bottom: 1px solid var(--q-primary);width: auto">
+                        <q-skeleton height="40px" width="100px" type="text"/>
+                    </div>
+                    <div style="display: flex;align-items: center;justify-content: center;">
+                        <q-skeleton height="30px" width="60px" type="text"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <q-separator color="primary" size="2px" style="margin: 0 0 10px;"/>
+        <div class="full-width">
+            <q-skeleton height="50px" width="100%" type="text"/>
+            <q-separator color="gray" size="1px" style="margin: 0 0 10px;"/>
+            <q-skeleton height="30px" width="100%" type="text"/>
+            <q-skeleton height="30px" width="100%" type="text"/>
+            <q-skeleton height="30px" width="100%" type="text"/>
+            <q-skeleton height="30px" width="100%" type="text"/>
+        </div>
+    </q-tab-panel>
     <line-stations-selector :height="150" ref="lineStationsSelector" @select="handleSelectStation"/>
     <station-selector ref="stationSelector" @select="handleSelectStation"/>
     <EditFavouriteStationDialog :station="addFavStation" @close="()=>addFavStation=null"/>
