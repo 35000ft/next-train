@@ -280,6 +280,10 @@ const props = defineProps({
         type: String,
         default: null
     },
+    enableOpMsg: {
+        type: Boolean,
+        default: true
+    }
 })
 
 onMounted(() => {
@@ -354,9 +358,8 @@ function handleShowExternalStation(externalStation) {
 }
 
 async function loadLineTrains(lineId, _stationId) {
-    console.log('loading line trains', 'lineId:', lineId, 'stationId:', _stationId)
-    if (!isNumber(lineId)) {
-        return Promise.reject('LineId is not a number:' + lineId)
+    if (!lineId) {
+        return Promise.reject('LineId is empty')
     }
     const _currentStationId = _stationId
     if (lineId && currentStationId) {
@@ -482,6 +485,9 @@ function init() {
 }
 
 const loadOperationMsg = (stationId) => {
+    if (!props.enableOpMsg) {
+        return
+    }
     store.dispatch('realtime/getStationOpMsg', {stationId}).then(r => {
         if (!checkIsChanged(stationId)) {
             if (r && r.length > 0) {
@@ -771,6 +777,8 @@ defineOptions({
 
 .train-info-area-wrapper {
     flex-grow: 1;
+    min-height: 200px;
+    max-height: 300px;
 }
 
 .train-data div {

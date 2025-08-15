@@ -78,7 +78,7 @@ const mutations = {
         }
     },
     SET_LINE(state, {line}) {
-        if (line && line.id) {
+        if (!!(line && line.id)) {
             state.lines.set(line.id, line)
         }
     },
@@ -241,7 +241,6 @@ const actions = {
         return this.dispatch("railsystem/getRailSystem", {code: line.railsystemCode})
     },
     async getStationsByLine({state, commit}, {lineId}) {
-        console.log('getStationsByLine', state.lines)
         if (state.lines.has(lineId) && state.lines.get(lineId).stations) {
             return toRaw(state.lines.get(lineId).stations)
         }

@@ -55,7 +55,6 @@
 import TrainDataItem from "components/TrainDataItem.vue";
 import {computed, onMounted, onUnmounted, ref} from "vue";
 import {useI18n} from "vue-i18n";
-import {isNumber} from "src/utils/string-utils";
 import {useStore} from "vuex";
 import LineStationsSelector from "components/LineStationsSelector.vue";
 import {useQuasar} from "quasar";
@@ -118,7 +117,7 @@ const handleSelectStation = (stationId) => {
 const $q = useQuasar()
 
 async function loadLineTrains(lineId) {
-    if (!isNumber(lineId)) {
+    if (!lineId) {
         return Promise.reject()
     }
     const stationId = props.station.id

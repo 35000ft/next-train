@@ -1,7 +1,7 @@
 <template>
     <OverlayView name="stationDetailView">
         <template v-slot:header-center>
-            <div>{{ headerTitle }}</div>
+            <div class="auto-scroll-container">{{ headerTitle }}</div>
         </template>
         <template v-slot:default>
             <div class="full-height content-wrapper">
