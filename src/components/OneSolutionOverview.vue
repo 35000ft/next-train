@@ -17,7 +17,7 @@
                           <span v-if="index>0 && trains[index-1].arrStationName!==train.depStationName">
                               {{ train.depStationName }}
                           </span>
-                          <LineIcon v-for="line in train.lines" :key="line.lineId" :line="line.line"/>
+                          <LineIcon v-for="line in train.lines" :key="line.id" :line="line"/>
                           <span v-if="index<trains.length-1"
                                 style="margin-left: 4px;margin-right: 4px;">
                               {{ train.arrStationName }}

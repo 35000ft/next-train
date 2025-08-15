@@ -99,12 +99,8 @@ async function init(params) {
     const oneSolutionCb = async (solution) => {
         for (const train of solution.trains) {
             if (train.type !== 'train') continue
-            train.lines = trainLineOfStopParser(train.trainInfo)
-            const promises = train.lines.map(async line => {
-                return store.dispatch('railsystem/getLine', {lineId: line.lineId}).then(_line => {
-                    line.line = _line
-                    return line
-                })
+            const promises = [...new Set(train.stops.map(it => it.lineId))].map(async lineId => {
+                return store.dispatch('railsystem/getLine', {lineId})
             })
             train.lines = await Promise.all(promises)
         }
@@ -158,7 +154,7 @@ async function init(params) {
                     tagSolutions(solutions.value)
                 }
             }, 10)
-            console.log('全部方案已加载完成', solutions.value)
+            console.log('All solutions loaded:', solutions.value)
             $q.notify.ok('全部方案已加载完成')
         })
     })

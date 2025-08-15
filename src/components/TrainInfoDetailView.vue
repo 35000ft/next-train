@@ -284,16 +284,16 @@ const handleShowQuickStationView = (stop) => {
 const calcSchedule = (_trainInfo) => {
     if (_trainInfo) {
         const _schedule = _trainInfo.schedule
-        const trainVia = _trainInfo.trainVia
-        const lineMap = trainVia.reduce((acc, cur) => {
-            for (let i = cur.fromIndex; i <= cur.toIndex; i++) {
-                acc.set(i, cur.lineId)
-            }
-            return acc
-        }, new Map());
-        _schedule.forEach(((it, index) => {
-            it.lineId = lineMap.get(index)
-        }))
+        // const trainVia = _trainInfo.trainVia
+        // const lineMap = trainVia.reduce((acc, cur) => {
+        //     for (let i = cur.fromIndex; i <= cur.toIndex; i++) {
+        //         acc.set(i, cur.lineId)
+        //     }
+        //     return acc
+        // }, new Map());
+        // _schedule.forEach(((it, index) => {
+        //     it.lineId = lineMap.get(index)
+        // }))
         _schedule[_schedule.length - 1].depStr = '--:--'
         return _schedule
     }
@@ -327,7 +327,7 @@ const scrollToCurrent = (instantly = true) => {
         smoothScroll(dom, target, 600)
     }
 }
-const updateStopStatus = (_schedule) => {
+const updateStopStatus = async (_schedule) => {
     if (!_schedule || isUpdatingStopStatus.value || _schedule.length === 0) {
         return
     }
@@ -335,7 +335,6 @@ const updateStopStatus = (_schedule) => {
     if (!_firstStation) {
         return
     }
-    const lineMap = trainInfo.value?.lineMap
     const timezone = _firstStation?.timezone
     let nextIndexValue = null
     let currentIndexValue = null
@@ -378,7 +377,7 @@ const updateStopStatus = (_schedule) => {
             }
             for (let i = nextIndexValue + 1; i < _schedule.length; i++) {
                 const stopInfo = _schedule[i]
-                const _line = lineMap[stopInfo.lineId]
+                const _line = await store.dispatch('railsystem/getLine', {lineId: stopInfo.lineId})
                 if (stopInfo.statusClass !== TRAIN_STATUS.ONTIME.code) {
                     _schedule[i].statusClass = TRAIN_STATUS.ONTIME.code
                     _schedule[i].lineStyle = {
@@ -389,7 +388,7 @@ const updateStopStatus = (_schedule) => {
             }
 
             const stopInfo = _schedule[nextIndexValue]
-            const _line = lineMap[stopInfo.lineId]
+            const _line = await store.dispatch('railsystem/getLine', {lineId: stopInfo.lineId})
             _schedule[nextIndexValue].statusClass = 'next-station'
             _schedule[nextIndexValue].lineStyle = {
                 backgroundColor: _line.color || 'var(--q-primary)',
@@ -408,7 +407,7 @@ const updateStopStatus = (_schedule) => {
         if (currentIndexValue) {
             const stopInfo = _schedule[currentIndexValue]
             if (stopInfo) {
-                const _line = lineMap[stopInfo.lineId]
+                const _line = await store.dispatch('railsystem/getLine', {lineId: stopInfo.lineId})
                 _schedule[currentIndexValue].statusClass = TRAIN_STATUS.ARRIVED.code
                 _schedule[currentIndexValue].lineStyle = {
                     backgroundColor: _line.color || 'var(--q-primary)',

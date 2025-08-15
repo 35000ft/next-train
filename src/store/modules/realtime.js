@@ -260,7 +260,7 @@ const actions = {
                         return Promise.reject('获取第三方车次详情失败')
                     }
                 } else {
-                    return Promise.reject('该线网不支持查看车次详情')
+                    return Promise.reject('不支持查看车次详情')
                 }
             } else {
                 trainInfo = await fetchTrainInfoById(trainInfoId)

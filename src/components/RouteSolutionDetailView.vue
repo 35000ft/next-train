@@ -86,7 +86,7 @@
                                 <span :class="calcLineClass(train,lineIndex)"
                                       :key="lineIndex"
                                       :style="{backgroundColor:line.color, height:calcLineHeight(train,lineIndex)}"
-                                      v-for="(line,lineIndex) in train.lines.map(it=>it.line)">
+                                      v-for="(line,lineIndex) in train.lines">
                                 </span>
                                     <transition-group name="list-view">
                                         <span :key="`stop-info-${index}`" :style="{top:130+index*STOP_ROW_HEIGHT+'px'}"
@@ -181,9 +181,9 @@ const arrInfo = computed(() => {
 const STOP_ROW_HEIGHT = 70
 const trainNameGetter = (train) => {
     if (!train.lines) {
-        console.warn('lines is undefined', JSON.stringify(train))
+        console.warn('Lines is undefined', JSON.stringify(train))
     }
-    const lines = train.lines.map(it => it.line)
+    const lines = train.lines
     const lineName = lines.map(it => it.name).join('·')
     const color = lines[0].color || 'var(--q-primary)'
     return `<span style="color: ${color};font-size: 24px;font-weight:bold;">${lineName}</span>`
