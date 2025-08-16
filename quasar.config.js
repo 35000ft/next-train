@@ -154,6 +154,78 @@ module.exports = configure(function (/* ctx */) {
             swFilename: 'sw.js',
             manifestFilename: 'manifest.json',
             useCredentialsForManifestTag: false,
+            workboxOptions: {
+                runtimeCaching: [
+                    {
+                        urlPattern: /^https:\/\/api\.nmtr\.online\/metro-realtime\/.*$/, // 匹配 API
+                        handler: 'NetworkFirst', // 优先网络，请求失败走缓存
+                        options: {
+                            cacheName: 'api-cache',
+                            expiration: {
+                                maxEntries: 50,
+                                maxAgeSeconds: 60 * 60 // 1小时
+                            }
+                        }
+                    },
+                    {
+                        urlPattern: /^https:\/\/api\.nmtr\.online\/file\/railsystem\/.*$/, // 匹配 API
+                        handler: 'CacheFirst', // 优先网络，请求失败走缓存
+                        options: {
+                            cacheName: 'railsystem-cache',
+                            expiration: {
+                                maxEntries: 100,
+                                maxAgeSeconds: 60 * 60 // 1小时
+                            }
+                        }
+                    },
+                    {
+                        urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+                        handler: 'CacheFirst', // 优先缓存
+                        options: {
+                            cacheName: 'image-cache',
+                            expiration: {
+                                maxEntries: 100,
+                                maxAgeSeconds: 60 * 60 * 24 * 30 // 30天
+                            }
+                        }
+                    }
+                ]
+            },
+            manifest: {
+                name: 'Next Train',
+                short_name: 'Next Train',
+                description: '下一班車 Next Train',
+                display: 'standalone',
+                background_color: '#ffffff',
+                theme_color: '#36598f',
+                icons: [
+                    {
+                        src: 'icons/icon-128x128.png',
+                        sizes: '128x128',
+                        type: 'image/png'
+                    },
+                    {
+                        src: 'icons/icon-192x192.png',
+                        sizes: '192x192',
+                        type: 'image/png'
+                    },
+                    {
+                        src: 'icons/icon-256x256.png',
+                        sizes: '256x256',
+                        type: 'image/png'
+                    },
+                    {
+                        src: 'icons/icon-384x384.png',
+                        sizes: '384x384',
+                        type: 'image/png'
+                    },
+                    {
+                        src: 'icons/icon-512x512.png',
+                        sizes: '512x512',
+                        type: 'image/png'
+                    }
+                ]
+            }
             // useFilenameHashes: true,
             // extendGenerateSWOptions (cfg) {}
             // extendInjectManifestOptions (cfg) {},

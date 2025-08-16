@@ -241,7 +241,7 @@ const actions = {
      * @param {String} date
      * @returns {Promise<Awaited<*>>}
      */
-    async getTrainInfoById({commit, state,}, {trainInfoId, date}) {
+    async getTrainsInfoById({commit, state,}, {trainInfoId, date}) {
         let trainInfo = state.trainInfoMap.get(trainInfoId);
         if (!trainInfo) {
             // 第三方车次
@@ -260,7 +260,7 @@ const actions = {
                         return Promise.reject('获取第三方车次详情失败')
                     }
                 } else {
-                    return Promise.reject('该线网不支持查看车次详情')
+                    return Promise.reject('不支持查看车次详情')
                 }
             } else {
                 trainInfo = await fetchTrainInfoById(trainInfoId)
@@ -268,7 +268,8 @@ const actions = {
                     return Promise.reject("No such trainInfo. id:" + trainInfoId)
                 }
                 trainInfo.trainVia = trainLineOfStopParser(trainInfo)
-                const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: trainInfo.trainVia[0].lineId})
+                const firstLine = Object.values(trainInfo?.lineMap)[0]
+                const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: firstLine?.id})
                 if (!date) {
                     const nowTime = (railsystem && this.getters['application/getNowTime'](railsystem.timezone)) || dayjs()
                     date = nowTime.format('YYYY-MM-DD')
@@ -280,7 +281,7 @@ const actions = {
         if (trainInfo) {
             return Promise.resolve(trainInfo)
         } else {
-            return Promise.reject('No such trainInfo. id:' + trainInfoId)
+            return Promise.reject('No such traininfo. id:' + trainInfoId)
         }
     },
 
@@ -310,6 +311,7 @@ const actions = {
         }
         const station = await this.dispatch('railsystem/getStation', {stationId})
         const now = getNowByTimezone(station.timezone)
+        console.log('lines', station.lines)
         const lineIds = station.lines.map(it => it.id)
         const form = {
             stationId,

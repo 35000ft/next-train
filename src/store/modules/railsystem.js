@@ -78,7 +78,7 @@ const mutations = {
         }
     },
     SET_LINE(state, {line}) {
-        if (line && line.id) {
+        if (!!(line && line.id)) {
             state.lines.set(line.id, line)
         }
     },
@@ -220,21 +220,18 @@ const actions = {
             const _line = state.lines.get(lineId)
             if (_line.stations instanceof Array) {
                 return _line
-            } else {
-                _line.stations = await this.getStationsByLine({state, commit}, {lineId})
-                return _line
             }
-        } else {
-            return new Promise((resolve, reject) => {
-                fetchLine(lineId).then(line => {
-                    commit('SET_LINE', {line})
-                    resolve(line)
-                }).catch(err => {
-                    reject(err)
-                })
-            })
-
         }
+        return new Promise((resolve, reject) => {
+            fetchLine(lineId).then(line => {
+                commit('SET_LINE', {line})
+                resolve(line)
+            }).catch(err => {
+                reject(err)
+            })
+        })
+
+
     },
     async getRailsystemByLineId({state, commit}, {lineId}) {
         const line = await this.dispatch("railsystem/getLine", {lineId})

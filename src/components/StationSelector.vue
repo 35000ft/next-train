@@ -136,22 +136,24 @@ export default defineComponent({
                 searchGroups.value = [ALL_STR, ...r.map(it => it.name)]
                 loading.value = false
             }).catch(err => {
-                console.warn('load lines error', err)
+                console.warn('Load lines error', err)
                 $q.notify.warn('Load lines error')
             })
         }
 
         async function loadStations(lineId) {
+            if (!lineId) {
+                return Promise.reject('lineId can not be empty')
+            }
             if (lineId === ALL_STR) {
                 const _result = await store.dispatch('railsystem/getAllStations')
                 loadFavouriteStations().then(_ => {
-                    console.log('load favourite stations ok')
+                    console.log('Load favourite stations ok')
                 })
                 return _result
-            } else if (isNumber(lineId)) {
+            } else {
                 return await store.dispatch('railsystem/getStationsByLine', {lineId})
             }
-            return []
         }
 
         watch(currentSearchGroup, (newVal, oldValue) => {

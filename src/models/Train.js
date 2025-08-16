@@ -109,19 +109,24 @@ const categoryParser = (category) => {
 }
 
 const stopInfoParse = (stopInfo) => {
-    if (stopInfo instanceof Array && stopInfo.length === 5) {
+    if (stopInfo instanceof Array && stopInfo.length >= 5) {
         const temp = {
             stationId: stopInfo[0] || null,
             stationName: stopInfo[1],
             arr: dayjs(stopInfo[2]),
             dep: dayjs(stopInfo[3]),
-            platform: stopInfo[4] || null
+            platform: stopInfo[4] || null,
+            lineId: stopInfo[5] || null,
+            direction: stopInfo[6],
         }
         const _diff = temp.dep.diff(temp.arr, 'second')
         if (_diff < 0) {
             temp.arr = temp.arr.add(1, 'day')
         }
         return temp
+    } else {
+        console.warn('Parse stop info err', stopInfo)
+        return null
     }
 }
 
@@ -133,7 +138,7 @@ const stopInfoParse = (stopInfo) => {
  * @return {*|*[]}
  */
 const trainScheduleParser = (schedule, date, timezone) => {
-    if (schedule) {
+    if (schedule instanceof Array) {
         return schedule.map(it => {
             return {
                 stationId: it[0],
@@ -143,6 +148,8 @@ const trainScheduleParser = (schedule, date, timezone) => {
                 arrStr: secondsToHHMM(it[2]),
                 depStr: secondsToHHMM(it[3]),
                 platform: it[4],
+                lineId: it[5],
+                direction: it[6],
                 timezone,
             }
         })

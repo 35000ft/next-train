@@ -1,6 +1,4 @@
 <template>
-    <LeftDrawer :open="leftDrawerOpen"/>
-    <SearchHeader/>
     <q-page-container style=" max-height: 85vh; overflow-y: auto">
         <div class="row" style="gap:20px;justify-content: space-between;">
             <div class="col-12 row-card" v-if="usedSolution">
@@ -80,7 +78,6 @@
 </template>
 
 <script setup>
-import SearchHeader from "components/SearchHeader.vue";
 import {computed, onMounted, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
@@ -88,10 +85,10 @@ import FocusTrainsView from "components/FocusTrainsView.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
 import CurrentTrip from "components/CurrentTrip.vue";
-import LeftDrawer from "components/LeftDrawer.vue";
 import 'leaflet/dist/leaflet.css';
 import OpenStreetMap from "components/OpenStreetMap.vue";
 import {isPCMode} from "src/utils/navigator_utils";
+import {useRoute} from "vue-router";
 
 defineOptions({
     name: 'HomeView'
@@ -104,7 +101,7 @@ const store = useStore()
 const props = defineProps({})
 const topBanner = ref('currentTrip')
 const $q = useQuasar()
-const leftDrawerOpen = computed(() => store.getters['application/showLeftDrawer'])
+const route = useRoute()
 const currentStationId = computed(() => {
     const currentStation = store.getters['preference/currentStation']
     if (currentStation) {
@@ -115,9 +112,19 @@ const currentStationId = computed(() => {
     }
 })
 onMounted(() => {
-    loadRuleFavStation()
+    initStation()
 })
-const loadRuleFavStation = () => {
+const initStation = () => {
+    const stationId = route.query.stationId
+    if (stationId) {
+        // 加载路径传入的车站
+        store.dispatch('railsystem/getStation', {stationId}).then(s => {
+            store.commit('preference/SET_CURRENT_STATION', {station: s})
+            $q.notify.ok('切换车站成功')
+        })
+        return
+    }
+    // 加载收藏车站
     store.dispatch('preference/getRuleFavourStation').then(_favStation => {
         if (_favStation) {
             store.commit('preference/SET_CURRENT_STATION', {station: _favStation})

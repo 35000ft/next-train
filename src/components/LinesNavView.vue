@@ -1,10 +1,4 @@
 <template>
-    <q-header>
-        <q-toolbar>
-            <q-toolbar-title>Next Train</q-toolbar-title>
-        </q-toolbar>
-    </q-header>
-
     <q-page-container>
         <!--        <LineRealtimeView :line-id-prop="'51'"/>-->
         <q-card
@@ -23,7 +17,6 @@
                             class="station-name">{{ line.stations[0].name + '~' + line.stations.slice(-1)[0].name }}
                         </div>
                     </div>
-
                 </div>
             </div>
             <div v-show="showLines.length===0"
@@ -77,6 +70,9 @@ function init() {
             // lines 是按 lineIds 顺序的数组
             lines.forEach((line, index) => {
                 // 按照 lineIds 中的顺序将每个 line 推入 showLines
+                if (!line?.stations) {
+                    return
+                }
                 showLines.value.push(line)
             })
         })

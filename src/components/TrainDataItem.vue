@@ -1,7 +1,6 @@
 <template>
-    <div class="row train-data border-bottom" v-if="trainData"
-         style="padding-left: 4px;">
-        <div style="display: flex; align-items: center;text-align: left; width: auto;">
+    <div class="row train-data border-bottom" v-if="trainData">
+        <div style="display: flex; align-items: center;text-align: left; width: auto;margin:0;">
             <TrainStatusIndicator :arrive-mins="fixedMins(arriveSeconds)" size="13px"/>
         </div>
         <div class="col-5 text-left" style="color: var(--q-normal)">

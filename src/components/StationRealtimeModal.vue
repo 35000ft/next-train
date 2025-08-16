@@ -2,7 +2,7 @@
     <bottom-modal
         name="station-realtime"
         :display="display" @close="handleClose" content-height="60vh" :on-move-up="onMoveUp">
-        <StationRealtimeView :current-station-id-prop="stationId"/>
+        <StationRealtimeView :current-station-id-prop="stationId" :enable-op-msg="false"/>
     </bottom-modal>
 </template>
 
