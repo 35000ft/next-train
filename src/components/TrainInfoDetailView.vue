@@ -284,16 +284,6 @@ const handleShowQuickStationView = (stop) => {
 const calcSchedule = (_trainInfo) => {
     if (_trainInfo) {
         const _schedule = _trainInfo.schedule
-        // const trainVia = _trainInfo.trainVia
-        // const lineMap = trainVia.reduce((acc, cur) => {
-        //     for (let i = cur.fromIndex; i <= cur.toIndex; i++) {
-        //         acc.set(i, cur.lineId)
-        //     }
-        //     return acc
-        // }, new Map());
-        // _schedule.forEach(((it, index) => {
-        //     it.lineId = lineMap.get(index)
-        // }))
         _schedule[_schedule.length - 1].depStr = '--:--'
         return _schedule
     }

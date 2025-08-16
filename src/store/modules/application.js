@@ -41,6 +41,9 @@ const mutations = {
     PUSH_OVERLAY(state, {component}) {
         if (!component) return
         component.id = component.componentName + '-' + generateUUID()
+        if (!component?.uri) {
+            component.uri = window.location.hash.substring(1)
+        }
         if (state.overlayStack.length > 0) {
             const top = toRaw(state.overlayStack.slice(-1)[0])
             if (top.componentName === component.componentName) {

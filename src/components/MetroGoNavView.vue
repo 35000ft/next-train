@@ -274,7 +274,7 @@ const handleGo = () => {
     router.push({name: 'route-solution-overview', query: params})
     store.commit('application/SHOW_SOLUTION_OVERVIEW', params)
     store.dispatch('application/pushOverlay', {
-        component: {componentName: "RouteSolutionOverview"}
+        component: {componentName: "RouteSolutionOverview", uri: '/metro-go/solutions'}
     })
 }
 const {t} = useI18n()

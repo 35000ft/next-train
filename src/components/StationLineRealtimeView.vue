@@ -41,6 +41,7 @@
                         </div>
                         <TrainDataItem v-for="_trainInfo in directionTrainInfo.trains"
                                        :key="_trainInfo.id"
+                                       @show-train-detail="showTrainInfoDetailView"
                                        :station="station"
                                        :train-data="_trainInfo"/>
                     </q-expansion-item>
@@ -147,6 +148,11 @@ const handleShowSchedule = () => {
     }
 }
 
+const showTrainInfoDetailView = (trainInfo) => {
+    if (trainInfo) {
+        store.commit('application/SET_SHOWN_TRAININFO', {trainInfo: trainInfo})
+    }
+}
 </script>
 
 <style scoped>

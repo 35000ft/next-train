@@ -87,8 +87,10 @@ onMounted(() => {
     initTime.value = time
 })
 const handleBack = ({from, to}) => {
-    console.log('handleBack  from:' + from, 'to:' + to, shownComponent.value,)
-    store.dispatch('application/popOverlay', {id: shownComponent.value.id})
+    console.log('From:' + from, 'To:' + to, 'Component URI:' + shownComponent.value?.uri,)
+    if (!to.startsWith(shownComponent.value.uri)) {
+        store.dispatch('application/popOverlay', {id: shownComponent.value.id})
+    }
 }
 provide('eventBus', {handleBack});
 </script>

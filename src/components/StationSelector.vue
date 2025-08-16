@@ -1,92 +1,96 @@
 <template>
-    <bottom-modal content-height="40vh" :display="displaySelector" @close="handleCloseSelector"
+    <bottom-modal content-height="60vh" :display="displaySelector" @close="handleCloseSelector"
                   @touchstart.stop name="station-selector">
         <template v-slot:default>
-            <div>
-                <q-input outlined rounded v-model="keyword" label="车站名 | 车站代码" @update:model-value="handleSearch"
-                         @keydown.enter="handleEnter"
-                         :bg-color="isDark?'grey-10':'grey-2'"/>
-            </div>
-            <div class="row" style="overflow-y: auto;">
-
-                <div style="height: 10px;width: 100%;"></div>
-
-                <q-tabs v-model="currentSearchGroup"
-                        class="text-grey-8"
-                        active-color="primary"
-                        style="color: var(--q-primary);overflow-x: auto;white-space: nowrap;display: block;">
-                    <q-tab :name="searchGroup" :label="searchGroup" v-for="searchGroup in searchGroups"
-                           :key="searchGroup"/>
-                </q-tabs>
-                <q-tab-panels v-model="currentSearchGroup" animated swipeable infinite style="width: 100%;">
-                    <q-tab-panel :name="ALL_STR">
-                        <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
-                        <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
-                        <div class="history-wrapper">
+            <div class="column full-height full-width">
+                <div style="margin-bottom: 10px;" class="full-width">
+                    <q-input outlined rounded v-model="keyword" label="车站名 | 车站代码"
+                             @update:model-value="handleSearch"
+                             @keydown.enter="handleEnter"
+                             :bg-color="isDark?'grey-10':'grey-2'"/>
+                </div>
+                <div class="row col full-width">
+                    <q-tabs v-model="currentSearchGroup"
+                            class="text-grey-8"
+                            active-color="primary"
+                            style="color: var(--q-primary);overflow-x: auto;white-space: nowrap;display: block;">
+                        <q-tab :name="searchGroup" :label="searchGroup" v-for="searchGroup in searchGroups"
+                               :key="searchGroup"/>
+                    </q-tabs>
+                    <q-tab-panels v-model="currentSearchGroup" animated swipeable infinite
+                                  style="width: 100%;height: 80%;">
+                        <q-tab-panel :name="ALL_STR">
+                            <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
+                            <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
+                            <div class="history-wrapper">
                             <span @click="handleSelect(station)" class="pill" v-for="station in historyStations"
                                   :key="station.id">
                                 {{ station.name }}
                             </span>
-                        </div>
-                        <div class="row station-result-wrapper" v-for="(station,index) in searchResults" :key="index">
-                            <div class="col-6 auto-scroll-container"
-                                 @click="handleSelect(station)">
-                                <div class="station-name" v-overflow-auto-scroll>
-                                    <span v-if="station.highlighted" v-html="station.highlighted"></span>
-                                    <span v-else>{{ station.name }}</span>
-                                    <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
+                            </div>
+                            <div class="row station-result-wrapper" v-for="(station,index) in searchResults"
+                                 :key="index">
+                                <div class="col-6 auto-scroll-container"
+                                     @click="handleSelect(station)">
+                                    <div class="station-name" v-overflow-auto-scroll>
+                                        <span v-if="station.highlighted" v-html="station.highlighted"></span>
+                                        <span v-else>{{ station.name }}</span>
+                                        <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
                                         {{ station.railsystemName }}
                                     </span>
-                                    <span v-if="station.isFavourite">
+                                        <span v-if="station.isFavourite">
                                         <q-icon style="color:var(--q-favourite)" name="star"/>
                                     </span>
+                                    </div>
+                                </div>
+                                <div class="col-6"
+                                     style="text-align: right;overflow:hidden;white-space: nowrap; position: relative;">
+                                    <div v-overflow-auto-scroll>
+                                        <LineIcon v-for="line in station.lines" :key="line.id" :line="line"
+                                                  :font-size="'13px'"
+                                                  style="margin-right: 4px;"
+                                                  :disabled="false"
+                                                  @click="handleSelect(station,line)"/>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-6"
-                                 style="text-align: right;overflow:hidden;white-space: nowrap; position: relative;">
-                                <div v-overflow-auto-scroll>
-                                    <LineIcon v-for="line in station.lines" :key="line.id" :line="line"
-                                              :font-size="'13px'"
-                                              style="margin-right: 4px;"
-                                              :disabled="false"
-                                              @click="handleSelect(station,line)"/>
-                                </div>
-                            </div>
-                        </div>
-                    </q-tab-panel>
-                    <q-tab-panel :name="line.name" :key="line.id" v-for="line in lines">
-                        <div class="row station-result-wrapper" v-for="(station,index) in searchResults" :key="index">
-                            <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;"
-                                 @click="handleSelect(station)">
-                                <div v-overflow-auto-scroll>
-                                    <span v-if="station.highlighted" v-html="station.highlighted"></span>
-                                    <span v-else>{{ station.name }}</span>
-                                    <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
+                        </q-tab-panel>
+                        <q-tab-panel :name="line.name" :key="line.id" v-for="line in lines">
+                            <div class="row station-result-wrapper" v-for="(station,index) in searchResults"
+                                 :key="index">
+                                <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;"
+                                     @click="handleSelect(station)">
+                                    <div v-overflow-auto-scroll>
+                                        <span v-if="station.highlighted" v-html="station.highlighted"></span>
+                                        <span v-else>{{ station.name }}</span>
+                                        <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
                                         {{ station.railsystemName }}
                                     </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-6"
-                                 style="text-align: right;overflow:hidden;white-space: nowrap; position: relative;">
-                                <div v-overflow-auto-scroll>
+                                <div class="col-6"
+                                     style="text-align: right;overflow:hidden;white-space: nowrap; position: relative;">
+                                    <div v-overflow-auto-scroll>
                                     <span v-show="station.lines.filter(it=>it.id!==line.id).length>0"
                                           style="margin-right: 4px;color: var(--q-primary)">
                                         <i class="fa-solid fa-rotate"/>
                                     </span>
-                                    <LineIcon v-for="_line in station.lines.filter(it=>it.id!==line.id)" :key="_line.id"
-                                              :line="_line"
-                                              :font-size="'13px'"
-                                              style="margin-right: 4px;"
-                                              :disabled="false"
-                                              @click="handleSelect(station,_line)"/>
+                                        <LineIcon v-for="_line in station.lines.filter(it=>it.id!==line.id)"
+                                                  :key="_line.id"
+                                                  :line="_line"
+                                                  :font-size="'13px'"
+                                                  style="margin-right: 4px;"
+                                                  :disabled="false"
+                                                  @click="handleSelect(station,_line)"/>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
-                        <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
-                    </q-tab-panel>
-                </q-tab-panels>
+                            <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
+                            <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
+                        </q-tab-panel>
+                    </q-tab-panels>
 
+                </div>
             </div>
         </template>
     </bottom-modal>
