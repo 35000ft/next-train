@@ -80,7 +80,7 @@
                         <q-item-section>下站距离(m)</q-item-section>
                     </q-item>
                     <draggable
-                        v-model="allStations"
+                        v-model="lineStations"
                         item-key="id"
                         tag="q-list"
                         class="q-mb-md"
@@ -100,7 +100,7 @@
                                 <q-item-section>
                                     <q-input v-model="element.nextDistance" type="number"
                                              @update:model-value="(val)=>handleDistanceChange(index,val,'next')"
-                                             :disable="index===allStations.length-1"/>
+                                             :disable="index===lineStations.length-1"/>
                                 </q-item-section>
                                 <q-item-section side>
                                     <q-btn
@@ -125,7 +125,7 @@
                             label="创建车站"
                             color="green"
                             icon="add"
-                            @click="createStation"
+                            @click="_createStation"
                         />
                         <q-btn
                             label="地图选点"
@@ -144,7 +144,7 @@
 
 
                 <!-- 保存按钮 -->
-                <div class="q-mt-md">
+                <div class="q-gutter-md row justify-end q-mt-md">
                     <q-btn
                         label="保存线路"
                         type="submit"
@@ -160,20 +160,36 @@
         <station-form :initial="{railsystemId:props.initial?.railsystem?.id}"/>
     </q-dialog>
     <OsmLocationPicker multiple :display="displayLocationPicker"
+                       :model-value="stationLocations" format="lon-lat"
+                       @update:model-value="onPickStationLocation"
                        @close="displayLocationPicker=false"
-    />
+    >
+        <template v-slot:default>
+            <div
+                style="position: fixed; top: 0; height: 250px;background-color: rgba(255,255,255,0.4); backdrop-filter: blur(8px);"
+                class="scroll full-width"
+                v-if="batchEditStations.length>0">
+                <StationBatchEditForm :stations-prop="batchEditStations" @remove="handleRemoveStation"
+                                      @submit="handleBatchEditSubmit"/>
+            </div>
+        </template>
+    </OsmLocationPicker>
+
 </template>
 
 <script setup>
 import {ref, onMounted} from 'vue';
 import draggable from 'vuedraggable';
-import {fetchLine, updateLine, createLine} from 'src/apis/railsystem';
+import {fetchLine, updateLine, createLine, createStation} from 'src/apis/railsystem';
 import StationSelector from "components/StationSelector.vue";
 import StationForm from "components/StationForm.vue";
 import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
 import {useQuasar} from "quasar";
 import OsmLocationPicker from "components/OsmLocationPicker.vue";
+import StationBatchEditForm from "components/StationBatchEditForm.vue";
+import {useStore} from "vuex";
 
+const store = useStore()
 const displayLocationPicker = ref(false)
 const formRef = ref(null)
 const showStationForm = ref(false)
@@ -185,9 +201,9 @@ const handleDistanceChange = (index, value, distanceType) => {
     if (!enableDistanceLock.value) return;
     if (isNaN(Number(value))) return
     if (distanceType === 'previous' && index > 0) {
-        allStations.value[index - 1].nextDistance = value
-    } else if (distanceType === 'next' && index < allStations.value.length - 1) {
-        allStations.value[index + 1].preDistance = value
+        lineStations.value[index - 1].nextDistance = value
+    } else if (distanceType === 'next' && index < lineStations.value.length - 1) {
+        lineStations.value[index + 1].preDistance = value
     }
 }
 
@@ -196,30 +212,30 @@ const stationSelector = ref(null)
 const $q = useQuasar()
 const loading = ref(false)
 const rawStations = ref([])
-const allStations = ref([])
+const lineStations = ref([])
 const statusOptions = ref([
     {label: '关闭', value: 0},
     {label: '运营中', value: 1}
 ])
 const categoryOptions = RAILSYSTEM_CATEGORIES;
 const lineData = ref({})
+const batchEditStations = ref([])
+const stationLocations = ref([])
 onMounted(async () => {
     let dialog
-    if (props.initial?.id) {
+    if (!!(props.initial?.id)) {
         try {
             dialog = $q.dialog({
-                // 配置模态框
                 message: '加载线路中',
                 persistent: true,
                 ok: false,
                 progress: true,
-                // 可自定义样式
                 style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
             })
-            const line = await fetchLine(props.initial.id, true)
+            const line = await fetchLine(props.initial.id)
             Object.assign(lineData.value, line,)
             rawStations.value = [...line.stations]
-            allStations.value = [...line.stations]
+            lineStations.value = [...line.stations]
         } catch (err) {
             $q.notify.error('加载线路失败')
         } finally {
@@ -227,26 +243,26 @@ onMounted(async () => {
         }
     } else {
         rawStations.value = []
-        allStations.value = []
+        lineStations.value = []
     }
     lineData.value.railsystem = props.initial?.railsystem
 })
 
 const handleSelectStation = async ({station, event}) => {
     if (station) {
-        allStations.value.push(station)
+        lineStations.value.push(station)
     }
 }
 
 const restoreStations = () => {
-    allStations.value = [...rawStations.value]
+    lineStations.value = [...rawStations.value]
 }
 
 function addStation() {
     stationSelector.value.showSelector('addLineStation')
 }
 
-function createStation() {
+function _createStation() {
     showStationForm.value = true
 }
 
@@ -254,9 +270,50 @@ function showStationLocationPicker() {
     displayLocationPicker.value = true
 }
 
+const handleRemoveStation = (index) => {
+    stationLocations.value.splice(index, 1)
+    batchEditStations.value.splice(index, 1)
+}
+
+const handleBatchEditSubmit = async (batchStations) => {
+    stationLocations.value = []
+    batchEditStations.value = []
+    displayLocationPicker.value = false
+    if (batchStations instanceof Array) {
+        const railsystemCode = props.initial?.railsystem?.code
+        if (!railsystemCode) {
+            $q.notify.error('无法创建车站: 线网ID获取失败')
+            return
+        }
+        const dialog = $q.dialog({
+            message: '创建车站中...',
+            persistent: true,
+            ok: false,
+            progress: true,
+            style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
+        })
+
+        //TODO Batch create API
+        const promises = batchStations.map(it =>
+            createStation({
+                name: it.name,
+                location: it.location,
+                railsystemCode,
+                lineId: lineData.value?.id
+            }))
+        await Promise.all(promises).then(_ => {
+            $q.notify.ok('创建车站成功')
+        }).catch(e => {
+            console.error('批量创建车站失败', e)
+            $q.notify.error('创建车站失败!')
+        }).finally(_ => {
+            dialog.hide()
+        })
+    }
+}
 
 function removeStation(index) {
-    allStations.value.splice(index, 1);
+    lineStations.value.splice(index, 1);
 }
 
 async function submitForm() {
@@ -274,7 +331,7 @@ async function submitForm() {
         payload.railsystemId = lineData.value?.railsystem?.id
         payload.status = payload?.status?.value
         payload.category = payload?.category?.value
-        payload.stations = allStations.value.map(it => {
+        payload.stations = lineStations.value.map(it => {
             return {
                 id: it.id,
                 nextDistance: it?.nextDistance,
@@ -298,6 +355,17 @@ async function submitForm() {
     }
 }
 
+const onPickStationLocation = (locationArr) => {
+    if (locationArr?.length > 0) {
+        stationLocations.value = locationArr
+        batchEditStations.value = locationArr.map(it => {
+            return {
+                name: '',
+                location: it
+            }
+        })
+    }
+}
 </script>
 
 <style scoped>

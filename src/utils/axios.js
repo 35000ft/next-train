@@ -16,24 +16,6 @@ const axiosInstance = axios.create({
 });
 axiosInstance.interceptors.request.use(
     (config) => {
-        if (config.fetchOptions?.cacheKey) {
-            const key = config.fetchOptions.cacheKey
-            if (checkCacheExpired(key)) {
-                config.params = {
-                    ...(config.params || {}),
-                    _v: Date.now()
-                }
-            }
-        }
-        if (config.fetchOptions?.forceUpdate) {
-            if (!config.params?._v) {
-                config.params = {
-                    ...(config.params || {}),
-                    _v: Date.now()
-                }
-            }
-        }
-
         if (config.url.startsWith('api')) {
             //以api开头加上的加上baseUrl 并去掉api
             config.baseURL = apiBaseUrl;

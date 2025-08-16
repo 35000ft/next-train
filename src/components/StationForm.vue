@@ -46,7 +46,6 @@
 import {ref, onMounted} from 'vue';
 import {createStation, deleteStation, fetchStation, preDeleteStation, updateStation} from 'src/apis/railsystem';
 import OsmLocationPicker from "components/OsmLocationPicker.vue";
-import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
 import {useQuasar} from "quasar";
 
 const $q = useQuasar()

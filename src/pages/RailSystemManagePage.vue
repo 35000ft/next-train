@@ -1,5 +1,5 @@
 <template>
-    <q-page padding class="row" style="gap: 10px;">
+    <q-page padding class="row" style="gap: 10px;margin-top: 50px;">
         <div style="max-width: 500px;" class="col-12 col-sm-4">
             <div class="row items-center justify-between q-mb-md">
                 <div class="text-h5 text-primary" style="font-weight: bold;">线网管理</div>
