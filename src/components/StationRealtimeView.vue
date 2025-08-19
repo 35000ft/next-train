@@ -240,7 +240,7 @@ import StationIcon from "components/StationIcon.vue";
 const router = useRouter()
 const $q = useQuasar()
 const {t} = useI18n()
-const emit = defineEmits(['changeStation'])
+const emit = defineEmits(['changeStation', 'close'])
 const store = useStore()
 const trainInfoMap = ref(new Map())
 
@@ -283,6 +283,10 @@ const props = defineProps({
     enableOpMsg: {
         type: Boolean,
         default: true
+    },
+    inModal: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -313,7 +317,11 @@ const handleFavourStation = (_station) => {
 
 const showTrainInfoDetailView = (trainInfo) => {
     if (trainInfo) {
-        store.commit('application/SET_SHOWN_TRAININFO', {trainInfo: trainInfo})
+        if (props.inModal) {
+            emit('close', () => store.commit('application/SET_SHOWN_TRAININFO', {trainInfo: trainInfo}))
+        } else {
+            store.commit('application/SET_SHOWN_TRAININFO', {trainInfo: trainInfo})
+        }
     }
 }
 const currentTrainsMap = ref(new Map())

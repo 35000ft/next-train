@@ -182,7 +182,6 @@ import {TRAIN_STATUS} from "src/models/Train";
 import {
     diffFromNow,
     diffFromNowFormatted,
-    formatToHHMM,
     isAfterNow,
     isBeforeNow,
     TIME_FORMATS
@@ -548,8 +547,8 @@ const handleClickStationName = (_stationId) => {
     }
 }
 
-const handleClose = () => {
-    console.log('close TrainInfoDetailView')
+const handleClose = (source) => {
+    console.log('Close TrainInfoDetailView:', source)
     closeQuickStationView()
     display.value = false
 }

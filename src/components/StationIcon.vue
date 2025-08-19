@@ -8,7 +8,6 @@
 </template>
 <script setup>
 import {computed} from "vue";
-import {isDarkColor} from "src/utils/color-utils";
 
 const props = defineProps({
     station: Object,

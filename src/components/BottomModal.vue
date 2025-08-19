@@ -113,7 +113,7 @@ onMounted(() => {
 const handleBack = (source) => {
     const isPop = topBottomComponentId.value === componentId.value
     if (isPop) {
-        emit('close')
+        emit('close', source)
     }
 }
 
@@ -130,7 +130,6 @@ const showModel = () => {
     showBg.value = true
     const id = props.name + '-' + generateUUID()
     componentId.value = id
-    store.commit('application/PUSH_BOTTOM', {id})
     if (!props.isUseRoute) {
         const hasName = window.location.href.endsWith(props.name)
         if (!hasName) {
@@ -138,6 +137,8 @@ const showModel = () => {
             window.history.pushState({}, '', newPath)
         }
     }
+    console.log('push', id, window.location.hash)
+    store.commit('application/PUSH_BOTTOM', {id})
 
     overlayOpacity.value = targetOverlayOpacity * 0.1
     const interval = setInterval(() => {
@@ -154,12 +155,10 @@ const showModel = () => {
 }
 
 const closeModal = () => {
-    setTimeout(() => {
-        store.commit('application/POP_BOTTOM', {id: componentId.value})
-    }, 10)
     if (window.location.href.indexOf(`#${props.name}`) !== -1) {
         window.history.back()
     }
+    store.commit('application/POP_BOTTOM', {id: componentId.value})
     //逐渐改变背景颜色的透明度
     const interval = setInterval(() => {
         overlayOpacity.value = overlayOpacity.value * 0.7

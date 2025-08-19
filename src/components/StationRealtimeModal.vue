@@ -1,8 +1,10 @@
 <template>
     <bottom-modal
         name="station-realtime"
-        :display="display" @close="handleClose" content-height="60vh" :on-move-up="onMoveUp">
-        <StationRealtimeView :current-station-id-prop="stationId" :enable-op-msg="false"/>
+        :display="display" @close="handleClose" content-height="60vh" :on-move-up="onMoveUp"
+        :after-close="afterCloseFunc">
+        <StationRealtimeView :current-station-id-prop="stationId" :enable-op-msg="false" :in-modal="true"
+                             @close="handleClose"/>
     </bottom-modal>
 </template>
 
@@ -16,7 +18,11 @@ import {useRouter} from "vue-router";
 const store = useStore()
 const display = ref(false)
 const shownStationId = computed(() => store.getters["application/shownStationId"])
-const handleClose = () => {
+const afterCloseFunc = ref(null)
+const handleClose = (afterClose) => {
+    if (typeof afterClose === "function") {
+        afterCloseFunc.value = afterClose
+    }
     store.dispatch('application/closeStationRealtimeModal')
     display.value = false
 }
