@@ -113,6 +113,7 @@ onMounted(() => {
 const handleBack = (source) => {
     const isPop = topBottomComponentId.value === componentId.value
     if (isPop) {
+        console.log('close BottomModal', componentId.value)
         emit('close', source)
     }
 }
@@ -158,7 +159,9 @@ const closeModal = () => {
     if (window.location.href.indexOf(`#${props.name}`) !== -1) {
         window.history.back()
     }
-    store.commit('application/POP_BOTTOM', {id: componentId.value})
+    setTimeout(() => {
+        store.commit('application/POP_BOTTOM', {id: componentId.value})
+    }, 10)
     //逐渐改变背景颜色的透明度
     const interval = setInterval(() => {
         overlayOpacity.value = overlayOpacity.value * 0.7
