@@ -1,6 +1,6 @@
 import {dijkstra, findAllPaths, findTransfers} from "src/utils/route-algorithm";
 import dayjs from "dayjs";
-import {stopInfoParse, trainLineOfStopParser} from "src/models/Train";
+import {trainLineOfStopParser} from "src/models/Train";
 import _ from "lodash";
 import {diff} from "src/utils/time-utils";
 
@@ -185,8 +185,8 @@ async function planOnePathSolution({distance, path, parsedPath}, depTime, trainG
     await trainGetter({lineId, stationId: stationIds[0], depTime}).then(trainInfoList => {
         console.log('Candidate trainInfoList:', trainInfoList)
         const promises = trainInfoList.map(t => recursivePlan(t, parsedPath, depTime, trainGetter, transferInfoGetter, [],
-            (trains) => {
-                const solution = toSolution(trains, distance)
+            (segments) => {
+                const solution = toSolution(segments, distance)
                 if (solutions.size === 0) {
                     solutions.add(solution)
                     return
@@ -225,7 +225,7 @@ async function planOnePathSolution({distance, path, parsedPath}, depTime, trainG
  */
 async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, transferInfoGetter, trains = [], cb, preTransferInfo) {
     let isFind = false
-    const stopStationIds = trainInfo.schedule.map(it => it[0])
+    const stopStationIds = trainInfo.schedule.map(it => it.stationId)
     let currentPathIndex = -1
     let getOffIndex = -1
     let getOnIndex = -1
@@ -267,7 +267,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
             }
             if (preTransferInfo) {
                 const {fromPlatform, fromId, arrTime, fromMainId, fromLineId} = preTransferInfo
-                const getOnStop = stopInfoParse(trainInfo.schedule[getOnIndex])
+                const getOnStop = trainInfo.schedule[getOnIndex]
                 const transferInfo = await transferInfoGetter({
                     fromId,
                     fromPlatform,
@@ -302,7 +302,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     }
     const train = buildTrain(trainInfo, getOnIndex, getOffIndex)
     trains.push(train)
-    const getOffStop = stopInfoParse(trainInfo.schedule[getOffIndex])
+    const getOffStop = trainInfo.schedule[getOffIndex]
     const isArrived = parsedPath.length === 1 && getOffStop.stationId === parsedPath[0].stationIds.slice(-1)[0]
     if (isArrived) {
         //到达终点
@@ -409,25 +409,26 @@ function toSolution(segments, distance) {
             _trains.push(segments[i])
         }
     }
-    const depTime = segments[0].depTime
-    const arrTime = segments.slice(-1)[0].arrTime
-
+    const depInfo = segments[0]
+    const arrInfo = segments.slice(-1)[0]
     return {
         id: solutionId,
         transferTimes: transfers.length,
         walkDistance,
         distance,
-        totalTime: diff(arrTime, depTime),
+        totalTime: diff(depInfo.depTime, arrInfo.arrTime),
         trains: _trains,
-        depTime,
-        arrTime,
+        depTime: depInfo.depTime,
+        depTimezone: depInfo.depStop.timezone,
+        arrTime: arrInfo.arrTime,
+        arrTimezone: arrInfo.arrStop.timezone,
         depStationId: segments[0].depStationId,
         arrStationId: segments.slice(-1)[0].arrStationId,
     }
 }
 
 function buildTrain(trainInfo, getOnIndex, getOffIndex) {
-    const stops = trainInfo.schedule.slice(getOnIndex, getOffIndex + 1).map(it => stopInfoParse(it))
+    const stops = trainInfo.schedule.slice(getOnIndex, getOffIndex + 1)
     return {
         depTime: stops[0].dep,
         arrTime: stops.slice(-1)[0].arr,
@@ -443,7 +444,7 @@ function buildTrain(trainInfo, getOnIndex, getOffIndex) {
         get arrStationId() {
             return this.arrStop.stationId
         },
-        terminal: stopInfoParse(trainInfo.schedule.slice(-1)[0]),
+        terminal: trainInfo.schedule.slice(-1)[0],
         isFirstStop: getOnIndex === 0,
         get depStop() {
             return this.stops[0]

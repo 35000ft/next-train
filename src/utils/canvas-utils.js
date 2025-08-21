@@ -52,6 +52,7 @@ export /**
  */
 async function drawMetroLine(config, {
     scaleFactor = 1,
+    canvasWidth = (window.innerWidth <= 500 ? window.innerWidth : 360) * scaleFactor,
     addClickableArea,
     handleClicKStation,
     lineInfoLoader,
@@ -210,7 +211,6 @@ async function drawMetroLine(config, {
 
 
     const lineInfo = await lineInfoLoader(config.lineId)
-    const canvasWidth = (window.innerWidth <= 500 ? window.innerWidth : 360) * scaleFactor
 
     const branchStationIdSet = (config.branchStations && new Set(config.branchStations.map(s => s.stationId))) || new Set()
     const tempMainLineStations = lineInfo.stations.filter(it => !branchStationIdSet.has(it.id))
@@ -391,7 +391,7 @@ async function drawMetroLine(config, {
         x: halfWidth,
         y: yPadding + (mainLineStations.length - 1) * SEGMENT_LENGTH
     })
-    
+
     stationCirclesToDraw.forEach(params => {
         drawStation(ctx, ...params)
     })

@@ -111,8 +111,13 @@ const actions = {
 
     async fetchStationTrainAtTime({state, commit}, {stationId, lineId, depTime}) {
         if (lineId && stationId && depTime) {
+            const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: lineId})
+            if (!railsystem) {
+                return Promise.reject('Get railsystem error')
+            }
             return new Promise((resolve, reject) => {
-                depTime = toLocalDatetime(depTime)
+                const timezone = railsystem.timezone;
+                depTime = toLocalDatetime(depTime, timezone)
                 const lockKey = `fetchStationTrainAtTime:${stationId}-${lineId}-${depTime}`
                 const _oldTrains = state.stationTrainInfoDetailMap.get(lockKey)
                 if (_oldTrains) {
@@ -127,8 +132,12 @@ const actions = {
                 }
                 //Add Lock
                 commit('SET_LOCK', {key: lockKey})
-                console.log('FetchStationTrainAtTime', 'stationId:' + stationId, 'lineId:' + lineId, 'time:' + depTime)
+
                 fetchStationTrainInfoAtTime(stationId, lineId, depTime).then(_trains => {
+                    _trains.forEach(it => {
+                        it.schedule = it.schedule.map(it => stopInfoParse(it, timezone))
+                    })
+                    console.log('_trains', _trains)
                     commit('SET_STATION_TRAININFO_DETAIL', {trainInfoList: _trains, key: lockKey})
                     resolve(_trains)
                 }).catch(err => {
@@ -225,8 +234,12 @@ const actions = {
             }
         }
         const trains = await fetchLineOnServiceTrains(lineId)
+        const railsystem = await this.dispatch("railsystem/getRailsystemByLineId", {lineId: lineId})
+        if (!railsystem) {
+            return Promise.reject('Get railsystem error')
+        }
         trains.forEach(trainInfo => {
-            trainInfo.schedule = trainInfo.schedule.map(it => stopInfoParse(it))
+            trainInfo.schedule = trainInfo.schedule.map(it => stopInfoParse(it, railsystem.timezone))
         })
         commit('SET_LINE_ON_SERVICE_TRAINS', {lineId, trains})
         return trains

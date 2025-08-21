@@ -3,11 +3,11 @@
         <q-card style="height:93px;padding: 5px;background-color: var(--q-background-grey-2);">
             <div class="solution-title">
                 <span class="wrap-over-float-text" style="background-color: var(--q-green);">
-                    {{ solution.depTime.format('HH:mm') }}
+                    {{ toLocalDatetime(solution.depTime, solution.depTimezone, 'HH:mm') }}
                 </span>
                 <span class="wrap-over-float-text">{{ totalTime }}</span>
                 <span class="wrap-over-float-text" style="background-color: var(--q-red);">
-                    {{ solution.arrTime.format('HH:mm') }}
+                    {{ toLocalDatetime(solution.arrTime, solution.arrTimezone, 'HH:mm') }}
                 </span>
             </div>
             <div style="height: 10px;"></div>
@@ -47,7 +47,7 @@
 </template>
 <script setup>
 import {computed, onMounted, ref} from "vue";
-import {diff} from "src/utils/time-utils";
+import {diff, toLocalDatetime} from "src/utils/time-utils";
 import {useI18n} from "vue-i18n";
 import {useStore} from "vuex";
 import LineIcon from "components/LineIcon.vue";

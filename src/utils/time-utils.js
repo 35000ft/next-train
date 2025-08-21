@@ -15,40 +15,6 @@ export const TIME_FORMATS = {
     HM: "HH:mm",
     DATE: "YYYY-MM-DD"
 }
-
-/**
- * 给定一个_date 如果_date有时区信息 则返回该时区的当前时间 没有则返回utc
- * @param _date {String|Date} 提供时区信息
- * @returns {dayjs.Dayjs} 当前时间
- */
-export function getNowTime(_date) {
-    let dateInstance;
-    // 检查 _date 的类型
-    if (!_date) {
-        console.warn('_date is undefined or null, return utc')
-        return dayjs.utc();
-    }
-
-    if (_date instanceof Date) {
-        dateInstance = dayjs(_date);
-    } else if (typeof _date === 'string') {
-        dateInstance = dayjs(_date);
-    } else {
-        throw new Error('Invalid date format. Please provide a Date object or a valid date string.');
-    }
-    // 获取时区偏移量
-    const offset = dateInstance.utcOffset(); // 获取时区偏移量（单位：分钟）
-
-    // 判断是否有时区信息
-    if (offset !== 0) {
-        // 如果有时区信息，返回返回当前时区的时间
-        return dayjs.utc().add(offset, 'minute');
-    } else {
-        // 如果没有时区信息，返回当前 UTC 时间
-        return dayjs.utc();
-    }
-}
-
 const isArithmeticSequence = (arr) => {
     // 1. 排序数组
     arr.sort((a, b) => a - b);
@@ -134,16 +100,6 @@ export function hasTimezone(_date) {
     return timezonePattern.test(_date)
 }
 
-/**
- * 获取当前时间字符串
- * @param format {String}
- * @param _date {String|Date} 提供时区信息
- * @returns {string} 当前时间字符串
- */
-export function getNowTimeString(format = TIME_FORMATS.DEFAULT, _date) {
-    const _dayjs = getNowTime(_date)
-    return _dayjs.format(format)
-}
 
 /**
  *
@@ -350,9 +306,12 @@ function timeStringToMinutes(timeStr) {
     return hours * 60 + minutes;
 }
 
-export function toLocalDatetime(_time) {
-    _time = toDayjs(_time)
-    return _time.format('YYYY-MM-DDTHH:mm:ss')
+export function toLocalDatetime(_time, timezone, format = 'YYYY-MM-DDTHH:mm:ss') {
+    if (hasTimezone(_time)) {
+        return dayjs(_time).format(format)
+    }
+    const new_time = toDayjs(_time).utcOffset(parseTimezoneOffset(timezone))
+    return new_time.format(format)
 }
 
 /**

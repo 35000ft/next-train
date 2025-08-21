@@ -85,7 +85,7 @@ import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import {useStore} from "vuex";
 import {drawMetroLine} from "src/utils/canvas-utils";
 import _ from "lodash";
-import {diff, getNowByTimezone} from "src/utils/time-utils";
+import {diff, diffFromNow, getNowByTimezone} from "src/utils/time-utils";
 import {categoryParser, TRAIN_CATEGORY} from "../models/Train";
 import {useI18n} from "vue-i18n";
 import BottomModal from "components/BottomModal.vue";
@@ -97,7 +97,6 @@ import MultipleTrainSelector from "components/MultipleTrainSelector.vue";
 const LINE_TEMPLATE_DOC_ID = 'line-template-svg'
 let positions = []
 const TRAIN_ICON_HEIGHT = 70
-const TRAIN_ICON_WEIGHT = 80
 let prefix = null
 const onServiceTrains = ref({})
 let positionMap = new Map()
@@ -121,7 +120,9 @@ watch(shownLineId, (newVal, oldVal) => {
         init()
     }
 })
-const CANVAS_BASE_WIDTH = window.innerWidth <= 500 ? window.innerWidth : 360
+const CANVAS_BASE_WIDTH = computed(() => {
+    return window.innerWidth <= 500 ? window.innerWidth : 500
+})
 
 function afterClose() {
     if (isFromUrl.value) {
@@ -158,6 +159,7 @@ const saveLineTemplate = () => {
     const scale = 3
     drawMetroLine(drawConfig.value, {
         scaleFactor: scale,
+        canvasWidth: CANVAS_BASE_WIDTH.value,
         addClickableArea,
         handleClicKStation,
         lineInfoLoader,
@@ -206,7 +208,7 @@ const handleShowTrainInfoDetail = (trainInfo) => {
     }
 }
 const trainXPosition = computed(() => {
-    return Math.round(CANVAS_BASE_WIDTH / 2) - 95
+    return Math.round(CANVAS_BASE_WIDTH.value / 2) - 95
 })
 
 const downTrains = computed(() => {
@@ -273,16 +275,16 @@ const handleClickLine = _.debounce((lineId) => {
 
 async function calcTrainPosition(train) {
     const lineInfo = await lineInfoLoader(train.lineId)
-    const currentTime = getNowByTimezone(lineInfo.stations[0].timezone)
+    const timezone = lineInfo.stations[0].timezone
     const branchStationMap = arr2Map(drawConfig.value.branchStations || [], 'stationId')
-    const nextStopIndex = train.schedule.map(stop => diff(stop.arr, currentTime))
+    const nextStopIndex = train.schedule.map(stop => diffFromNow(stop.arr, 'second', timezone))
         .sort((a, b) => a - b).findIndex(it => it > 0)
     if (nextStopIndex > 0) {
         const nextStop = train.schedule[nextStopIndex]
         train.nextStop = nextStop
         const lastStop = train.schedule[nextStopIndex - 1]
         let rawYPosition
-        const depDiff = diff(currentTime, lastStop.dep)
+        const depDiff = diffFromNow(lastStop.dep, 'second', timezone)
         let nextStopPosition = stationMap.value.get(nextStop.stationId)
         if (depDiff > 0) {
             //在lastStop和nextStop之间
@@ -442,6 +444,7 @@ function init() {
         drawConfig.value = _drawConfig
         drawMetroLine(_drawConfig, {
             addClickableArea,
+            canvasWidth: CANVAS_BASE_WIDTH.value,
             handleClicKStation,
             lineInfoLoader,
             stationMap: stationMap.value,

@@ -43,14 +43,14 @@ import OverlayView from "components/OverlayView.vue";
 import {onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
 import {planRoute, planShortestSolution} from "src/utils/route-plan";
-import {diff, getNowByTimezone} from "src/utils/time-utils";
+import {diff, getNowByTimezone, toDayjs} from "src/utils/time-utils";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import OneSolutionOverview from "components/OneSolutionOverview.vue";
 import RouteSolutionDetailView from "components/RouteSolutionDetailView.vue";
-import {trainLineOfStopParser} from "src/models/Train";
 import {tagSolutions} from "src/models/RouteSolution";
 import _ from "lodash";
+import dayjs from "dayjs";
 
 const showDetail = ref(false)
 const handleCloseDetail = () => {
@@ -95,7 +95,7 @@ async function init(params) {
         arrivalStation.value = station
     })
     const {timezone, railsystemCode} = departStation.value
-    const _depTime = depTime.value || getNowByTimezone(timezone)
+    const _depTime = toDayjs(depTime.value.substring(0, 19), timezone) || dayjs()
     const oneSolutionCb = async (solution) => {
         for (const train of solution.trains) {
             if (train.type !== 'train') continue

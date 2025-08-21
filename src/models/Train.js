@@ -108,16 +108,17 @@ const categoryParser = (category) => {
     return TRAIN_CATEGORY[category] || TRAIN_CATEGORY.LOCAL
 }
 
-const stopInfoParse = (stopInfo) => {
+const stopInfoParse = (stopInfo, timezone) => {
     if (stopInfo instanceof Array && stopInfo.length >= 5) {
         const temp = {
             stationId: stopInfo[0] || null,
             stationName: stopInfo[1],
-            arr: dayjs(stopInfo[2]),
-            dep: dayjs(stopInfo[3]),
+            arr: toDayjs(stopInfo[2], timezone),
+            dep: toDayjs(stopInfo[3], timezone),
             platform: stopInfo[4] || null,
             lineId: stopInfo[5] || null,
             direction: stopInfo[6],
+            timezone,
         }
         const _diff = temp.dep.diff(temp.arr, 'second')
         if (_diff < 0) {

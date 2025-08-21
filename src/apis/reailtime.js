@@ -60,7 +60,7 @@ export async function fetchScheduleHeader(lineId) {
 export async function fetchStationTrainInfoAtTime(stationId, lineId, depTime) {
     const url = `api/metro-realtime/train-info/scheduled/${stationId}/${lineId}`
     const body = {
-        stationId, lineId, time: toLocalDatetime(depTime)
+        stationId, lineId, time: depTime
     }
     return await axios
         .post(url, body)
