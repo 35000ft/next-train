@@ -1,4 +1,7 @@
 import axios from "src/utils/axios";
+import {generateUUID} from "src/utils/crypto_utils";
+
+const apiBaseUrl = process.env.API_BASE_URL;
 
 export async function login({account, password}) {
     const url = `api/metro-realtime/users/login`
@@ -18,4 +21,13 @@ export async function thirdLogin(token) {
         .then(res => {
             return res.data.data
         })
+}
+
+/**
+ *
+ * @returns {EventSource}
+ */
+export function sseLogin() {
+    const clientId = generateUUID()
+    return new EventSource(apiBaseUrl + `/metro-realtime/users/fe-third-party-login?clientId=${clientId}`)
 }

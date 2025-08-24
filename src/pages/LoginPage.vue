@@ -75,6 +75,17 @@
                                 no-caps
                                 padding="12px"
                             />
+
+                            <q-btn
+                                @click.stop="handleThirdLogin"
+                                label="THIRD LOGIN"
+                                color="green"
+                                class="q-mt-md submit-btn"
+                                unelevated
+                                no-caps
+                                padding="12px"
+                            />
+
                         </q-form>
 
                         <div class="footer">
@@ -90,8 +101,9 @@
 
 <script>
 import {ref} from 'vue'
-import {QForm, useQuasar} from 'quasar'
+import {copyToClipboard, QForm, useQuasar} from 'quasar'
 import SearchHeader from "components/SearchHeader.vue";
+import {sseLogin} from "src/apis/auth";
 
 export default {
     components: {SearchHeader},
@@ -145,6 +157,79 @@ export default {
             }
         }
 
+        function handleThirdLogin() {
+            const eventSource = sseLogin()
+            const initDialog = $q.dialog({
+                // 配置模态框
+                message: '获取授权码中',
+                persistent: true,
+                ok: false,
+                progress: true,
+                style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
+            })
+            eventSource.addEventListener("authentication", event => {
+                initDialog.hide()
+                // 生成口令复制口令发给机器人完成授权
+                const authenticationCode = event.data
+                const toCopy = `登录 ${authenticationCode}`
+                console.log('authentication code', authenticationCode)
+                $q.dialog({
+                    title: '登录授权',
+                    message: `
+    <div style="text-align:left;">
+      <div style="margin-bottom:8px; font-size:14px; color:#555;">
+        请复制以下口令并发送到微信公众号
+        <b style="color:var(--q-primary);">「纵横金陵」</b> 后台以完成授权：
+      </div>
+       <div style="
+        font-size:12px;
+        font-weight:bold;
+        color:gray;
+        background:#f5f5f5;
+        padding:10px;
+        border-radius:8px;
+        line-height:1.5em;
+        max-height:4em;  /* 固定为3行高度 */
+        display:-webkit-box;
+        -webkit-line-clamp:3;   /* 最多显示3行 */
+        -webkit-box-orient:vertical;
+        overflow:hidden;
+      ">
+        ${authenticationCode}
+      </div>
+    </div>
+  `,
+                    html: true,
+                    persistent: true,
+                    cancel: {
+                        label: '打开微信',
+                        color: 'green'
+                    },
+                    ok: {
+                        label: '复制口令',
+                        color: 'primary'
+                    }
+                }).onOk(() => {
+                    copyToClipboard(toCopy).then(() => {
+                        $q.notify({type: 'positive', message: '口令已复制'})
+                    })
+                }).onCancel(() => {
+                    copyToClipboard(toCopy).then(() => {
+                        $q.notify({type: 'positive', message: '口令已复制'})
+                        window.location.href = 'weixin://'
+                    })
+                })
+                $q.notify.info("复制口令发给机器人完成授权")
+            })
+            eventSource.addEventListener("login-ok", event => {
+                console.log('第三方登录成功', event.data)
+                $q.notify.ok("第三方登录成功")
+            })
+            eventSource.addEventListener("invalid-client", event => {
+                eventSource.close()
+            })
+        }
+
         function onForgot() {
             $q.notify({message: '跳转到找回密码页…（示例）'})
         }
@@ -153,7 +238,7 @@ export default {
             $q.notify({message: '跳转到注册页…（示例）'})
         }
 
-        return {formRef, form, remember, showPwd, loading, rules, onSubmit, onForgot, onSignup}
+        return {formRef, form, remember, showPwd, loading, rules, onSubmit, onForgot, onSignup, handleThirdLogin}
     }
 }
 </script>
