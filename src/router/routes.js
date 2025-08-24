@@ -47,6 +47,11 @@ const routes = [
                     componentName: 'StationDetailView'
                 }
             },
+            {
+                name: '/manage',
+                path: '/manage',
+                component: () => import('pages/RailSystemManagePage.vue'),
+            },
         ]
     },
     {

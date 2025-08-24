@@ -108,7 +108,13 @@ import LineIcon from "components/LineIcon.vue";
 
 export default defineComponent({
     components: {LineIcon, BottomModal},
-    setup(_0, {emit}) {
+    props: {
+        railsystemCode: {
+            type: String,
+            default: null,
+        },
+    },
+    setup(_0, {props, emit}) {
         let event = null
         const display = ref(false)
         const keyword = ref('')
@@ -126,10 +132,10 @@ export default defineComponent({
         const isDark = computed(() => $q.dark.isActive)
         const historyStations = computed(() => store.getters["preference/historyStations"].slice(0, 12))
 
-        function init() {
+        function init(railsystemCode) {
             console.log('StationSelector init...')
             loading.value = true
-            store.dispatch('railsystem/getRailSystemLines').then(r => {
+            store.dispatch('railsystem/getRailSystemLines', {railsystemCode: railsystemCode}).then(r => {
                 lines.value = r
                 searchGroups.value = [ALL_STR, ...r.map(it => it.name)]
                 loading.value = false
@@ -154,16 +160,12 @@ export default defineComponent({
             }
         }
 
-        //监听当前线网变化 发现切换立即重新加载一次线路
-        watch(currentRailSystem, (newVal, oldValue) => {
-            init()
-        },)
         watch(currentSearchGroup, (newVal, oldValue) => {
             handleChangeSearchGroup(newVal)
         })
         watch(display, (newVal, oldVal) => {
             if (newVal) {
-                init()
+                init(props?.railsystemCode)
             }
         })
 
