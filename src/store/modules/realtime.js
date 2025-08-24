@@ -117,8 +117,8 @@ const actions = {
             }
             return new Promise((resolve, reject) => {
                 const timezone = railsystem.timezone;
-                depTime = toLocalDatetime(depTime, timezone)
-                const lockKey = `fetchStationTrainAtTime:${stationId}-${lineId}-${depTime}`
+                const localDatetime = toLocalDatetime(depTime, timezone)
+                const lockKey = `fetchStationTrainAtTime:${stationId}-${lineId}-${localDatetime}`
                 const _oldTrains = state.stationTrainInfoDetailMap.get(lockKey)
                 if (_oldTrains) {
                     resolve(_oldTrains)
@@ -126,18 +126,21 @@ const actions = {
                 }
                 if (state.LOCK.has(lockKey)) {
                     setTimeout(() => {
-                        resolve(this.dispatch('realtime/fetchStationTrainAtTime', {stationId, lineId, depTime}))
+                        resolve(this.dispatch('realtime/fetchStationTrainAtTime', {
+                            stationId,
+                            lineId,
+                            depTime: localDatetime
+                        }))
                     }, 1000)
                     return
                 }
                 //Add Lock
                 commit('SET_LOCK', {key: lockKey})
 
-                fetchStationTrainInfoAtTime(stationId, lineId, depTime).then(_trains => {
+                fetchStationTrainInfoAtTime(stationId, lineId, localDatetime).then(_trains => {
                     _trains.forEach(it => {
                         it.schedule = it.schedule.map(it => stopInfoParse(it, timezone))
                     })
-                    console.log('_trains', _trains)
                     commit('SET_STATION_TRAININFO_DETAIL', {trainInfoList: _trains, key: lockKey})
                     resolve(_trains)
                 }).catch(err => {

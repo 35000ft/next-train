@@ -133,13 +133,13 @@ function parseRoute(subIdToMainMap, path) {
 
 
 export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
+    console.log('Plan route:', fromMainId, toMainId, depTime)
     const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId)
     const start = MAIN_STATION_PREFIX + fromMainId;
     const end = MAIN_STATION_PREFIX + toMainId;
     const shortest = dijkstra(graph, start, end)
 
     shortest['transfers'] = findTransfers(graph, shortest['path'])
-    console.log('Shortest Route:', shortest)
     const planPromises = []
     const allSolutions = []
 
@@ -155,6 +155,7 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
             trainGetter,
             transferInfoGetter,
         ).then(solutions => {
+            console.log('Path:', parsedPath, 'Solutions:', solutions)
             allSolutions.push(...solutions)
             for (const solution of solutions) {
                 cb(solution)
@@ -183,7 +184,7 @@ async function planOnePathSolution({distance, path, parsedPath}, depTime, trainG
     const solutions = new Set()
     const allPromises = []
     await trainGetter({lineId, stationId: stationIds[0], depTime}).then(trainInfoList => {
-        console.log('Candidate trainInfoList:', trainInfoList)
+        console.log('PlanOnePathSolution Candidate trainInfoList:', trainInfoList, 'Station ID:', stationIds[0], 'depTime', depTime,)
         const promises = trainInfoList.map(t => recursivePlan(t, parsedPath, depTime, trainGetter, transferInfoGetter, [],
             (segments) => {
                 const solution = toSolution(segments, distance)
@@ -306,7 +307,6 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     const isArrived = parsedPath.length === 1 && getOffStop.stationId === parsedPath[0].stationIds.slice(-1)[0]
     if (isArrived) {
         //到达终点
-        console.log('Arrived', trains)
         cb(trains)
         return Promise.resolve(trains)
     }
@@ -342,7 +342,6 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
 
     try {
         const minTransfer = await transferInfoGetter(transferFromInfo);
-
         lastDepTime = getOffStop.arr.add(minTransfer.needTime, 'second')
         const nextTrainInfoList = await trainGetter({
             stationId: currentStationId,
@@ -361,8 +360,8 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
 }
 
 export function planShortestSolution(rawGraph, fromMainId, toMainId, viaIds = [], trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
+    console.log('Plan Shortest Solution:', fromMainId, toMainId, depTime)
     const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId, viaIds)
-
     const {path, distance} = [...viaIds, toMainId].map(v => {
         const _fromMainId = MAIN_STATION_PREFIX + fromMainId
         const _toMainId = MAIN_STATION_PREFIX + v

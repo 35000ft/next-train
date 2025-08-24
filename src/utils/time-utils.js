@@ -308,10 +308,16 @@ function timeStringToMinutes(timeStr) {
 
 export function toLocalDatetime(_time, timezone, format = 'YYYY-MM-DDTHH:mm:ss') {
     if (hasTimezone(_time)) {
-        return dayjs(_time).format(format)
+        return dayjs(_time).utcOffset(parseTimezoneOffset(timezone)).format(format)
     }
-    const new_time = toDayjs(_time).utcOffset(parseTimezoneOffset(timezone))
-    return new_time.format(format)
+    if (typeof _time === "string") {
+        return toDayjs(_time).format(format)
+    }
+    if (dayjs.isDayjs(_time)) {
+        const new_time = toDayjs(_time).utcOffset(parseTimezoneOffset(timezone))
+        return new_time.format(format)
+    }
+    console.warn('Error parse to locale datetime:', _time, timezone)
 }
 
 /**

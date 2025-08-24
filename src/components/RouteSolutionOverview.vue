@@ -88,21 +88,25 @@ async function init(params) {
         return
     }
     const via = (viaIds && viaIds.split(',')) || []
-    depTime.value = params.depTime
     loading.value = true
     departStation.value = await store.dispatch('railsystem/getStation', {stationId: fromMainId})
     store.dispatch('railsystem/getStation', {stationId: toMainId}).then(station => {
         arrivalStation.value = station
     })
     const {timezone, railsystemCode} = departStation.value
-    const _depTime = toDayjs(depTime.value.substring(0, 19), timezone) || dayjs()
+    depTime.value = (params.depTime && params.depTime.substring(0, 19))
+    const _depTime = toDayjs(depTime.value, timezone) || dayjs()
     const oneSolutionCb = async (solution) => {
+        if (!solution || !solution.id) return
         for (const train of solution.trains) {
             if (train.type !== 'train') continue
             const promises = [...new Set(train.stops.map(it => it.lineId))].map(async lineId => {
                 return store.dispatch('railsystem/getLine', {lineId})
             })
             train.lines = await Promise.all(promises)
+        }
+        if (solutions.value.findIndex(it => it?.id === solution.id) !== -1) {
+            return
         }
 
         let tempSolutions = [...solutions.value, solution]
