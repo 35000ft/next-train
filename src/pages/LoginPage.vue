@@ -173,6 +173,7 @@ export default {
                 const authenticationCode = event.data
                 const toCopy = `登录 ${authenticationCode}`
                 console.log('authentication code', authenticationCode)
+
                 $q.dialog({
                     title: '登录授权',
                     message: `
@@ -208,7 +209,7 @@ export default {
                     ok: {
                         label: '复制口令',
                         color: 'primary'
-                    }
+                    },
                 }).onOk(() => {
                     copyToClipboard(toCopy).then(() => {
                         $q.notify({type: 'positive', message: '口令已复制'})
