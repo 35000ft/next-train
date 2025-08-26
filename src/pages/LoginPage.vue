@@ -157,18 +157,32 @@ export default {
             }
         }
 
-        function handleThirdLogin() {
-            const eventSource = sseLogin()
+        async function handleThirdLogin() {
+            const eventSource = await sseLogin()
             const initDialog = $q.dialog({
                 // 配置模态框
-                message: '获取授权码中',
-                persistent: true,
+                message: '获取授权码中...(可关闭此框继续进行其他活动)',
+                persistent: false,
                 ok: false,
                 progress: true,
                 style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
             })
+            initDialog._open = true
+
+            // 超时处理
+            new Promise((resolve, reject) => setTimeout(() => {
+                if (initDialog._open) {
+                    $q.notify.error("获取授权码超时")
+                    initDialog.hide()
+                }
+                resolve()
+            }, 30000))
+
             eventSource.addEventListener("authentication", event => {
-                initDialog.hide()
+                if (initDialog) {
+                    initDialog._open = false
+                    initDialog.hide()
+                }
                 // 生成口令复制口令发给机器人完成授权
                 const authenticationCode = event.data
                 const toCopy = `登录 ${authenticationCode}`
@@ -203,7 +217,7 @@ export default {
                     persistent: true,
                     cancel: {
                         label: '打开微信',
-                        color: 'green'
+                        color: 'green',
                     },
                     ok: {
                         label: '复制口令',
@@ -223,7 +237,9 @@ export default {
             })
             eventSource.addEventListener("login-ok", event => {
                 console.log('第三方登录成功', event.data)
+                store.commit('application/SET_LOGIN_USER', event.data)
                 $q.notify.ok("第三方登录成功")
+                eventSource.close()
             })
             eventSource.addEventListener("invalid-client", event => {
                 eventSource.close()
