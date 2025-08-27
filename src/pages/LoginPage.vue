@@ -104,12 +104,13 @@ import {ref} from 'vue'
 import {copyToClipboard, QForm, useQuasar} from 'quasar'
 import SearchHeader from "components/SearchHeader.vue";
 import {sseLogin} from "src/apis/auth";
+import {useStore} from "vuex";
 
 export default {
     components: {SearchHeader},
     setup() {
         const $q = useQuasar()
-
+        const store = useStore()
         const formRef = ref(null)
         const form = ref({email: '', password: ''})
         const remember = ref(true)
@@ -157,18 +158,28 @@ export default {
             }
         }
 
-        function handleThirdLogin() {
-            const eventSource = sseLogin()
+        async function handleThirdLogin() {
+            const eventSource = await sseLogin()
             const initDialog = $q.dialog({
                 // 配置模态框
-                message: '获取授权码中',
-                persistent: true,
+                message: '获取授权码中...(可关闭此框继续进行其他活动)',
+                persistent: false,
                 ok: false,
                 progress: true,
                 style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
             })
+            initDialog._open = true
+
+            // 超时处理
+            new Promise((resolve, reject) => setTimeout(() => {
+                if (initDialog?._open) {
+                    $q.notify.error("获取授权码超时")
+                    initDialog.hide()
+                }
+            }, 30000))
+
             eventSource.addEventListener("authentication", event => {
-                initDialog.hide()
+                initDialog && initDialog.hide()
                 // 生成口令复制口令发给机器人完成授权
                 const authenticationCode = event.data
                 const toCopy = `登录 ${authenticationCode}`
@@ -204,7 +215,7 @@ export default {
                     persistent: true,
                     cancel: {
                         label: '打开微信',
-                        color: 'green'
+                        color: 'green',
                     },
                     ok: {
                         label: '复制口令',
@@ -223,8 +234,12 @@ export default {
                 $q.notify.info("复制口令发给机器人完成授权")
             })
             eventSource.addEventListener("login-ok", event => {
-                console.log('第三方登录成功', event.data)
+                const user = JSON.parse(event.data)
+                console.log('Third-Party login ok:', user)
+                store.commit('application/SET_LOGIN_USER', user)
                 $q.notify.ok("第三方登录成功")
+                eventSource.close()
+                initDialog && initDialog.hide()
             })
             eventSource.addEventListener("invalid-client", event => {
                 eventSource.close()
