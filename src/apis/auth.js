@@ -28,11 +28,11 @@ export async function thirdLogin(token) {
 
 /**
  *
- * @returns {EventSource}
+ * @returns {Promise<EventSource>}
  */
-export async function sseLogin() {
+export async function sseLogin(event = null) {
     const fp = await FingerprintJS.load();
     const result = await fp.get();
     const clientId = md5(result.visitorId + dayjs().format('YYYY-MM-DD'))
-    return new EventSource(apiBaseUrl + `/metro-realtime/users/fe-third-party-login?clientId=${clientId}`)
+    return Promise.resolve(new EventSource(apiBaseUrl + `/metro-realtime/users/fe-third-party-login?clientId=${clientId}&event=${event || ''}`))
 }

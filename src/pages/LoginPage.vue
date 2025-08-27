@@ -104,12 +104,13 @@ import {ref} from 'vue'
 import {copyToClipboard, QForm, useQuasar} from 'quasar'
 import SearchHeader from "components/SearchHeader.vue";
 import {sseLogin} from "src/apis/auth";
+import {useStore} from "vuex";
 
 export default {
     components: {SearchHeader},
     setup() {
         const $q = useQuasar()
-
+        const store = useStore()
         const formRef = ref(null)
         const form = ref({email: '', password: ''})
         const remember = ref(true)
@@ -171,18 +172,14 @@ export default {
 
             // 超时处理
             new Promise((resolve, reject) => setTimeout(() => {
-                if (initDialog._open) {
+                if (initDialog?._open) {
                     $q.notify.error("获取授权码超时")
                     initDialog.hide()
                 }
-                resolve()
             }, 30000))
 
             eventSource.addEventListener("authentication", event => {
-                if (initDialog) {
-                    initDialog._open = false
-                    initDialog.hide()
-                }
+                initDialog && initDialog.hide()
                 // 生成口令复制口令发给机器人完成授权
                 const authenticationCode = event.data
                 const toCopy = `登录 ${authenticationCode}`
@@ -236,10 +233,12 @@ export default {
                 $q.notify.info("复制口令发给机器人完成授权")
             })
             eventSource.addEventListener("login-ok", event => {
-                console.log('第三方登录成功', event.data)
-                store.commit('application/SET_LOGIN_USER', event.data)
+                const user = JSON.parse(event.data)
+                console.log('Third-Party login ok:', user)
+                store.commit('application/SET_LOGIN_USER', user)
                 $q.notify.ok("第三方登录成功")
                 eventSource.close()
+                initDialog && initDialog.hide()
             })
             eventSource.addEventListener("invalid-client", event => {
                 eventSource.close()
