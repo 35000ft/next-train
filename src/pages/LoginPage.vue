@@ -14,7 +14,7 @@
                                 <q-icon name="lock" size="32px"/>
                             </q-avatar>
                             <div class="title">登入</div>
-                            <div class="subtitle">使用你的邮箱登录以继续</div>
+                            <div class="subtitle">使用你的电子邮箱以继续</div>
                         </div>
 
                         <q-form ref="formRef" @submit.prevent="onSubmit" class="form">
@@ -39,7 +39,7 @@
                             <q-input
                                 v-model="form.password"
                                 :type="showPwd ? 'text' : 'password'"
-                                label="密码"
+                                label="口令"
                                 label-color="gray"
                                 dense
                                 :rules="[rules.required, rules.min8]"
@@ -61,7 +61,7 @@
 
                             <div class="row items-center justify-between q-my-sm">
                                 <!--                        <q-toggle v-model="remember" label="记住我" dense/>-->
-                                <q-btn flat label="忘记密码？" color="white" @click="onForgot" size="sm"/>
+                                <q-btn flat label="不记得了？" color="white" @click="onForgot" size="sm"/>
                             </div>
 
                             <q-btn
@@ -70,7 +70,7 @@
                                 color="primary"
                                 class="q-mt-md submit-btn"
                                 :loading="loading"
-                                :disable="loading"
+                                :disable="loading || (!form.email)"
                                 unelevated
                                 no-caps
                                 padding="12px"
@@ -78,7 +78,7 @@
 
                             <q-btn
                                 @click.stop="handleThirdLogin"
-                                label="THIRD LOGIN"
+                                label="3RD PARTY LOGIN"
                                 color="green"
                                 class="q-mt-md submit-btn"
                                 unelevated
@@ -90,10 +90,14 @@
 
                         <div class="footer">
                             没有账号？
-                            <q-btn color="primary" size="sm" label="注册" @click="onSignup"/>
+                            <q-btn color="primary" size="sm" label="加入我们" @click="onSignup"/>
                         </div>
                     </div>
                 </div>
+
+                <q-dialog v-model="showRegForm">
+                    <register-form @close="()=>showRegForm=false"/>
+                </q-dialog>
             </q-page>
         </q-page-container>
     </q-layout>
@@ -103,26 +107,30 @@
 import {ref} from 'vue'
 import {copyToClipboard, QForm, useQuasar} from 'quasar'
 import SearchHeader from "components/SearchHeader.vue";
-import {sseLogin} from "src/apis/auth";
+import {login, sseLogin} from "src/apis/auth";
 import {useStore} from "vuex";
+import RegisterForm from "components/RegisterForm.vue";
+import router from "src/router";
+import {useRoute} from "vue-router";
 
 export default {
-    components: {SearchHeader},
+    components: {RegisterForm, SearchHeader},
     setup() {
         const $q = useQuasar()
         const store = useStore()
         const formRef = ref(null)
+        const showRegForm = ref(false)
         const form = ref({email: '', password: ''})
         const remember = ref(true)
         const showPwd = ref(false)
         const loading = ref(false)
-
+        const route = useRoute()
         const rules = {
             required: (v) => (!!v && v.trim().length > 0) || '必填项',
             email: (v) => {
-                if (!v) return '请输入邮箱'
+                if (!v) return '请输入电子邮箱'
                 const ok = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/u.test(v)
-                return ok || '请输入正确的邮箱地址'
+                return ok || '不被批准的电子邮箱格式'
             },
             min8: (v) => (v && v.length >= 8) || '至少 8 位密码'
         }
@@ -139,18 +147,36 @@ export default {
             })
         }
 
+        function onLoginSuccess(loginUser) {
+            store.commit('application/SET_LOGIN_USER', loginUser)
+            $q.notify({type: 'positive', message: '登录成功'})
+
+            const encodedRedirectUrl = route.params.redirect
+            let redirectUrl = '';
+            if (encodedRedirectUrl) {
+                try {
+                    redirectUrl = decodeURIComponent(encodedRedirectUrl)
+                } catch (e) {
+                    console.error('URL 解码失败:', encodedRedirectUrl)
+                }
+            }
+            if (redirectUrl) {
+                router.push(redirectUrl);
+            } else {
+                router.push('/');
+            }
+        }
+
         async function onSubmit() {
             const valid = await formRef.value?.validate()
             if (!valid) return
             loading.value = true
             try {
-                const res = await fakeLoginApi({
-                    email: form.value.email,
+                const loginUser = await login({
+                    account: form.value.email,
                     password: form.value.password,
-                    remember: remember.value
                 })
-                $q.notify({type: 'positive', message: '登录成功'})
-                console.log('token', res.token)
+                onLoginSuccess(loginUser)
             } catch (e) {
                 $q.notify({type: 'negative', message: e?.message || '登录失败'})
             } finally {
@@ -161,7 +187,6 @@ export default {
         async function handleThirdLogin() {
             const eventSource = await sseLogin()
             const initDialog = $q.dialog({
-                // 配置模态框
                 message: '获取授权码中...(可关闭此框继续进行其他活动)',
                 persistent: false,
                 ok: false,
@@ -172,7 +197,7 @@ export default {
 
             // 超时处理
             new Promise((resolve, reject) => setTimeout(() => {
-                if (initDialog?._open) {
+                if (initDialog && !!initDialog?._open) {
                     $q.notify.error("获取授权码超时")
                     initDialog.hide()
                 }
@@ -212,23 +237,23 @@ export default {
     </div>
   `,
                     html: true,
-                    persistent: true,
-                    cancel: {
+                    persistent: false,
+                    ok: {
                         label: '打开微信',
                         color: 'green',
                     },
-                    ok: {
+                    cancel: {
                         label: '复制口令',
                         color: 'primary'
                     },
                 }).onOk(() => {
                     copyToClipboard(toCopy).then(() => {
                         $q.notify({type: 'positive', message: '口令已复制'})
+                        window.location.href = 'weixin://'
                     })
                 }).onCancel(() => {
                     copyToClipboard(toCopy).then(() => {
                         $q.notify({type: 'positive', message: '口令已复制'})
-                        window.location.href = 'weixin://'
                     })
                 })
                 $q.notify.info("复制口令发给机器人完成授权")
@@ -236,8 +261,7 @@ export default {
             eventSource.addEventListener("login-ok", event => {
                 const user = JSON.parse(event.data)
                 console.log('Third-Party login ok:', user)
-                store.commit('application/SET_LOGIN_USER', user)
-                $q.notify.ok("第三方登录成功")
+                onLoginSuccess(user)
                 eventSource.close()
                 initDialog && initDialog.hide()
             })
@@ -251,10 +275,22 @@ export default {
         }
 
         function onSignup() {
-            $q.notify({message: '跳转到注册页…（示例）'})
+            showRegForm.value = true
         }
 
-        return {formRef, form, remember, showPwd, loading, rules, onSubmit, onForgot, onSignup, handleThirdLogin}
+        return {
+            formRef,
+            form,
+            remember,
+            showPwd,
+            loading,
+            showRegForm,
+            rules,
+            onSubmit,
+            onForgot,
+            onSignup,
+            handleThirdLogin
+        }
     }
 }
 </script>

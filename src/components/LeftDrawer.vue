@@ -34,7 +34,7 @@
     </q-drawer>
 </template>
 <script setup>
-import {onMounted, ref, watch} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import {useStore} from "vuex";
 import {useRouter} from "vue-router";
 
@@ -53,13 +53,13 @@ onMounted(() => {
 const appVersion = process.env.APP_VERSION
 const store = useStore()
 const router = useRouter()
-const loginUser = store.getters['application/loginUser']
+const loginUser = computed(() => store.getters['application/loginUser'])
 const onHide = () => {
     store.commit('application/SET_SHOW_LEFT_DRAWER', false)
 }
 
 const handleAvatarClick = () => {
-    if (!loginUser) {
+    if (!loginUser.value) {
         router.push({name: 'login'})
     } else {
         // TODO 已登录，可跳转到个人中心或其他页面
