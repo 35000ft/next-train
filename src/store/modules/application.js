@@ -169,6 +169,7 @@ const getters = {
     shownSolution: state => state.shownSolution,
     showLeftDrawer: state => state.showLeftDrawer,
     appVersion: state => state.appVersion,
+    loginUser: state => state.loginUser,
 };
 
 export default {
