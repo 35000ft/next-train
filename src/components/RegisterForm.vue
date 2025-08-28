@@ -52,7 +52,8 @@
 
             <q-card-actions class="q-gutter-md row justify-end q-mt-md">
                 <q-btn label="取消" color="grey" flat @click.stop="handleClose"/>
-                <q-btn label="注册" type="submit" style="padding-left: 15px;padding-right: 15px;" color="green"
+                <q-btn label="注册" :loading="loading" type="submit" style="padding-left: 15px;padding-right: 15px;"
+                       color="green"
                        unelevated/>
             </q-card-actions>
         </q-form>
@@ -67,7 +68,7 @@ import {signup} from "src/apis/auth";
 export default {
     emits: ['update:modelValue', 'close'],
     setup(props, {emit}) {
-        const formRef = ref('registerForm')
+        const registerForm = ref(null)
         const form = ref({
             email: '',
             username: '',
@@ -84,10 +85,14 @@ export default {
             password: val =>
                 /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/.test(val) ||
                 '密码必须至少包含8个字符，且包括大写字母、小写字母和数字'
-        };
+        }
+        const loading = ref(false)
         const $q = useQuasar()
-        const onSubmit = () => {
-            if (!!formRef.value?.validate()) {
+        const onSubmit = async () => {
+            console.log('is valid', registerForm.value)
+            const valid = await registerForm.value.validate()
+            if (valid) {
+                loading.value = true
                 signup(form.value).then(e => {
                     form.value = {
                         email: '',
@@ -98,10 +103,14 @@ export default {
                     emit('close')
                 }).catch(e => {
                     $q.notify.error(`注册失败:${e}`)
+                }).finally(_ => {
+                    loading.value = false
                 })
                 emit('update:modelValue', false);
+            } else {
+                console.warn('注册表单不合法')
             }
-        };
+        }
         const handleClose = () => {
             emit('close')
         }
@@ -109,8 +118,9 @@ export default {
             form,
             showPassword,
             rules,
-            formRef,
+            registerForm,
             emit,
+            loading,
             onSubmit,
             handleClose,
         };
