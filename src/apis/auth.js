@@ -1,6 +1,5 @@
 import axios from "src/utils/axios";
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
-import {getNowByTimezone} from "src/utils/time-utils";
 import dayjs from "dayjs";
 import {md5} from "src/utils/crypto_utils";
 
@@ -22,4 +21,11 @@ export async function sseLogin(event = null) {
     const result = await fp.get();
     const clientId = md5(result.visitorId + dayjs().format('YYYY-MM-DD'))
     return Promise.resolve(new EventSource(apiBaseUrl + `/metro-realtime/users/fe-third-party-login?clientId=${clientId}&event=${event || ''}`))
+}
+
+export async function signup({email, password, username}) {
+    const url = `api/metro-realtime/users/signup`
+    return await axios
+        .post(url, {email, password, username})
+        .then(res => res.data.data)
 }

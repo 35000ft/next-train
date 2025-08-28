@@ -6,7 +6,6 @@
 
         <q-form @submit.prevent="onSubmit" ref="registerForm">
             <q-card-section>
-                <!-- 邮箱输入框 -->
                 <q-input
                     v-model="form.email"
                     label="电子邮箱"
@@ -20,7 +19,6 @@
                     </template>
                 </q-input>
 
-                <!-- 用户名输入框 -->
                 <q-input
                     v-model="form.username"
                     label="昵称"
@@ -32,7 +30,6 @@
                     </template>
                 </q-input>
 
-                <!-- 密码输入框 -->
                 <q-input
                     v-model="form.password"
                     :type="showPassword ? 'text' : 'password'"
@@ -65,6 +62,7 @@
 <script>
 import {ref} from "vue";
 import {useQuasar} from "quasar";
+import {signup} from "src/apis/auth";
 
 export default {
     emits: ['update:modelValue', 'close'],
@@ -82,27 +80,25 @@ export default {
             email: val =>
                 /.+@.+\..+/.test(val) || '请输入有效的邮箱地址',
             username: val =>
-                /^.{3,20}$/.test(val) || '用户名必须为3-20个字符',
+                /^.{3,20}$/.test(val) || '昵称必须为3-20个字符',
             password: val =>
                 /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/.test(val) ||
                 '密码必须至少包含8个字符，且包括大写字母、小写字母和数字'
         };
         const $q = useQuasar()
         const onSubmit = () => {
-            // 校验表单
-            if (formRef.value.validate()) {
-                // 模拟注册逻辑
-                $q.notify({
-                    color: 'green',
-                    icon: 'check',
-                    message: '注册成功！'
-                });
-                // 清空表单
-                form.value = {
-                    email: '',
-                    username: '',
-                    password: ''
-                };
+            if (!!formRef.value?.validate()) {
+                signup(form.value).then(e => {
+                    form.value = {
+                        email: '',
+                        username: '',
+                        password: ''
+                    }
+                    $q.notify.ok("注册成功")
+                    emit('close')
+                }).catch(e => {
+                    $q.notify.error(`注册失败:${e}`)
+                })
                 emit('update:modelValue', false);
             }
         };

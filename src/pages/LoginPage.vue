@@ -135,18 +135,6 @@ export default {
             min8: (v) => (v && v.length >= 8) || '至少 8 位密码'
         }
 
-        function fakeLoginApi(payload) {
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    if (payload.email === 'demo@example.com' && payload.password === 'password123') {
-                        resolve({token: 'demo-token'})
-                    } else {
-                        reject(new Error('邮箱或密码不正确'))
-                    }
-                }, 800)
-            })
-        }
-
         function onLoginSuccess(loginUser) {
             store.commit('application/SET_LOGIN_USER', loginUser)
             $q.notify({type: 'positive', message: '登录成功'})
