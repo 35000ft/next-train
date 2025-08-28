@@ -23,9 +23,9 @@ export async function sseLogin(event = null) {
     return Promise.resolve(new EventSource(apiBaseUrl + `/metro-realtime/users/fe-third-party-login?clientId=${clientId}&event=${event || ''}`))
 }
 
-export async function signup({email, password, username}) {
+export async function signup({email, password, username, inviteCode}) {
     const url = `api/metro-realtime/users/signup`
     return await axios
-        .post(url, {email, password, username})
+        .post(url, {email, password, username, inviteCode})
         .then(res => res.data.data)
 }

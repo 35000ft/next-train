@@ -48,6 +48,17 @@
                         />
                     </template>
                 </q-input>
+
+                <q-input
+                    v-model="form.inviteCode"
+                    label="邀请码"
+                    :rules="[rules.required]"
+                    clearable
+                >
+                    <template #prepend>
+                        <q-icon name="fa-key"/>
+                    </template>
+                </q-input>
             </q-card-section>
 
             <q-card-actions class="q-gutter-md row justify-end q-mt-md">
@@ -89,7 +100,6 @@ export default {
         const loading = ref(false)
         const $q = useQuasar()
         const onSubmit = async () => {
-            console.log('is valid', registerForm.value)
             const valid = await registerForm.value.validate()
             if (valid) {
                 loading.value = true
