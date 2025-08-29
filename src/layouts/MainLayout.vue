@@ -110,7 +110,6 @@ watch(showSolutionDetail, (newVal, oldVle) => {
     }
 })
 const updateRoute = (newTab) => {
-    // 根据选中的选项卡更新路由
     router.push({name: newTab})
 }
 </script>

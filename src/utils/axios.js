@@ -16,24 +16,6 @@ const axiosInstance = axios.create({
 });
 axiosInstance.interceptors.request.use(
     (config) => {
-        if (config.fetchOptions?.cacheKey) {
-            const key = config.fetchOptions.cacheKey
-            if (checkCacheExpired(key)) {
-                config.params = {
-                    ...(config.params || {}),
-                    _v: Date.now()
-                }
-            }
-        }
-        if (config.fetchOptions?.forceUpdate) {
-            if (!config.params?._v) {
-                config.params = {
-                    ...(config.params || {}),
-                    _v: Date.now()
-                }
-            }
-        }
-
         if (config.url.startsWith('api')) {
             //以api开头加上的加上baseUrl 并去掉api
             config.baseURL = apiBaseUrl;
@@ -54,9 +36,8 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => {
         if (response.status === 200) {
-            const _data = response.data
-            if (_data.failed) {
-                return Promise.reject(_data.msg)
+            if (response.data?.failed === true) {
+                return Promise.reject(response.data?.msg)
             }
         } else if (response.status === 401) {
             return Promise.reject('Unauthorized')
@@ -68,7 +49,7 @@ axiosInstance.interceptors.response.use(
         return response
     },
     (response) => {
-
+        return Promise.reject('Fail to get response')
     }
 )
 

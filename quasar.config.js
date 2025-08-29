@@ -87,7 +87,18 @@ module.exports = configure(function (/* ctx */) {
         // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
         devServer: {
             // https: true
-            open: true // opens browser window automatically
+            open: true, // opens browser window automatically
+            // 设置代理服务器
+            proxy: {
+                '/api': {
+                    target: 'http://localhost:8888', // 目标 API 服务器的地址
+                    changeOrigin: true, // 更改源，避免跨域问题
+                    pathRewrite: {
+                        '^/api': '' // 重写路径，去掉 `/api` 前缀
+                    },
+                    secure: false, // 如果使用的是 https，且证书未被信任，则设置为 false
+                },
+            },
         },
 
         // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
@@ -107,7 +118,7 @@ module.exports = configure(function (/* ctx */) {
             // directives: [],
 
             // Quasar plugins
-            plugins: ['Notify']
+            plugins: ['Notify', 'Dialog']
         },
 
         // animations: 'all', // --- includes all animations

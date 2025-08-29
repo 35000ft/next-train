@@ -53,3 +53,13 @@ export function removeKeysStartingWith(prefix) {
         }
     }
 }
+
+export async function reverseGeocode(lat, lon) {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+    const res = await fetch(url);
+    const d = await res.json()
+    return {
+        address: d?.address,
+        displayName: d?.display_name,
+    }
+}
