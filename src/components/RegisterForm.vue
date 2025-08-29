@@ -52,11 +52,11 @@
                 <q-input
                     v-model="form.inviteCode"
                     label="邀请码"
-                    :rules="[rules.required]"
+                    :rules="[rules.inviteCode]"
                     clearable
                 >
                     <template #prepend>
-                        <q-icon name="fa-key"/>
+                        <q-icon name="fa-brands fa-weixin" @click.stop="openWechat"/>
                     </template>
                 </q-input>
             </q-card-section>
@@ -95,7 +95,8 @@ export default {
                 /^.{3,20}$/.test(val) || '昵称必须为3-20个字符',
             password: val =>
                 /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/.test(val) ||
-                '密码必须至少包含8个字符，且包括大写字母、小写字母和数字'
+                '密码必须至少包含8个字符，且包括大写字母、小写字母和数字',
+            inviteCode: val => !!val || '请至「下一班車」微信公众号发送「邀请码」获取',
         }
         const loading = ref(false)
         const $q = useQuasar()
@@ -124,6 +125,9 @@ export default {
         const handleClose = () => {
             emit('close')
         }
+        const openWechat = () => {
+            window.location.href = 'weixin://'
+        }
         return {
             form,
             showPassword,
@@ -133,6 +137,7 @@ export default {
             loading,
             onSubmit,
             handleClose,
+            openWechat,
         };
     }
 };
