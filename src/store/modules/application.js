@@ -2,6 +2,7 @@ import {reactive, toRaw} from "vue";
 import {isEqual} from "lodash";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {generateUUID} from "src/utils/crypto_utils";
+import {Cookies} from "quasar";
 
 const LOCAL_STORAGE_KEYS = {
     METRO_GO_CONFIG: 'MetroGoConfig',
@@ -21,6 +22,7 @@ const state = {
     shownSolution: null,
     showLeftDrawer: false,
     appVersion: null,
+    loginUser: null,
 };
 const mutations = {
     SET_SHOWN_TRAININFO(state, {trainInfo}) {
@@ -95,6 +97,14 @@ const mutations = {
         } else {
             state.showLeftDrawer = !state.showLeftDrawer
         }
+    },
+    SET_LOGIN_USER(state, loginUser) {
+        if (loginUser && !!loginUser.token) {
+            state.loginUser = loginUser
+            localStorage.setItem('authorization', loginUser.token)
+        } else {
+            throw Error("login user is invalid")
+        }
     }
 };
 
@@ -159,6 +169,7 @@ const getters = {
     shownSolution: state => state.shownSolution,
     showLeftDrawer: state => state.showLeftDrawer,
     appVersion: state => state.appVersion,
+    loginUser: state => state.loginUser,
 };
 
 export default {

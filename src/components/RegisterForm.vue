@@ -1,0 +1,148 @@
+<template>
+    <q-card style="width: 90vw; max-width: 400px; max-height: 80vh; display: flex; flex-direction: column;">
+        <q-card-section>
+            <div class="text-h6">加入<b style="color:var(--q-primary);">「下一班車」</b></div>
+        </q-card-section>
+
+        <q-form @submit.prevent="onSubmit" ref="registerForm">
+            <q-card-section>
+                <q-input
+                    v-model="form.email"
+                    label="电子邮箱"
+                    type="email"
+                    :rules="[rules.required, rules.email]"
+                    clearable
+                    autofocus
+                >
+                    <template #prepend>
+                        <q-icon name="email"/>
+                    </template>
+                </q-input>
+
+                <q-input
+                    v-model="form.username"
+                    label="昵称"
+                    :rules="[rules.required, rules.username]"
+                    clearable
+                >
+                    <template #prepend>
+                        <q-icon name="person"/>
+                    </template>
+                </q-input>
+
+                <q-input
+                    v-model="form.password"
+                    :type="showPassword ? 'text' : 'password'"
+                    label="密码"
+                    :rules="[rules.required, rules.password]"
+                    clearable
+                >
+                    <template #prepend>
+                        <q-icon name="vpn_key"/>
+                    </template>
+                    <template #append>
+                        <q-icon
+                            :name="showPassword ? 'visibility' : 'visibility_off'"
+                            @click="showPassword = !showPassword"
+                            class="cursor-pointer"
+                        />
+                    </template>
+                </q-input>
+
+                <q-input
+                    v-model="form.inviteCode"
+                    label="邀请码"
+                    :rules="[rules.inviteCode]"
+                    clearable
+                >
+                    <template #prepend>
+                        <q-icon name="fa-brands fa-weixin" @click.stop="openWechat"/>
+                    </template>
+                </q-input>
+            </q-card-section>
+
+            <q-card-actions class="q-gutter-md row justify-end q-mt-md">
+                <q-btn label="取消" color="grey" flat @click.stop="handleClose"/>
+                <q-btn label="注册" :loading="loading" type="submit" style="padding-left: 15px;padding-right: 15px;"
+                       color="green"
+                       unelevated/>
+            </q-card-actions>
+        </q-form>
+    </q-card>
+</template>
+
+<script>
+import {ref} from "vue";
+import {useQuasar} from "quasar";
+import {signup} from "src/apis/auth";
+
+export default {
+    emits: ['update:modelValue', 'close'],
+    setup(props, {emit}) {
+        const registerForm = ref(null)
+        const form = ref({
+            email: '',
+            username: '',
+            password: ''
+        });
+        const showPassword = ref(false);
+
+        const rules = {
+            required: val => !!val || '此项为必填',
+            email: val =>
+                /.+@.+\..+/.test(val) || '请输入有效的邮箱地址',
+            username: val =>
+                /^.{3,20}$/.test(val) || '昵称必须为3-20个字符',
+            password: val =>
+                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/.test(val) ||
+                '密码必须至少包含8个字符，且包括大写字母、小写字母和数字',
+            inviteCode: val => !!val || '请至「下一班車」微信公众号发送「邀请码」获取',
+        }
+        const loading = ref(false)
+        const $q = useQuasar()
+        const onSubmit = async () => {
+            const valid = await registerForm.value.validate()
+            if (valid) {
+                loading.value = true
+                signup(form.value).then(e => {
+                    form.value = {
+                        email: '',
+                        username: '',
+                        password: ''
+                    }
+                    $q.notify.ok("注册成功")
+                    emit('close')
+                }).catch(e => {
+                    $q.notify.error(`注册失败:${e}`)
+                }).finally(_ => {
+                    loading.value = false
+                })
+                emit('update:modelValue', false);
+            } else {
+                console.warn('注册表单不合法')
+            }
+        }
+        const handleClose = () => {
+            emit('close')
+        }
+        const openWechat = () => {
+            window.location.href = 'weixin://'
+        }
+        return {
+            form,
+            showPassword,
+            rules,
+            registerForm,
+            emit,
+            loading,
+            onSubmit,
+            handleClose,
+            openWechat,
+        };
+    }
+};
+</script>
+
+<style scoped>
+/* 自定义样式 */
+</style>
