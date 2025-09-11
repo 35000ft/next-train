@@ -1,9 +1,8 @@
 import axios from "src/utils/axios"
-import {toLocalDatetime} from "src/utils/time-utils";
 import {OperationMsg} from "src/models/OperationMsg";
 
 export async function fetchStationTrainInfo(stationId, lineId) {
-    const url = `api/metro-realtime/station/train-info/v2/${stationId}/${lineId}`
+    const url = `api/metro-realtime/realtime/train-info/station/v2/${stationId}/${lineId}`
     return await axios
         .post(url)
         .then(res => {
@@ -15,7 +14,7 @@ export async function fetchStationTrainInfo(stationId, lineId) {
 }
 
 export async function fetchStationSchedule(stationId, scheduleId) {
-    const url = `api/metro-realtime/station/schedule/v3/${stationId}/${scheduleId}`
+    const url = `api/metro-realtime/realtime/train-info/station/schedule/v3/${stationId}/${scheduleId}`
     return await axios
         .post(url)
         .then(res => {
@@ -27,7 +26,7 @@ export async function fetchStationSchedule(stationId, scheduleId) {
 }
 
 export async function fetchTrainInfoById(id) {
-    const url = `api/metro-realtime/train-info/id/${id}`
+    const url = `api/metro-realtime/realtime/train-info/id/${id}`
     return await axios
         .get(url)
         .then(res => {
@@ -58,7 +57,7 @@ export async function fetchScheduleHeader(lineId) {
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export async function fetchStationTrainInfoAtTime(stationId, lineId, depTime) {
-    const url = `api/metro-realtime/train-info/scheduled/${stationId}/${lineId}`
+    const url = `api/metro-realtime/realtime/train-info/station/scheduled/${stationId}/${lineId}`
     const body = {
         stationId, lineId, time: depTime
     }
@@ -73,7 +72,7 @@ export async function fetchStationTrainInfoAtTime(stationId, lineId, depTime) {
 }
 
 export async function fetchLineOnServiceTrains(lineId) {
-    const url = `api/metro-realtime/train-info/on-service/line/${lineId}`
+    const url = `api/metro-realtime/realtime/train-info/on-service/line/${lineId}`
     return await axios.post(url).then(res => res.data.data).catch(err => Promise.reject(err))
 }
 
