@@ -1,5 +1,4 @@
 import axios from 'axios'
-import {checkCacheExpired} from "src/utils/common_utils";
 
 const publicPath = process.env.PUBLIC_URL || '/';
 const apiBaseUrl = process.env.API_BASE_URL;
@@ -20,6 +19,12 @@ axiosInstance.interceptors.request.use(
             //以api开头加上的加上baseUrl 并去掉api
             config.baseURL = apiBaseUrl;
             config.url = config.url.substring(3)
+            // 从 localStorage 读取 token
+            const token = localStorage.getItem('authorization');
+            if (token) {
+                config.headers = config.headers || {};
+                config.headers['Authorization'] = token;
+            }
         } else if (!isAbsoluteURL(config.url)) {
             //请求public目录的内容
             if (!config.url.startsWith(publicPath)) {

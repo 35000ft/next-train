@@ -2,7 +2,6 @@ import {reactive, toRaw} from "vue";
 import {isEqual} from "lodash";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {generateUUID} from "src/utils/crypto_utils";
-import {Cookies} from "quasar";
 
 const LOCAL_STORAGE_KEYS = {
     METRO_GO_CONFIG: 'MetroGoConfig',
