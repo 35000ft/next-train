@@ -169,6 +169,7 @@ const thirdTrainScheduleParser = (schedule, timezone) => {
                 arrStr: formatToHHMM(it.arrTime),
                 depStr: formatToHHMM(it.depTime),
                 platform: it?.platform,
+                lineId: it?.lineId,
             }
         })
     }

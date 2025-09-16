@@ -128,11 +128,31 @@ function Util_toTrainInfoDetailResponse(rawData, railsystemCode) {
     return {
         id: Util_generateTrainInfoId(railsystemCode, rawData.id),
         trainNo: rawData.trainNo,
-        schedule: rawData.schedule,
+        schedule: Util_ParseSchedule(rawData.trainVia, rawData.schedule),
         direction: direction,
         category: rawData?.category || 'LOCAL',
         railsystemCode,
         trainVia: rawData.trainVia,
+    }
+}
+
+/**
+ *
+ * @param {Array} trainVia
+ * @param {Array} schedule
+ * @returns {Array}
+ * @constructor
+ */
+function Util_ParseSchedule(trainVia, schedule) {
+    if (trainVia instanceof Array) {
+        for (const via of trainVia) {
+            for (let i = via.fromIndex; i <= via.toIndex; i++) {
+                schedule[i].lineId = via.lineId
+            }
+        }
+        return schedule
+    } else {
+        return schedule
     }
 }
 
