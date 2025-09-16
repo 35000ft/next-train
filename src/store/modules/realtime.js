@@ -73,7 +73,7 @@ const actions = {
             // 第三方api
             const station = await this.dispatch('railsystem/getStation', {stationId})
             const railsystem = await this.dispatch("railsystem/getRailSystem", {code: station.railsystemCode})
-            if (railsystem?.ownerId === 0) {
+            if (railsystem?.extra?.isThirdParty) {
                 const line = await this.dispatch('railsystem/getLine', {lineId})
                 return new Promise((resolve, reject) => {
                     const functionName = 'Third_FetchStationTrain'

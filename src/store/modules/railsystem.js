@@ -15,6 +15,7 @@ import {
 
 const LOCAL_STORAGE_KEYS = {
     CURRENT_RAILSYSTEM: 'CURRENT_RAILSYSTEM',
+    CURRENT_STATION: 'currentStation',
 }
 const defaultRailSystems = {
     abbrName: '南京',
@@ -26,23 +27,30 @@ const defaultRailSystems = {
     defaultStationId: "13"
 }
 const currentRailsystem = (function () {
-    const currentRailsystem = localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM)
+    let currentRailsystem = localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM)
     if (!currentRailsystem) {
         localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, JSON.stringify(defaultRailSystems))
         return defaultRailSystems
     }
-    return JSON.parse(currentRailsystem)
+    currentRailsystem = JSON.parse(currentRailsystem)
+    if (typeof currentRailsystem?.extra === "string") {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, JSON.stringify(defaultRailSystems))
+        localStorage.removeItem(LOCAL_STORAGE_KEYS.CURRENT_STATION)
+        return defaultRailSystems
+    }
+    return currentRailsystem
 })()
 
 const publicPath = process.env.PUBLIC_URL || '/';
 const onChangeRailsystem = async (railsystem) => {
-    if (railsystem?.isThirdParty && railsystem.realtimeScriptUrl) {
+    const realtimeScriptUrl = railsystem?.extra?.realtimeScriptUrl
+    if (railsystem?.extra?.isThirdParty && realtimeScriptUrl) {
         const scriptNodeName = 'third_realtime_script'
         const existedScript = document.querySelector(`script[data-node-name="${scriptNodeName}"]`)
         if (existedScript) {
             document.head.removeChild(existedScript)
         }
-        const scriptUrl = `${publicPath}${railsystem.realtimeScriptUrl}`
+        const scriptUrl = `${publicPath}${realtimeScriptUrl}`
         const script = document.createElement('script');
         script.setAttribute('data-node-name', scriptNodeName)
         script.src = scriptUrl;
@@ -255,16 +263,8 @@ const actions = {
         }
         try {
             const railSystems = await listRailsystem()
-            const flatted = railSystems.map(it => {
-                if (it.extra && typeof it.extra === 'object') {
-                    const newItem = {...it, ...it.extra}
-                    delete newItem.extra
-                    return newItem
-                }
-                return it
-            })
-            flatted.forEach(it => commit('SET_RAILSYSTEM', {railsystem: it}))
-            return flatted
+            railSystems.forEach(it => commit('SET_RAILSYSTEM', {railsystem: it}))
+            return railSystems
         } catch (e) {
             console.warn('Fail to get railsystem list', e)
             return Promise.reject('获取线网列表失败')
