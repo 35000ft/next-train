@@ -155,7 +155,8 @@
             </q-form>
         </q-card-section>
     </q-card>
-    <station-selector ref="stationSelector" :railsystem-code="lineData?.railsystemCode" @select="handleSelectStation"/>
+    <station-selector ref="stationSelector" :railsystem-code="lineData?.railsystemCode" @select="handleSelectStation"
+                      :multiple="true"/>
     <q-dialog v-model="showStationForm">
         <station-form :initial="{railsystemId:props.initial?.railsystem?.id}"/>
     </q-dialog>

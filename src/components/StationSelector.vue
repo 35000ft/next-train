@@ -57,6 +57,7 @@
                         </q-tab-panel>
                         <q-tab-panel :name="line.name" :key="line.id" v-for="line in lines">
                             <div class="row station-result-wrapper" v-for="(station,index) in searchResults"
+                                 :class="selectedStationIds.has(station?.id)?'selected':'unselected'"
                                  :key="index">
                                 <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;"
                                      @click="handleSelect(station)">
@@ -98,11 +99,11 @@
 
 <script>
 import BottomModal from "components/BottomModal.vue";
-import {computed, defineComponent, onMounted, ref, toRaw, watch} from "vue";
+import {computed, defineComponent, ref, watch} from "vue";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import {useI18n} from "vue-i18n";
-import {findByAbbr, findMatches, isAlphabet, isNumber, toHighlighted} from "src/utils/string-utils";
+import {findByAbbr, findMatches, isAlphabet, toHighlighted} from "src/utils/string-utils";
 import _ from 'lodash';
 import LineIcon from "components/LineIcon.vue";
 
@@ -113,15 +114,25 @@ export default defineComponent({
             type: String,
             default: null,
         },
+        multiple: {
+            type: Boolean,
+            default: false,
+        }
     },
-    setup(_0, {props, emit}) {
+    setup(props, {emit}) {
         let event = null
         const display = ref(false)
         const keyword = ref('')
         const {t} = useI18n()
         const loading = ref(true)
         const loadStationPromise = ref(null)
-        const currentRailSystem = computed(() => store.getters["railsystem/currentRailSystem"])
+        const currentRailSystem = computed(() => {
+            if (props.railsystemCode && propRailsystem.value) {
+                return propRailsystem.value
+            } else {
+                return store.getters["railsystem/currentRailSystem"]
+            }
+        })
         const ALL_STR = t('all')
         const currentSearchGroup = ref(ALL_STR)
         const searchGroups = ref([ALL_STR])
@@ -131,17 +142,27 @@ export default defineComponent({
         const $q = useQuasar()
         const isDark = computed(() => $q.dark.isActive)
         const historyStations = computed(() => store.getters["preference/historyStations"].slice(0, 12))
+        const selectedStations = ref([])
+        const selectedStationIds = computed(() => {
+            return new Set(selectedStations.value.map(it => it.id))
+        })
+        const propRailsystem = ref(null)
 
         function init(railsystemCode) {
-            console.log('StationSelector init...')
+            console.log('StationSelector init', 'railsystemCode:' + railsystemCode)
+            propRailsystem.value = null
             loading.value = true
+            store.dispatch('railsystem/getRailSystem', {code: railsystemCode}).then(railsystem => {
+                propRailsystem.value = railsystem
+                handleSearch('')
+            })
             store.dispatch('railsystem/getRailSystemLines', {railsystemCode: railsystemCode}).then(r => {
                 lines.value = r
                 searchGroups.value = [ALL_STR, ...r.map(it => it.name)]
                 loading.value = false
             }).catch(err => {
                 console.warn('Load lines error', err)
-                $q.notify.warn('Load lines error')
+                $q.notify.warn('加载车站线路失败')
             })
         }
 
@@ -150,7 +171,7 @@ export default defineComponent({
                 return Promise.reject('lineId can not be empty')
             }
             if (lineId === ALL_STR) {
-                const _result = await store.dispatch('railsystem/getAllStations')
+                const _result = await store.dispatch('railsystem/getRailsystemStations', {railsystemCode: currentRailSystem.value.code})
                 loadFavouriteStations().then(_ => {
                     console.log('Load favourite stations ok')
                 })
@@ -170,6 +191,7 @@ export default defineComponent({
         })
 
         const handleSearch = _.debounce(_keyword => {
+            console.log('handle search stations, keyword:', keyword)
             let lineId
             if (currentSearchGroup.value === ALL_STR) {
                 lineId = ALL_STR
@@ -271,10 +293,18 @@ export default defineComponent({
         }
 
         const handleSelect = (station, line) => {
+            if (!station?.id) {
+                return
+            }
             const lineId = line ? line.id : null
             store.dispatch('preference/addHistoryStation', station)
-            emit('select', {stationId: station.id, lineId, event, station})
-            display.value = false
+            if (props.multiple) {
+                selectedStationIds.value.add(station.id)
+            } else {
+                emit('select', {stationId: station.id, lineId, event, station})
+                display.value = false
+
+            }
         }
 
         const handleEnter = () => {
@@ -287,7 +317,6 @@ export default defineComponent({
                         return
                     }
                     if (stations && stations.length > 0) {
-                        console.log('keyword', keyword, stations[0])
                         handleSelect(stations[0], null)
                     }
                 })
@@ -327,6 +356,7 @@ export default defineComponent({
             searchGroups,
             historyStations,
             handleSearch,
+            selectedStationIds,
             handleEnter,
             handleChangeSearchGroup,
         }
@@ -351,6 +381,7 @@ export default defineComponent({
     background-color: var(--q-primary);
     border-radius: 5px;
     color: #ffffff;
+    margin-left: 3px;
     padding: 1px 5px;
 }
 
@@ -384,9 +415,14 @@ export default defineComponent({
 .history-wrapper .pill {
     background-color: var(--q-background-grey);
     border-radius: 5px;
+    margin-left: 3px;
     color: var(--q-grey);
     padding: 1px 5px;
     margin-right: 4px;
     white-space: nowrap;
+}
+
+.selected {
+    background-color: rgba(var(--q-primary), 0.5);
 }
 </style>

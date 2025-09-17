@@ -1,5 +1,4 @@
 import axios from "src/utils/axios"
-import {setCache} from "src/utils/common_utils";
 
 const baseUrl = 'api/metro-realtime'
 
@@ -7,7 +6,7 @@ const baseUrl = 'api/metro-realtime'
  * Fetch all stations of a rail system
  * @param {String} railsystemCode Code of Rail system, like "NJMTR"
  */
-export async function fetchStations(railsystemCode) {
+export async function fetchRailsystemStations(railsystemCode) {
     const url = `api/file/railsystem/stations/${railsystemCode}`
     return await axios
         .get(url)

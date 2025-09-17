@@ -8,7 +8,7 @@ import {
     fetchRailsystem,
     fetchShowLineCanvasConfig,
     fetchStation,
-    fetchStations,
+    fetchRailsystemStations,
     fetchTransfers,
     listRailsystem
 } from "src/apis/railsystem";
@@ -211,17 +211,11 @@ const actions = {
         }
         return await Promise.all(promises)
     },
-    async getAllStations({state, commit}) {
-        const currentRailSystem = state.currentRailSystem
-        if (currentRailSystem.stations) {
-            return currentRailSystem.stations
-        } else {
-            return fetchStations(currentRailSystem.code).then(stations => {
-                currentRailSystem.stations = stations
-                commit('SET_RAILSYSTEM', {railsystem: currentRailSystem})
-                return stations
-            })
+    async getRailsystemStations({state, commit}, {railsystemCode}) {
+        if (!railsystemCode) {
+            railsystemCode = state.currentRailSystem.code
         }
+        return fetchRailsystemStations(railsystemCode)
     },
     async getLine({state, commit}, {lineId}) {
         if (state.lines.has(lineId)) {
