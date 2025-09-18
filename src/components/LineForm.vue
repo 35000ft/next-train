@@ -249,9 +249,12 @@ onMounted(async () => {
     lineData.value.railsystem = props.initial?.railsystem
 })
 
-const handleSelectStation = async ({station, event}) => {
-    if (station) {
-        lineStations.value.push(station)
+const handleSelectStation = async (stations) => {
+    console.log('select stations', stations)
+    if (stations instanceof Array) {
+        stations.forEach(it => {
+            lineStations.value.push(it)
+        })
     }
 }
 

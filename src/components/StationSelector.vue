@@ -29,6 +29,7 @@
                             </span>
                             </div>
                             <div class="row station-result-wrapper" v-for="(station,index) in searchResults"
+                                 :class="selectedStationIds.has(station?.id)?'selected-station':'unselected-station'"
                                  :key="index">
                                 <div class="col-6 auto-scroll-container"
                                      @click="handleSelect(station)">
@@ -57,7 +58,7 @@
                         </q-tab-panel>
                         <q-tab-panel :name="line.name" :key="line.id" v-for="line in lines">
                             <div class="row station-result-wrapper" v-for="(station,index) in searchResults"
-                                 :class="selectedStationIds.has(station?.id)?'selected':'unselected'"
+                                 :class="selectedStationIds.has(station?.id)?'selected-station':'unselected-station'"
                                  :key="index">
                                 <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;"
                                      @click="handleSelect(station)">
@@ -90,7 +91,11 @@
                             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
                         </q-tab-panel>
                     </q-tab-panels>
-
+                    <div v-show="selectedStationIds.size>0"
+                         style="display: flex;justify-content: center; gap: 10px;" class="full-width">
+                        <q-btn color="green" @click.stop="confirmSelected">确认</q-btn>
+                        <q-btn color="red" @click.stop="handleCleanSelected">清空</q-btn>
+                    </div>
                 </div>
             </div>
         </template>
@@ -297,14 +302,31 @@ export default defineComponent({
                 return
             }
             const lineId = line ? line.id : null
-            store.dispatch('preference/addHistoryStation', station)
             if (props.multiple) {
-                selectedStationIds.value.add(station.id)
+                if (selectedStationIds.value.has(station.id)) {
+                    const index = selectedStations.value.findIndex(it => it.id === station.id)
+                    if (index !== -1) {
+                        selectedStations.value.splice(index, 1)
+                    }
+                } else {
+                    selectedStations.value.push(station)
+                }
             } else {
+                store.dispatch('preference/addHistoryStation', station)
                 emit('select', {stationId: station.id, lineId, event, station})
                 display.value = false
 
             }
+        }
+
+        function handleCleanSelected() {
+            selectedStations.value = []
+        }
+
+        function confirmSelected() {
+            emit('select', [...selectedStations.value])
+            selectedStations.value = []
+            display.value = false
         }
 
         const handleEnter = () => {
@@ -358,6 +380,8 @@ export default defineComponent({
             handleSearch,
             selectedStationIds,
             handleEnter,
+            handleCleanSelected,
+            confirmSelected,
             handleChangeSearchGroup,
         }
     }
@@ -422,7 +446,8 @@ export default defineComponent({
     white-space: nowrap;
 }
 
-.selected {
-    background-color: rgba(var(--q-primary), 0.5);
+.selected-station {
+    background-color: rgba(68, 133, 200, 0.5);
 }
+
 </style>
