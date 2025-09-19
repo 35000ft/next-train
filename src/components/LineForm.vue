@@ -38,6 +38,7 @@
                     label="线路状态"
                     class="q-mb-md"
                     required
+                    map-options
                 />
 
                 <!-- 线路类别 -->
@@ -154,8 +155,8 @@
     </q-card>
     <station-selector ref="stationSelector" :railsystem-code="lineData?.railsystemCode" @select="handleSelectStation"
                       :multiple="true"/>
-    <q-dialog v-model="showStationForm">
-        <station-form :initial="{railsystemId:props.initial?.railsystem?.id}"/>
+    <q-dialog v-model="showStationForm" v-if="!!(props.initial?.id)">
+        <station-form :initial="{railsystemCode:lineData?.railsystemCode, lineId:lineData?.id}"/>
     </q-dialog>
     <OsmLocationPicker multiple :display="displayLocationPicker"
                        :model-value="stationLocations" format="lon-lat"
@@ -224,7 +225,9 @@ const statusOptions = ref([
     {label: '运营中', value: 1}
 ])
 const categoryOptions = RAILSYSTEM_CATEGORIES;
-const lineData = ref({})
+const lineData = ref({
+    status: 1,
+})
 const batchEditStations = ref([])
 const stationLocations = ref([])
 onMounted(async () => {

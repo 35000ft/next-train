@@ -55,7 +55,8 @@ const props = defineProps({
 const emits = defineEmits(['saved', 'close']);
 const stationData = ref({})
 const loading = ref(false)
-onMounted(async () => {
+
+async function init() {
     let dialog
     if (props.initial?.id) {
         try {
@@ -66,15 +67,18 @@ onMounted(async () => {
                 progress: true,
                 style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
             })
-            const line = await fetchStation(props.initial.id, true)
-            Object.assign(stationData.value, line,)
+            const station = await fetchStation(props.initial.id, true)
+            Object.assign(stationData.value, station,)
         } catch (err) {
             $q.notify.error('加载线路失败')
-            return
         } finally {
             dialog?.hide()
         }
     }
+}
+
+onMounted(() => {
+    init()
 });
 
 async function submitForm() {
@@ -93,8 +97,10 @@ async function submitForm() {
             $q.notify.ok('创建车站成功成功')
         } else {
             result = await createStation(payload);
-            $q.notify.ok('保存线路成功')
+            $q.notify.ok('保存车站成功')
         }
+        stationData.value = {}
+        emits('close')
     } catch (err) {
         $q.notify.error('保存车站失败')
         console.error('保存车站失败:', err);
