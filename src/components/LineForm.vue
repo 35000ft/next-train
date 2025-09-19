@@ -145,12 +145,9 @@
 
                 <!-- 保存按钮 -->
                 <div class="q-gutter-md row justify-end q-mt-md">
-                    <q-btn
-                        label="保存线路"
-                        type="submit"
-                        :loading="loading"
-                        color="primary"
-                    />
+                    <q-btn v-if="props.initial?.id" label="删除" color="red-9" @click="confirmDelete"/>
+                    <q-btn label="取消" flat color="grey" @click.stop="emits('close')"/>
+                    <q-btn label="保存" type="submit" color="primary" :loading="loading"/>
                 </div>
             </q-form>
         </q-card-section>
@@ -181,7 +178,15 @@
 <script setup>
 import {ref, onMounted} from 'vue';
 import draggable from 'vuedraggable';
-import {fetchLine, updateLine, createLine, createStation} from 'src/apis/railsystem';
+import {
+    fetchLine,
+    updateLine,
+    createLine,
+    createStation,
+    preDeleteStation,
+    deleteStation,
+    preDeleteLine, deleteLine
+} from 'src/apis/railsystem';
 import StationSelector from "components/StationSelector.vue";
 import StationForm from "components/StationForm.vue";
 import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
@@ -370,6 +375,77 @@ const onPickStationLocation = (locationArr) => {
         })
     }
 }
+
+const confirmDelete = async () => {
+    const stationId = props.initial?.id
+    let dialog
+    let authCode
+    let hintHtml = ''
+    dialog = $q.dialog({
+        message: '删除前检查中...',
+        persistent: true,
+        ok: false,
+        progress: true,
+        style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
+    })
+    try {
+        const preCheck = await preDeleteLine(stationId)
+        authCode = preCheck?.authCode
+        const connectedLines = preCheck?.notMatchedConditions?.station
+        if (connectedLines && connectedLines?.length > 0) {
+            hintHtml = `<div>该线路关联了${connectedLines.length}个车站:</div>`
+            connectedLines.forEach((item, index) => {
+                hintHtml += `<div>${index + 1}. ${item.name} ${item.enName} ${item.code}</div>`
+            })
+        }
+    } catch (e) {
+        $q.notify.error("删除前检查失败")
+        return
+    } finally {
+        dialog.hide()
+    }
+    if (!authCode) {
+        return
+    }
+    $q.dialog({
+        title: '确认删除？',
+        message: `<div>确定要删除该线路？</div>${hintHtml}`,
+        persistent: true,
+        ok: {
+            label: '删除',
+            color: 'red-9',
+            flat: false,
+            textColor: 'white'
+        },
+        cancel: {
+            label: '取消',
+            color: 'primary'
+        },
+        html: true
+    }).onOk(() => {
+        doDelete()
+    }).onCancel(() => {
+
+    })
+    const doDelete = async () => {
+        if (!authCode) {
+            const preCheck = await preDeleteLine(stationId)
+            authCode = preCheck?.authCode
+        }
+
+        if (authCode) {
+            deleteLine(stationId, authCode).then(r => {
+                $q.notify.ok('删除线路成功')
+            }).catch(e => {
+                console.error('删除线路失败:', e)
+                $q.notify.error('删除线路失败, 请稍后重试')
+            })
+        } else {
+            $q.notify.error('删除线路失败, 请稍后重试')
+        }
+    }
+}
+
 </script>
 
 <style scoped>

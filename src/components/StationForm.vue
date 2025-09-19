@@ -128,8 +128,13 @@ const confirmDelete = async () => {
             })
         }
     } catch (e) {
+        $q.notify.error("删除前检查失败")
+        return
     } finally {
         dialog.hide()
+    }
+    if (!authCode) {
+        return
     }
     $q.dialog({
         title: '确认删除？',
@@ -153,8 +158,8 @@ const confirmDelete = async () => {
     })
     const doDelete = async () => {
         if (!authCode) {
-            const preCHeck = await preDeleteStation(stationId)
-            authCode = preCHeck?.authCode
+            const preCheck = await preDeleteStation(stationId)
+            authCode = preCheck?.authCode
         }
 
         if (authCode) {

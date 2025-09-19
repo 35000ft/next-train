@@ -133,7 +133,7 @@ export async function deleteStation(id, authCode) {
     if (!authCode) {
         return Promise.reject('Authcode can not be empty')
     }
-    const url = `${baseUrl}/station/update/${id}?authCode=${authCode}`;
+    const url = `${baseUrl}/station/delete/${id}?authCode=${authCode}`;
     return axios.post(url).then(res => res.data.data)
 }
 
@@ -142,3 +142,15 @@ export async function preDeleteStation(id) {
     return axios.post(url).then(res => res.data.data)
 }
 
+export async function preDeleteLine(id) {
+    const url = `${baseUrl}/lines/pre-delete-check/${id}`;
+    return axios.post(url).then(res => res.data.data)
+}
+
+export async function deleteLine(id, authCode) {
+    if (!authCode) {
+        return Promise.reject('Authcode can not be empty')
+    }
+    const url = `${baseUrl}/lines/delete/${id}?authCode=${authCode}`;
+    return axios.post(url).then(res => res.data.data)
+}
