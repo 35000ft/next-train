@@ -36,6 +36,10 @@
                 <span class="minute-wrapper through" style="margin-right: 2px;">37</span>
                 {{ t('trainCategory.through') }}
             </span>
+            <span class="legend-wrapper">
+                <span class="minute-wrapper through-express" style="margin-right: 2px;">50</span>
+                {{ t('trainCategory.through_express') }}
+            </span>
         </div>
 
     </div>
@@ -145,6 +149,8 @@ const calcStyleClass = (trainInfo) => {
         classes.push("through")
     } else if (trainInfo.category === TRAIN_CATEGORY.SHORT.code.toUpperCase()) {
         classes.push("interval")
+    } else if (trainInfo.category === TRAIN_CATEGORY.THROUGH_EXPRESS.code.toUpperCase()) {
+        classes.push("through-express")
     }
     if (trainInfo.isFirst) {
         classes.push('first-stop')
@@ -165,6 +171,11 @@ const calcStyleClass = (trainInfo) => {
 
 .through {
     background-color: #009844;
+    color: white;
+}
+
+.through-express {
+    background-color: #ab658a;
     color: white;
 }
 
