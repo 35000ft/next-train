@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import {computed, defineProps, onMounted} from 'vue'
+import {computed} from 'vue'
 import 'leaflet/dist/leaflet.css'
 import {LMap, LTileLayer, LMarker, LPopup} from '@vue-leaflet/vue-leaflet'
 

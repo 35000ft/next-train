@@ -55,16 +55,8 @@
                                 style="margin-bottom: 15px;color: var(--q-primary-d);font-weight:bold;font-size: 14px;">
                                 {{ t('period') }}
                             </div>
-                            <span
-                                style="width: 14%;text-align: center;font-weight:bold;height:fit-content;display: inline-block"
-                                v-for="dayOfWeek in weekdays"
-                                :class="(dayOfWeek.index<5?'workday':'weekend')"
-                                @click="handleSelect(dayOfWeek)"
-                                :key="dayOfWeek.index">
-                                <span class="day-of-week-text" :class="(dayOfWeek.select?'selected':'')">
-                                    {{ dayOfWeek.text }}
-                                </span>
-                            </span>
+
+                            <week-period-selector v-model="selectedWeekdays"/>
                         </div>
                         <div style="width: 100%;height: 40px;"></div>
                         <div>
@@ -136,31 +128,22 @@
 <script setup>
 import {computed, ref} from "vue";
 import {useQuasar} from "quasar";
-import {formatWeekday, getWeekdays} from "src/utils/time-utils";
+import {formatWeekday} from "src/utils/time-utils";
 import {useStore} from "vuex";
 import {useI18n} from "vue-i18n";
 import {arr2Map} from "src/utils/array-utils";
 import _ from "lodash";
+import WeekPeriodSelector from "components/WeekPeriodSelector.vue";
 
 const store = useStore()
 const showDeleteDialog = computed(() => {
     return toDeleteRule.value != null
 })
-const lang = computed(() => {
-    return store.getters['language/currentLanguage']
-})
 const $q = useQuasar()
 const isDark = computed(() => $q.dark.isActive)
-const _weekdays = getWeekdays(lang.value).map(((it, index) => {
-    return {
-        text: it,
-        select: true,
-        index
-    }
-}))
 const inputFromTimeRef = ref(null)
 const inputToTimeRef = ref(null)
-const weekdays = ref(_weekdays)
+const selectedWeekdays = ref([])
 const stationMap = ref(new Map())
 const conflictRuleId = ref(null)
 const toDeleteRule = ref(null)
@@ -241,11 +224,6 @@ const handleClose = () => {
     conflictRuleId.value = null
     emit('close')
 }
-const handleSelect = (dayOfWeek) => {
-    if (dayOfWeek) {
-        dayOfWeek.select = !dayOfWeek.select
-    }
-}
 const handleDeleteRule = (rule) => {
     if (rule) {
         store.commit('preference/DELETE_FAVOUR_STATION_RULE', {rule})
@@ -260,8 +238,7 @@ const validateTimeNotEquals = (val) => {
 }
 const handleOk = () => {
     if (!props.station) return
-    const selected = weekdays.value.filter(it => it.select).map(it => it.index + 1)
-    const isValid = inputFromTimeRef.value.validate() && inputToTimeRef.value.validate() && selected.length > 0
+    const isValid = inputFromTimeRef.value.validate() && inputToTimeRef.value.validate() && selectedWeekdays.value.length > 0
     if (!isValid) {
         $q.notify.warn("请设置合法的时间规则")
         return;
@@ -270,7 +247,7 @@ const handleOk = () => {
         station: props.station,
         fromTime: fromTime.value,
         toTime: toTime.value,
-        period: selected
+        period: selectedWeekdays.value
     }).then(_ => {
         $q.notify.ok('添加规则成功')
     }).catch(conflictRule => {
@@ -289,37 +266,8 @@ label {
     padding-bottom: 0;
 }
 
-.workday {
-    color: var(--q-primary-d);
-}
-
-.weekend {
-    color: var(--q-red);
-}
-
 .conflict-rule {
     color: var(--q-red);
-}
-
-.day-of-week-text {
-    border-radius: 50%;
-    padding: 5px;
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border: 1px solid var(--q-grey-2);
-    transition: .5s;
-}
-
-.day-of-week-text:active {
-    background-color: var(--q-grey-2);
-}
-
-.selected {
-    border: 1px solid var(--q-primary-d);
 }
 
 .label-text {

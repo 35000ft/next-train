@@ -210,6 +210,9 @@ export function toDayjs(_date, timezone = null) {
             return dayjs(_date)
         }
         if (timezone) {
+            if (isDate(_date)) {
+                return dayjs(_date + ' 00:00:00' + timezone)
+            }
             return dayjs(_date + timezone)
         }
         return dayjs(_date)
@@ -223,6 +226,14 @@ export function toDayjs(_date, timezone = null) {
     }
     console.warn(`${_date} is neither not string, nor Date, Dayjs!`)
     return null
+}
+
+function isDate(str) {
+    if (!str) return false
+    // 只匹配 YYYY-MM-DD 或 YYYY/MM/DD
+    const dateRegex = /^\d{4}[-/]\d{2}[-/]\d{2}$/
+    if (!dateRegex.test(str)) return false
+    return dayjs(str).isValid()
 }
 
 /**

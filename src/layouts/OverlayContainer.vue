@@ -70,6 +70,7 @@ watch(shownComponent, (newVal, oldVal) => {
             } else {
                 showComponentKey.value = 0
                 firstComponentId.value = newVal.id
+                firstProps.value = newVal?.props
                 firstComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
                 secondComponent.value = null
             }

@@ -61,6 +61,13 @@
                                     icon="fa fa-pen-to-square"
                                     @click.stop.prevent="editLine(node)"
                                 />
+                                <q-btn size="small"
+                                       flat
+                                       dense
+                                       icon="departure_board"
+                                       color="primary"
+                                       @click.stop.prevent="showScheduleManageView(node)"
+                                />
                             </div>
                         </div>
                     </template>
@@ -222,6 +229,15 @@ function editLine(node) {
         ...node?.lineData,
         railsystem: node?.railsystem
     }
+}
+
+function showScheduleManageView(node) {
+    const params = {
+        line: node?.lineData,
+    }
+    store.dispatch('application/pushOverlay', {
+        component: {componentName: "LineScheduleManageView", uri: '/manage/line-schedule', props: params}
+    })
 }
 
 function editStation(node) {
