@@ -273,12 +273,12 @@ function onChangeDateRange(dateRange) {
 }
 
 const loadScheduleDropdown = async (keyword = '') => {
-    console.log('Load schedule drop down')
     loadingSchedules.value = true
     try {
         const res = await fetchScheduleDropdown({
             version: keyword,
             systemCode: props.initial?.railsystemCode,
+            lineId: props.initial?.lineId,
         })
         scheduleOptions.value = res.map(it => {
             return {label: it.version, value: it.id}

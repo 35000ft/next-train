@@ -9,8 +9,9 @@
             <div style="overflow-y: auto;height: 90vh">
                 <div style="height: 10px;"></div>
                 <q-list style="max-width: 400px;">
-                    <div style="margin: 0 20px; display: flex;gap: 5px;">
+                    <div style="margin: 0 20px; display: flex;gap: 10px;">
                         <q-avatar v-ripple class="cursor-pointer" size="36px" color="primary" text-color="white"
+                                  @click="handleAddScheduleRule"
                                   icon="rule">
                             <q-badge floating rounded color="green">
                                 <q-icon name="add" size="8px" color="white"/>
@@ -31,7 +32,7 @@
                          :key="index"
                     >
                         <q-expansion-item expand-separator popup :class="group.timeClass"
-                                          style="max-width: 400px;">
+                                          style="max-width: 400px; margin: 0">
                             <template v-slot:header>
                                 <q-item-section avatar>
                                     <q-avatar icon="event"/>
@@ -55,7 +56,7 @@
                                     <q-item-section
                                         style="display: flex;flex-direction: row; gap: 5px;justify-content: flex-start; align-items: center;"
                                         class="col-9">
-                                        <div class="row">
+                                        <div class="row" style="gap: 5px;">
                                             <div class="text-bold col-12" style="font-size: 16px;">
                                                 {{ item.schedule.version }}
                                             </div>
@@ -63,6 +64,11 @@
                                                  :class="item.category?.toLowerCase() || ''"
                                                  class="rounded-icon schedule-item-attr">
                                                 {{ item.category }}
+                                            </div>
+                                            <div v-if="item.name"
+                                                 class="rounded-icon text-white bg-primary text-no-wrap ellipsis"
+                                                 style="max-width: 100px;">
+                                                {{ item.name }}
                                             </div>
                                         </div>
                                     </q-item-section>
@@ -83,7 +89,7 @@
             </div>
             <q-dialog v-model="showScheduleRuleForm">
                 <schedule-rule-form
-                    :initial="{id:selectedScheduleRuleId, railsystemCode:_line.railsystemCode,lineId:_line.id,
+                    :initial="{id:selectedScheduleRuleId, railsystemCode:_line.railsystemCode,lineId:_line?.realId,
                                 selectedScheduleId:selectedScheduleId}"/>
             </q-dialog>
         </template>
@@ -244,14 +250,13 @@ function handleAddScheduleRule(scheduleId) {
     background-color: transparent; /* 列表背景透明，让 q-page 的背景透出来 */
 }
 
-.q-item {
-    padding: 10px 15px; /* 增加内边距 */
+::v-deep .q-item {
+    padding: 10px 5px; /* 增加内边距 */
     margin-bottom: 8px; /* 卡片之间的间距 */
-    border: 1px solid #eee;
     transition: all 0.2s;
 }
 
-.q-item:hover {
+::v-deep .q-item:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 悬停时增强阴影 */
     transform: translateY(-1px);
 }
@@ -262,7 +267,7 @@ function handleAddScheduleRule(scheduleId) {
     text-align: center;
     align-items: center;
     display: inline-block;
-    border-radius: 8px;
+    border-radius: 5px;
 }
 
 ::v-deep .q-expansion-item--popup .q-expansion-item__container {
@@ -276,7 +281,6 @@ function handleAddScheduleRule(scheduleId) {
 
 .schedule-item-attr {
     color: white;
-    display: flex;
 }
 
 .workday {
