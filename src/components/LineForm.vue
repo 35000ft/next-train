@@ -184,8 +184,6 @@ import {
     updateLine,
     createLine,
     createStation,
-    preDeleteStation,
-    deleteStation,
     preDeleteLine, deleteLine
 } from 'src/apis/railsystem';
 import StationSelector from "components/StationSelector.vue";

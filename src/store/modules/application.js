@@ -16,6 +16,7 @@ const state = {
     metroGoViewConfig: null,
     shownLineRealtime: null,
     solutionOverviewParams: null,
+    lineScheduleManageViewParams: null,
     bottomModalStack: reactive([]),
     usedSolution: null,
     shownSolution: null,

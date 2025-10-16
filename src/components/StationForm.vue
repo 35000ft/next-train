@@ -70,7 +70,7 @@ async function init() {
             const station = await fetchStation(props.initial.id, true)
             Object.assign(stationData.value, station,)
         } catch (err) {
-            $q.notify.error('加载线路失败')
+            $q.notify.error('加载车站失败')
         } finally {
             dialog?.hide()
         }

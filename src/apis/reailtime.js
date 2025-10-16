@@ -76,7 +76,6 @@ export async function fetchLineOnServiceTrains(lineId) {
     return await axios.post(url).then(res => res.data.data).catch(err => Promise.reject(err))
 }
 
-//TODO
 export async function fetchOperationMsg(stationId, form) {
     const url = `api/metro-realtime/op-msg/station/${stationId}`
     return await axios.post(url, form).then(res => {
@@ -87,4 +86,44 @@ export async function fetchOperationMsg(stationId, form) {
         }
     })
         .catch(err => Promise.reject(err))
+}
+
+export async function fetchLineSchedules(lineId) {
+    const url = `api/metro-realtime/schedules/m/line/${lineId}`
+    return await axios.post(url).then(res => res.data.data).catch(err => Promise.reject(err))
+}
+
+export async function fetchScheduleRule(id) {
+    const url = `api/metro-realtime/schedules/m/schedule-rule/get/id/${id}`
+    return await axios.get(url).then(res => res.data.data).catch(err => Promise.reject(err))
+}
+
+export async function updateScheduleRule(id, data) {
+    const url = `api/metro-realtime/schedules/m/schedule-rule/update/id/${id}`;
+    return axios.post(url, data).then(res => res.data.data)
+}
+
+export async function createScheduleRule(data) {
+    const url = `api/metro-realtime/schedules/m/schedule-rule/create`;
+    return axios.post(url, data).then(res => res.data.data)
+}
+
+export async function fetchSchedule(id) {
+    const url = `api/metro-realtime/schedules/m/id/${id}`
+    return await axios.get(url).then(res => res.data.data).catch(err => Promise.reject(err))
+}
+
+export async function fetchScheduleDropdown(data) {
+    const url = `api/metro-realtime/schedules/m/dropdown`
+    return await axios.post(url, data).then(res => res.data.data).catch(err => Promise.reject(err))
+}
+
+export async function updateSchedule(id, data) {
+    const url = `api/metro-realtime/schedules/m/update/id/${id}`;
+    return axios.post(url, data).then(res => res.data.data)
+}
+
+export async function createSchedule(id, data) {
+    const url = `api/metro-realtime/schedules/m/screate/id/${id}`;
+    return axios.post(url, data).then(res => res.data.data)
 }
