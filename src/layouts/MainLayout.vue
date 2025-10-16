@@ -1,5 +1,5 @@
 <template>
-    <q-layout view="lHh Lpr lFf" class="full-height">
+    <q-layout view="lHh Lpr lFf" style="height: 100vh;">
         <LeftDrawer :open="leftDrawerOpen"/>
         <SearchHeader/>
         <q-page-container class="full-height" style="padding-top: 0; ">
