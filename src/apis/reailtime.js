@@ -123,7 +123,7 @@ export async function updateSchedule(id, data) {
     return axios.post(url, data).then(res => res.data.data)
 }
 
-export async function createSchedule(id, data) {
-    const url = `api/metro-realtime/schedules/m/screate/id/${id}`;
+export async function createSchedule(data) {
+    const url = `api/metro-realtime/schedules/m/create`;
     return axios.post(url, data).then(res => res.data.data)
 }
