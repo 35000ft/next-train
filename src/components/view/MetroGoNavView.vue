@@ -67,16 +67,16 @@
 <script setup>
 import {useI18n} from "vue-i18n";
 import {computed, onMounted, ref} from "vue";
-import StationSelector from "components/StationSelector.vue";
+import StationSelector from "components/input/StationSelector.vue";
 import {useStore} from "vuex";
-import DepartTimeSelector from "components/DepartTimeSelector.vue";
+import DepartTimeSelector from "components/input/DepartTimeSelector.vue";
 import dayjs from "dayjs";
 import {useQuasar} from "quasar";
 import {getNowByTimezone} from "src/utils/time-utils";
 import {useRoute, useRouter} from "vue-router";
 import {arr2Map} from "src/utils/array-utils";
 import {isNumber} from "src/utils/string-utils";
-import QueryDailyTicketView from "components/QueryDailyTicketView.vue";
+import QueryDailyTicketView from "components/view/QueryDailyTicketView.vue";
 
 defineOptions({
     name: 'MetroGoView'

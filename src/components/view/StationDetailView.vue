@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import OverlayView from "components/OverlayView.vue";
+import OverlayView from "components/common/OverlayView.vue";
 import {computed, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {useStore} from "vuex";

@@ -29,7 +29,7 @@ const bgColor = computed(() => {
     return props.line.color
 })
 const textColor = computed(() => {
-    if (props.disabled) {
+    if (props.disabled || !props.line.color) {
         return '#858585'
     }
     let darkColor = isDarkColor(props.line.color);

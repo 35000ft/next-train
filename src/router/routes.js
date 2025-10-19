@@ -3,14 +3,14 @@ const routes = [
         path: '/',
         component: () => import('layouts/MainLayout.vue'),
         children: [
-            {name: 'home', path: '', component: () => import('components/HomeNavView.vue')},
+            {name: 'home', path: '', component: () => import('components/view/HomeNavView.vue')},
             {
-                name: 'metro-go', path: 'metro-go', component: () => import('components/MetroGoNavView.vue'),
+                name: 'metro-go', path: 'metro-go', component: () => import('components/view/MetroGoNavView.vue'),
                 children: [
                     {
                         name: 'route-solution-overview',
                         path: 'solutions',
-                        component: () => import('components/RouteDispatcher.vue'),
+                        component: () => import('components/common/RouteDispatcher.vue'),
                         meta: {
                             componentName: 'RouteSolutionOverview'
                         }
@@ -18,23 +18,23 @@ const routes = [
                     {
                         name: 'route-solution-detail',
                         path: 'solutions/detail',
-                        component: () => import('components/RouteDispatcher.vue'),
+                        component: () => import('components/common/RouteDispatcher.vue'),
                         meta: {
                             componentName: 'RouteSolutionDetailView'
                         }
                     }
                 ]
             },
-            {name: 'lines', path: 'lines', component: () => import('components/LinesNavView.vue')},
+            {name: 'lines', path: 'lines', component: () => import('components/view/LinesNavView.vue')},
             {
                 name: 'train-info-detail',
                 path: ':prefix*/train-info/:id',
-                component: () => import('components/TrainInfoDetailView.vue')
+                component: () => import('components/view/TrainInfoDetailView.vue')
             },
             {
                 name: 'station-schedule-detail',
                 path: 'station/schedule/:stationId/:lineId',
-                component: () => import('components/RouteDispatcher.vue'),
+                component: () => import('components/common/RouteDispatcher.vue'),
                 meta: {
                     componentName: 'StationScheduleDetailView'
                 },
@@ -42,7 +42,7 @@ const routes = [
             {
                 name: 'station-detail',
                 path: 'station/:id',
-                component: () => import('components/RouteDispatcher.vue'),
+                component: () => import('components/common/RouteDispatcher.vue'),
                 meta: {
                     componentName: 'StationDetailView'
                 }

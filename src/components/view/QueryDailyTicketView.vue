@@ -62,7 +62,7 @@
 </template>
 <script setup>
 import {ref} from "vue";
-import StationSelector from "components/StationSelector.vue";
+import StationSelector from "components/input/StationSelector.vue";
 import {queryDailyTicket} from "src/apis/metro-utils";
 import {useStore} from "vuex";
 import {useThrottled} from "src/utils/common_utils";

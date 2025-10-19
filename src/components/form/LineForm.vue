@@ -186,12 +186,12 @@ import {
     createStation,
     preDeleteLine, deleteLine
 } from 'src/apis/railsystem';
-import StationSelector from "components/StationSelector.vue";
-import StationForm from "components/StationForm.vue";
+import StationSelector from "components/input/StationSelector.vue";
+import StationForm from "components/form/StationForm.vue";
 import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
 import {useQuasar} from "quasar";
-import OsmLocationPicker from "components/OsmLocationPicker.vue";
-import StationBatchEditForm from "components/StationBatchEditForm.vue";
+import OsmLocationPicker from "components/input/OsmLocationPicker.vue";
+import StationBatchEditForm from "components/form/StationBatchEditForm.vue";
 import {useStore} from "vuex";
 
 const store = useStore()

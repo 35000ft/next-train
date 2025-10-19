@@ -86,13 +86,13 @@ import {useStore} from "vuex";
 import {drawMetroLine} from "src/utils/canvas-utils";
 import _ from "lodash";
 import {diff, diffFromNow, getNowByTimezone} from "src/utils/time-utils";
-import {categoryParser, TRAIN_CATEGORY} from "../models/Train";
+import {categoryParser, TRAIN_CATEGORY} from "../../models/Train";
 import {useI18n} from "vue-i18n";
-import BottomModal from "components/BottomModal.vue";
+import BottomModal from "components/common/BottomModal.vue";
 import Canvas2SVG from 'canvas2svg';
 import {useQuasar} from "quasar";
 import {arr2Map} from "src/utils/array-utils";
-import MultipleTrainSelector from "components/MultipleTrainSelector.vue";
+import MultipleTrainSelector from "components/input/MultipleTrainSelector.vue";
 
 const LINE_TEMPLATE_DOC_ID = 'line-template-svg'
 let positions = []

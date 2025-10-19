@@ -172,7 +172,7 @@
 </template>
 
 <script setup>
-import BottomModal from "components/BottomModal.vue";
+import BottomModal from "components/common/BottomModal.vue";
 import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import {useStore} from "vuex";
 import {useRoute, useRouter} from "vue-router";

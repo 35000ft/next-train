@@ -101,7 +101,7 @@ import {
     fetchScheduleRule,
     updateScheduleRule
 } from "src/apis/reailtime";
-import WeekPeriodSelector from "components/WeekPeriodSelector.vue";
+import WeekPeriodSelector from "components/common/WeekPeriodSelector.vue";
 
 const $q = useQuasar()
 const props = defineProps({

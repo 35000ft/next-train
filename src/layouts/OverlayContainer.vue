@@ -49,8 +49,8 @@ watch(shownComponent, (newVal, oldVal) => {
                         setTimeout(() => {
                             secondComponentId.value = newVal.id
                             firstComponentId.value = lastComponent.id
-                            secondComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
-                            firstComponent.value = defineAsyncComponent(() => import(`../components/${lastComponent.componentName}.vue`))
+                            secondComponent.value = defineAsyncComponent(() => import(`../components/view/${newVal.componentName}.vue`))
+                            firstComponent.value = defineAsyncComponent(() => import(`../components/view/${lastComponent.componentName}.vue`))
                             secondProps.value = newVal.props || null
                             firstProps.value = lastComponent.props || null
                         }, 0)
@@ -60,8 +60,8 @@ watch(shownComponent, (newVal, oldVal) => {
                         setTimeout(() => {
                             firstComponentId.value = newVal.id
                             secondComponentId.value = lastComponent.id
-                            firstComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
-                            secondComponent.value = defineAsyncComponent(() => import(`../components/${lastComponent.componentName}.vue`))
+                            firstComponent.value = defineAsyncComponent(() => import(`../components/view/${newVal.componentName}.vue`))
+                            secondComponent.value = defineAsyncComponent(() => import(`../components/view/${lastComponent.componentName}.vue`))
                             firstProps.value = newVal.props || null
                             secondProps.value = lastComponent.props || null
                         }, 0)
@@ -71,7 +71,7 @@ watch(shownComponent, (newVal, oldVal) => {
                 showComponentKey.value = 0
                 firstComponentId.value = newVal.id
                 firstProps.value = newVal?.props
-                firstComponent.value = defineAsyncComponent(() => import(`../components/${newVal.componentName}.vue`))
+                firstComponent.value = defineAsyncComponent(() => import(`../components/view/${newVal.componentName}.vue`))
                 secondComponent.value = null
             }
         } catch {

@@ -39,15 +39,15 @@
     </transition>
 </template>
 <script setup>
-import OverlayView from "components/OverlayView.vue";
+import OverlayView from "components/common/OverlayView.vue";
 import {onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
 import {planRoute, planShortestSolution} from "src/utils/route-plan";
 import {diff, getNowByTimezone, toDayjs} from "src/utils/time-utils";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
-import OneSolutionOverview from "components/OneSolutionOverview.vue";
-import RouteSolutionDetailView from "components/RouteSolutionDetailView.vue";
+import OneSolutionOverview from "components/view/OneSolutionOverview.vue";
+import RouteSolutionDetailView from "components/view/RouteSolutionDetailView.vue";
 import {tagSolutions} from "src/models/RouteSolution";
 import _ from "lodash";
 import dayjs from "dayjs";

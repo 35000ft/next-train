@@ -133,7 +133,7 @@ import {useStore} from "vuex";
 import {useI18n} from "vue-i18n";
 import {arr2Map} from "src/utils/array-utils";
 import _ from "lodash";
-import WeekPeriodSelector from "components/WeekPeriodSelector.vue";
+import WeekPeriodSelector from "components/common/WeekPeriodSelector.vue";
 
 const store = useStore()
 const showDeleteDialog = computed(() => {

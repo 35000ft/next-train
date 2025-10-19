@@ -109,7 +109,7 @@ import {copyToClipboard, QForm, useQuasar} from 'quasar'
 import SearchHeader from "components/SearchHeader.vue";
 import {login, sseLogin} from "src/apis/auth";
 import {useStore} from "vuex";
-import RegisterForm from "components/RegisterForm.vue";
+import RegisterForm from "components/form/RegisterForm.vue";
 import router from "src/router";
 import {useRoute} from "vue-router";
 

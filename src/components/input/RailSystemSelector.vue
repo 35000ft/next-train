@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import BottomModal from "components/BottomModal.vue";
+import BottomModal from "components/common/BottomModal.vue";
 import {computed, defineComponent, ref, toRaw} from "vue";
 import {useStore} from "vuex";
 
