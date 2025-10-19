@@ -15,14 +15,14 @@
                 <q-input v-model="data.remarks" label="备注"/>
 
                 <q-input
-                    v-model="dateRangeText"
+                    v-model="data.lineId"
+
                     label="选择所属线路"
                     readonly
                     filled
                     :rules="[val => !!val || '所属线路不能为空']"
                     dense
-
-                    @click="datePopupRef.show()"
+                    @click="lineSelector.show()"
                 >
                 </q-input>
 
@@ -200,9 +200,6 @@ const confirmDelete = async () => {
     }
 }
 
-function onChangeDateRange(dateRange) {
-    dateRangeText.value = `${dateRange.from} ~ ${dateRange.to}`
-}
 
 </script>
 <style scoped>

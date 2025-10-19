@@ -241,14 +241,14 @@ export default defineComponent({
             }
         }
 
-        const showSelector = (_event) => {
+        const show = (_event) => {
             display.value = true
             if (_event) {
                 event = _event
             }
         }
         return {
-            showSelector,
+            show,
             displaySelector: display,
             handleCloseSelector,
             handleSelect,
