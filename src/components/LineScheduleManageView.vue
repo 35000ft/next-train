@@ -10,14 +10,14 @@
                 <div style="height: 10px;"></div>
                 <q-list style="max-width: 400px;">
                     <div style="margin: 0 20px; display: flex;gap: 10px;">
-                        <q-avatar v-ripple class="cursor-pointer" size="36px" color="primary" text-color="white"
+                        <q-avatar size="36px" color="primary" text-color="white"
                                   @click="handleAddScheduleRule"
                                   icon="rule">
                             <q-badge floating rounded color="green">
                                 <q-icon name="add" size="8px" color="white"/>
                             </q-badge>
                         </q-avatar>
-                        <q-avatar v-ripple class="cursor-pointer" size="36px" color="primary" text-color="white"
+                        <q-avatar class="interactive" size="36px" color="primary" text-color="white"
                                   icon="departure_board">
                             <q-badge floating rounded color="green">
                                 <q-icon name="add" size="8px" color="white"/>
@@ -37,7 +37,7 @@
                                 <q-item-section avatar>
                                     <q-avatar icon="event"/>
                                 </q-item-section>
-                                <q-item-section>
+                                <q-item-section class="interactive">
                                     <div class="text-weight-bold" style="font-size: 18px;"
                                          v-if="!!group.fromDate || !!group.toDate">
                                         <div>{{ group.fromDate }}</div>
@@ -72,14 +72,50 @@
                                             </div>
                                         </div>
                                     </q-item-section>
-                                    <q-item-section class="col-3">
-                                        <q-space/>
-                                        <q-btn icon="fa fa-pen-to-square" color="primary" dense flat
-                                               v-if="!!item.scheduleRuleId"
-                                               @click.stop="handleEditScheduleRule(item.scheduleRuleId)"/>
-                                        <q-btn v-else icon="fa fa-plus" color="green" dense flat
-                                               @click.stop="handleAddScheduleRule(item.schedule?.id)"
-                                        />
+                                    <q-item-section style="width: 60px;">
+                                        <div
+                                            style="display: flex; gap: 5px; width: 100%; height: 100%;flex-wrap: wrap;">
+                                            <q-avatar class="interactive" size="25px"
+                                                      text-color="white"
+                                                      :color="!!item.scheduleRuleId?'primary':'grey'"
+                                                      @click="handleEditScheduleRule(item.scheduleRuleId)"
+                                                      icon="rule">
+                                                <q-badge floating rounded
+                                                         :color="!!item.scheduleRuleId?'green':'red'"
+                                                >
+                                                    <q-icon name="fa fa-pen-to-square" size="6px" color="white"/>
+                                                </q-badge>
+                                            </q-avatar>
+
+                                            <!-- 编辑时刻表 -->
+                                            <q-avatar class="interactive" size="25px" color="primary"
+                                                      text-color="white"
+                                                      @click="handleEditSchedule(item?.schedule)"
+                                                      icon="departure_board">
+                                                <q-badge floating rounded color="green">
+                                                    <q-icon name="fa fa-pen-to-square" size="6px" color="white"/>
+                                                </q-badge>
+                                            </q-avatar>
+                                            <!-- 查看时刻表详情 -->
+                                            <q-avatar class="interactive" size="25px" color="primary"
+                                                      text-color="white"
+                                                      @click="handleShowScheduleDetail(item?.schedule)"
+                                                      icon="fa-solid fa-info">
+                                                <q-badge floating rounded color="green">
+                                                    <q-icon name="departure_board" size="6px" color="white"/>
+                                                </q-badge>
+                                            </q-avatar>
+
+                                            <!-- 为时刻表添加时刻表规则 -->
+                                            <q-avatar class="interactive" size="25px" color="primary"
+                                                      text-color="white"
+                                                      @click="handleAddScheduleRule(item?.schedule?.id)"
+                                                      icon="add">
+                                                <q-badge floating rounded color="green">
+                                                    <q-icon name="rule" size="6px" color="white"/>
+                                                </q-badge>
+                                            </q-avatar>
+                                        </div>
                                     </q-item-section>
                                 </q-item>
                             </q-list>
@@ -91,6 +127,10 @@
                 <schedule-rule-form
                     :initial="{id:selectedScheduleRuleId, railsystemCode:_line.railsystemCode,lineId:_line?.realId,
                                 selectedScheduleId:selectedScheduleId}"/>
+            </q-dialog>
+            <q-dialog v-model="showScheduleForm">
+                <schedule-form
+                    :initial="{id:selectedScheduleId,  selectedLineId:_line?.realId}"/>
             </q-dialog>
         </template>
     </OverlayView>
@@ -106,10 +146,12 @@ import _ from "lodash";
 import {fetchLineSchedules} from "src/apis/reailtime";
 import {isAfterNow} from "src/utils/time-utils";
 import ScheduleRuleForm from "components/ScheduleRuleForm.vue";
+import ScheduleForm from "components/ScheduleForm.vue";
 
 const selectedScheduleRuleId = ref(null)
 const selectedScheduleId = ref(null)
 const showScheduleRuleForm = ref(false)
+const showScheduleForm = ref(false)
 const props = defineProps({
     line: {
         type: Object,
@@ -192,6 +234,7 @@ async function init(params) {
 }
 
 function handleEditScheduleRule(scheduleRuleId) {
+    if (!scheduleRuleId) return
     showScheduleRuleForm.value = true
     selectedScheduleRuleId.value = scheduleRuleId
 }
@@ -200,6 +243,18 @@ function handleAddScheduleRule(scheduleId) {
     selectedScheduleRuleId.value = null
     selectedScheduleId.value = scheduleId
     showScheduleRuleForm.value = true
+}
+
+function handleEditSchedule(schedule) {
+    if (schedule?.id) {
+        showScheduleForm.value = true
+        selectedScheduleId.value = schedule.id
+    }
+}
+
+//TODO
+function handleShowScheduleDetail(schedule) {
+
 }
 </script>
 
@@ -293,5 +348,13 @@ function handleAddScheduleRule(scheduleId) {
 
 .holiday {
     background-color: var(--q-holdiay);
+}
+
+.interactive {
+    transition: .3s;
+}
+
+.interactive:active {
+    background: #353535;
 }
 </style>

@@ -1,10 +1,10 @@
 <template>
     <bottom-modal content-height="60vh" :display="displaySelector" @close="handleCloseSelector"
-                  @touchstart.stop name="station-selector">
+                  @touchstart.stop name="line-selector">
         <template v-slot:default>
             <div class="column full-height full-width">
                 <div style="margin-bottom: 10px;" class="full-width">
-                    <q-input outlined rounded v-model="keyword" label="车站名 | 车站代码"
+                    <q-input outlined rounded v-model="keyword" label="线路名 | 线路代码"
                              @update:model-value="handleSearch"
                              @keydown.enter="handleEnter"
                              :bg-color="isDark?'grey-10':'grey-2'"/>
@@ -20,75 +20,28 @@
                     <q-tab-panels v-model="currentSearchGroup" animated swipeable infinite
                                   style="width: 100%;height: 80%;">
                         <q-tab-panel :name="ALL_STR">
-                            <div class="history-wrapper">
-                            <span @click="handleSelect(station)" class="pill" v-for="station in historyStations"
-                                  :key="station.id">
-                                {{ station.name }}
-                            </span>
-                            </div>
                             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
                             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
-                            <div class="row station-result-wrapper" v-for="(station,index) in searchResults"
-                                 :class="selectedStationIds.has(station?.id)?'selected-station':'unselected-station'"
+                            <div class="row station-result-wrapper" v-for="(line,index) in searchResults"
+                                 :class="selectedStationIds.has(line?.id)?'selected-station':'unselected-station'"
                                  :key="index">
-                                <div class="col-6 auto-scroll-container"
-                                     @click="handleSelect(station)">
+                                <div class="col-8 auto-scroll-container"
+                                     @click="handleSelect(line)">
                                     <div class="station-name" v-overflow-auto-scroll>
-                                        <span v-if="station.highlighted" v-html="station.highlighted"></span>
-                                        <span v-else>{{ station.name }}</span>
-                                        <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
-                                        {{ station.railsystemName }}
-                                    </span>
-                                        <span v-if="station.isFavourite">
-                                        <q-icon style="color:var(--q-favourite)" name="star"/>
-                                    </span>
+                                        <span v-if="line.highlighted" v-html="line.highlighted"></span>
+                                        <span v-else>{{ line.name }}</span>
                                     </div>
+
                                 </div>
-                                <div class="col-6"
+                                <div class="col-4"
                                      style="text-align: right;overflow:hidden;white-space: nowrap; position: relative;">
-                                    <div v-overflow-auto-scroll>
-                                        <LineIcon v-for="line in station.lines" :key="line.id" :line="line"
-                                                  :font-size="'13px'"
-                                                  style="margin-right: 4px;"
-                                                  :disabled="false"
-                                                  @click="handleSelect(station,line)"/>
-                                    </div>
+                                    <LineIcon :line="line"
+                                              :font-size="'13px'"
+                                              style="margin-right: 4px;"
+                                              :disabled="false"
+                                              @click="handleSelect(line)"/>
                                 </div>
                             </div>
-                        </q-tab-panel>
-                        <q-tab-panel :name="line.name" :key="line.id" v-for="line in lines">
-                            <div class="row station-result-wrapper" v-for="(station,index) in searchResults"
-                                 :class="selectedStationIds.has(station?.id)?'selected-station':'unselected-station'"
-                                 :key="index">
-                                <div class="col-6" style="overflow:hidden;white-space: nowrap; position: relative;"
-                                     @click="handleSelect(station)">
-                                    <div v-overflow-auto-scroll>
-                                        <span v-if="station.highlighted" v-html="station.highlighted"></span>
-                                        <span v-else>{{ station.name }}</span>
-                                        <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
-                                        {{ station.railsystemName }}
-                                    </span>
-                                    </div>
-                                </div>
-                                <div class="col-6"
-                                     style="text-align: right;overflow:hidden;white-space: nowrap; position: relative;">
-                                    <div v-overflow-auto-scroll>
-                                    <span v-show="station.lines.filter(it=>it.id!==line.id).length>0"
-                                          style="margin-right: 4px;color: var(--q-primary)">
-                                        <i class="fa-solid fa-rotate"/>
-                                    </span>
-                                        <LineIcon v-for="_line in station.lines.filter(it=>it.id!==line.id)"
-                                                  :key="_line.id"
-                                                  :line="_line"
-                                                  :font-size="'13px'"
-                                                  style="margin-right: 4px;"
-                                                  :disabled="false"
-                                                  @click="handleSelect(station,_line)"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
-                            <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="!line.stations"/>
                         </q-tab-panel>
                     </q-tab-panels>
                     <div v-show="selectedStationIds.size>0"
@@ -111,6 +64,7 @@ import {useI18n} from "vue-i18n";
 import {findByAbbr, findMatches, isAlphabet, toHighlighted} from "src/utils/string-utils";
 import _ from 'lodash';
 import LineIcon from "components/LineIcon.vue";
+import {fetchLineDropdown} from "src/apis/railsystem";
 
 export default defineComponent({
     components: {LineIcon, BottomModal},
@@ -131,13 +85,6 @@ export default defineComponent({
         const {t} = useI18n()
         const loading = ref(true)
         const loadStationPromise = ref(null)
-        const currentRailSystem = computed(() => {
-            if (props.railsystemCode && propRailsystem.value) {
-                return propRailsystem.value
-            } else {
-                return store.getters["railsystem/currentRailSystem"]
-            }
-        })
         const ALL_STR = t('all')
         const currentSearchGroup = ref(ALL_STR)
         const searchGroups = ref([ALL_STR])
@@ -146,44 +93,14 @@ export default defineComponent({
         const lines = ref([])
         const $q = useQuasar()
         const isDark = computed(() => $q.dark.isActive)
-        const historyStations = computed(() => store.getters["preference/historyStations"].slice(0, 12))
         const selectedStations = ref([])
         const selectedStationIds = computed(() => {
             return new Set(selectedStations.value.map(it => it.id))
         })
-        const propRailsystem = ref(null)
 
-        function init(railsystemCode) {
-            console.log('StationSelector init', 'railsystemCode:' + railsystemCode)
-            propRailsystem.value = null
-            loading.value = true
-            store.dispatch('railsystem/getRailSystem', {code: railsystemCode}).then(railsystem => {
-                propRailsystem.value = railsystem
-                handleSearch('')
-            })
-            store.dispatch('railsystem/getRailSystemLines', {railsystemCode: railsystemCode}).then(r => {
-                lines.value = r
-                searchGroups.value = [ALL_STR, ...r.map(it => it.name)]
-                loading.value = false
-            }).catch(err => {
-                console.warn('Load lines error', err)
-                $q.notify.warn('加载车站线路失败')
-            })
-        }
-
-        async function loadStations(lineId) {
-            if (!lineId) {
-                return Promise.reject('lineId can not be empty')
-            }
-            if (lineId === ALL_STR) {
-                const _result = await store.dispatch('railsystem/getRailsystemStations', {railsystemCode: currentRailSystem.value.code})
-                loadFavouriteStations().then(_ => {
-                    console.log('Load favourite stations ok')
-                })
-                return _result
-            } else {
-                return await store.dispatch('railsystem/getStationsByLine', {lineId})
-            }
+        async function init() {
+            searchGroups.value = [ALL_STR]
+            handleSearch('')
         }
 
         watch(currentSearchGroup, (newVal, oldValue) => {
@@ -195,23 +112,21 @@ export default defineComponent({
             }
         })
 
-        const handleSearch = _.debounce(_keyword => {
-            console.log('handle search stations, keyword:', keyword)
-            let lineId
-            if (currentSearchGroup.value === ALL_STR) {
-                lineId = ALL_STR
-            } else {
-                const line = lines.value.find(it => it.name === currentSearchGroup.value)
-                if (line) {
-                    lineId = line.id
-                }
-            }
+        const handleSearch = _.debounce(async _keyword => {
             searchResults.value = []
-            loadStationPromise.value = loadStations(lineId).then(r => {
-                const temp = filterResult(r, _keyword)
+            loading.value = true
+            try {
+                const temp = await fetchLineDropdown({
+                    name: _keyword,
+                    railsystemCode: props?.railsystemCode,
+                })
                 searchResults.value = temp
                 return {stations: temp, keyword: _keyword}
-            })
+            } catch (e) {
+                console.warn('Search line error!', e)
+            } finally {
+                loading.value = false
+            }
         }, 300)
 
         const filterResult = (r, _keyword) => {
@@ -224,13 +139,10 @@ export default defineComponent({
                 let matchResults = []
                 if (isAlphabet(_keyword) && _keyword.length <= 4) {
                     matchResults = matchResults.concat(...findByAbbr(_keyword, names))
+                } else {
+                    matchResults = matchResults.concat(...findMatches(_keyword, names))
                 }
-                matchResults = matchResults.concat(...findMatches(_keyword, names))
-                const enNames = r.map(it => it.enName)
-                matchResults = matchResults.concat(...findMatches(_keyword, enNames))
 
-                // 去重
-                matchResults = Array.from(new Set(matchResults))
                 if (matchResults.length > 0) {
                     const matchResultMap = matchResults.reduce((acc, cur) => {
                         if (acc.has(cur.index)) {
@@ -263,31 +175,9 @@ export default defineComponent({
             display.value = false
             emit('close')
         }
+
+        // TODO
         const handleChangeSearchGroup = (searchGroup) => {
-            if (!searchGroup) {
-                return
-            }
-            loading.value = true
-            let lineId;
-            if (searchGroup === ALL_STR) {
-                lineId = ALL_STR
-            } else {
-                const line = lines.value.find(it => it.name === searchGroup);
-                if (!line) {
-                    return
-                }
-                lineId = line.id
-            }
-            loadStations(lineId).then(r => {
-                if (r && r instanceof Array) {
-                    if (keyword.value && keyword.value.length > 0) {
-                        searchResults.value = filterResult(r, keyword.value)
-                    } else {
-                        searchResults.value = r
-                    }
-                }
-                loading.value = false
-            })
         }
 
         async function loadFavouriteStations() {
@@ -356,13 +246,6 @@ export default defineComponent({
             if (_event) {
                 event = _event
             }
-            if (currentSearchGroup.value === ALL_STR) {
-                loading.value = true
-                loadStations(ALL_STR).then(r => {
-                    searchResults.value = r
-                    loading.value = false
-                })
-            }
         }
         return {
             showSelector,
@@ -374,12 +257,10 @@ export default defineComponent({
             ALL_STR,
             loading,
             isDark,
-            currentRailSystem,
             searchResults,
             currentSearchGroup,
             lines,
             searchGroups,
-            historyStations,
             handleSearch,
             selectedStationIds,
             handleEnter,

@@ -154,3 +154,8 @@ export async function deleteLine(id, authCode) {
     const url = `${baseUrl}/lines/delete/${id}?authCode=${authCode}`;
     return axios.post(url).then(res => res.data.data)
 }
+
+export async function fetchLineDropdown(data) {
+    const url = `api/metro-realtime/schedules/m/dropdown`
+    return await axios.post(url, data).then(res => res.data.data).catch(err => Promise.reject(err))
+}
