@@ -180,16 +180,6 @@ export default defineComponent({
         const handleChangeSearchGroup = (searchGroup) => {
         }
 
-        async function loadFavouriteStations() {
-            store.dispatch('preference/getAllFavouriteStations').then(favouriteStations => {
-                searchResults.value.forEach(it => {
-                    if (favouriteStations.has(it.id)) {
-                        it.isFavourite = true
-                    }
-                })
-            })
-        }
-
         const handleSelect = (station, line) => {
             if (!station?.id) {
                 return

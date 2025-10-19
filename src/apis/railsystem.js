@@ -156,6 +156,6 @@ export async function deleteLine(id, authCode) {
 }
 
 export async function fetchLineDropdown(data) {
-    const url = `api/metro-realtime/schedules/m/dropdown`
+    const url = `api/metro-realtime/query/railsystem/lines/dropdown`
     return await axios.post(url, data).then(res => res.data.data).catch(err => Promise.reject(err))
 }
