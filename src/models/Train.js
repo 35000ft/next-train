@@ -7,6 +7,10 @@ import {
 import dayjs from "dayjs";
 
 const TRAIN_CATEGORY = {
+    NORMAL: {
+        code: 'local',
+        bgColor: '#36598f'
+    },
     LOCAL: {
         code: 'local',
         bgColor: '#36598f'
