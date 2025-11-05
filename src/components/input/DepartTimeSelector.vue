@@ -55,7 +55,7 @@
 </template>
 <script>
 
-import BottomModal from "components/BottomModal.vue";
+import BottomModal from "components/common/BottomModal.vue";
 import {computed, defineComponent, ref, watch} from "vue";
 import {useI18n} from "vue-i18n";
 import dayjs from "dayjs";

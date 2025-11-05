@@ -1,73 +1,30 @@
 <template>
     <q-card style="width: 90vw; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
         <q-card-section>
-            <div class="text-h6">{{ data?.id ? '编辑时刻表规则' : '创建时刻表规则' }}</div>
+            <div class="text-h6">{{ data?.id ? '编辑时刻表' : '创建时刻表' }}</div>
         </q-card-section>
         <q-separator/>
         <q-card-section style="flex: 1; overflow-y: auto;">
             <q-form @submit.prevent="submitForm" ref="stationForm">
                 <q-input
                     v-model="data.name"
-                    label="规则名"
-                    :rules="[val => !!val || '规则名不能为空']"
+                    label="版本"
+                    :rules="[val => !!val || '时刻表版本不能为空']"
                 />
 
                 <q-input v-model="data.remarks" label="备注"/>
 
-                <q-select
-                    v-model="data.category"
-                    :options="[
-            { label: '工作日', value: 'WEEKDAY' },
-            { label: '周末', value: 'WEEKEND' },
-            { label: '节假日', value: 'HOLIDAY' },
-            { label: '平日', value: 'NORMAL' },
-          ]"
-                    label="类型"
-                    :rules="[val => !!val || '类型不能为空']"
-                    option-label="label"
-                    option-value="value"
-                    emit-value
-                    map-options
-                />
-
-                <div style="margin-bottom: 15px;margin-top: 15px;">
-                    <week-period-selector v-model="data.period"/>
-                </div>
-
                 <q-input
-                    v-model="dateRangeText"
-                    label="选择起止时间"
+                    v-model="data.lineId"
+
+                    label="选择所属线路"
                     readonly
                     filled
-                    :rules="[val => !!val || '起止时间不能为空']"
+                    :rules="[val => !!val || '所属线路不能为空']"
                     dense
-                    @click="datePopupRef.show()"
+                    @click="lineSelector.show()"
                 >
-                    <template #append>
-                        <q-icon name="event" class="cursor-pointer">
-                            <q-popup-proxy cover transition-show="scale" transition-hide="scale"
-                                           ref="datePopupRef">
-                                <q-date v-model="data.dateRange" range @update:model-value="onChangeDateRange"
-                                        mask="YYYY-MM-DD"/>
-                            </q-popup-proxy>
-                        </q-icon>
-                    </template>
                 </q-input>
-
-                <q-select
-                    v-model="data.scheduleId"
-                    :options="scheduleOptions"
-                    label="请选择时刻表"
-                    use-input
-                    input-debounce="300"
-                    @filter="onFilter"
-                    :loading="loadingSchedules"
-                    emit-value
-                    map-options
-                    option-label="label"
-                    option-value="value"
-                    @popup-show="loadScheduleDropdown"
-                />
 
                 <q-select
                     v-model="data.status"
@@ -88,6 +45,7 @@
             </q-form>
         </q-card-section>
     </q-card>
+    <line-selector ref="lineSelector" :railsystem-code="props.initial?.railsystemCode"/>
 </template>
 
 <script setup>
@@ -95,23 +53,22 @@ import {ref, onMounted, watch} from 'vue';
 import {deleteStation, preDeleteStation} from 'src/apis/railsystem';
 import {useQuasar} from "quasar";
 import {
-    createScheduleRule,
+    createSchedule,
     fetchSchedule,
-    fetchScheduleDropdown,
-    fetchScheduleRule,
-    updateScheduleRule
+    updateSchedule
 } from "src/apis/reailtime";
-import WeekPeriodSelector from "components/WeekPeriodSelector.vue";
+import {useStore} from "vuex";
+import LineSelector from "components/input/LineSelector.vue";
 
 const $q = useQuasar()
 const props = defineProps({
     initial: Object
 });
+const store = useStore()
 const emits = defineEmits(['saved', 'close']);
 const data = ref({})
 const loading = ref(false)
-const loadingSchedules = ref(false)
-const scheduleOptions = ref([])
+const lineSelector = ref(null)
 const datePopupRef = ref(null)
 
 async function init() {
@@ -124,34 +81,21 @@ async function init() {
     })
     if (props.initial?.id) {
         try {
-            const temp = await fetchScheduleRule(props.initial.id)
-            scheduleOptions.value = [{
-                label: temp.scheduleVersion,
-                value: temp.scheduleId,
-            }]
+            const temp = await fetchSchedule(props.initial.id)
             Object.assign(data.value, temp,)
         } catch (err) {
-            console.error('加载时刻表规则失败:', err)
+            console.error('加载时刻表失败:', err)
             $q.notify.error('加载失败')
         } finally {
             dialog?.hide()
         }
     }
     // 新增时刻表规则 如果传入了时刻表id 则获取时刻表
-    else if (props.initial?.selectedScheduleId) {
+    else if (props.initial?.selectedLineId) {
         try {
-            const schedule = await fetchSchedule(props.initial.selectedScheduleId)
-            scheduleOptions.value = [{
-                label: schedule.version,
-                value: schedule.id,
-            }]
-            data.value = {
-                scheduleId: schedule.id,
-                category: 'NORMAL',
-                status: 1
-            }
+            const line = await store.dispatch('railsystem/getLine', {lineId: props.initial.selectedLineId})
         } catch (err) {
-            console.error('加载时刻表失败:', err)
+            console.error('加载线路失败:', err)
         } finally {
             dialog?.hide()
         }
@@ -161,27 +105,24 @@ async function init() {
 onMounted(() => {
     init()
 });
-const dateRangeText = ref(null)
 
 async function submitForm() {
     let result;
     try {
         loading.value = true
         const payload = {...data.value}
-        payload.fromDate = data.value.dateRange.from
-        payload.toDate = data.value.dateRange.to
         if (payload.id) {
-            result = await updateScheduleRule(payload.id, payload);
-            $q.notify.ok('修改时刻表规则成功')
+            result = await updateSchedule(payload.id, payload);
+            $q.notify.ok('修改时刻表成功')
         } else {
-            result = await createScheduleRule(payload);
-            $q.notify.ok('新增时刻表规则成功')
+            result = await createSchedule(payload);
+            $q.notify.ok('新增时刻表成功')
         }
         data.value = {}
         emits('close')
     } catch (err) {
-        $q.notify.error('保存时刻表规则失败')
-        console.error('Failed to save schedule rule:', err);
+        $q.notify.error('保存时刻表失败')
+        console.error('Failed to save schedule:', err);
     } finally {
         loading.value = false
     }
@@ -189,15 +130,6 @@ async function submitForm() {
 
 }
 
-watch(() => data.value.category, val => {
-    if (val === "WEEKDAY") {
-        data.value.period = [1, 2, 3, 4, 5]
-    } else if (val === "WEEKEND") {
-        data.value.period = [6, 7]
-    } else if (val === "NORMAL") {
-        data.value.period = [1, 2, 3, 4, 5, 6, 7]
-    }
-})
 const confirmDelete = async () => {
     const stationId = props.initial?.id
     let dialog
@@ -268,34 +200,9 @@ const confirmDelete = async () => {
     }
 }
 
-function onChangeDateRange(dateRange) {
-    dateRangeText.value = `${dateRange.from} ~ ${dateRange.to}`
-}
 
-const loadScheduleDropdown = async (keyword = '') => {
-    loadingSchedules.value = true
-    try {
-        const res = await fetchScheduleDropdown({
-            version: keyword,
-            systemCode: props.initial?.railsystemCode,
-            lineId: props.initial?.lineId,
-        })
-        scheduleOptions.value = res.map(it => {
-            return {label: it.version, value: it.id}
-        })
-    } catch (error) {
-        console.error('获取时刻表下拉框失败', error)
-    } finally {
-        loadingSchedules.value = false
-    }
-}
-
-// 当用户输入时触发过滤
-const onFilter = (val, update) => {
-    update(() => {
-        if (val !== '') {
-            loadScheduleDropdown(val)
-        }
-    })
-}
 </script>
+<style scoped>
+
+
+</style>

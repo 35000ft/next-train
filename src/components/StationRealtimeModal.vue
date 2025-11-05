@@ -10,7 +10,7 @@
 
 <script setup>
 import {computed, ref, watch} from "vue";
-import BottomModal from "components/BottomModal.vue";
+import BottomModal from "components/common/BottomModal.vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
 import {useRouter} from "vue-router";

@@ -57,7 +57,7 @@ import TrainDataItem from "components/TrainDataItem.vue";
 import {computed, onMounted, onUnmounted, ref} from "vue";
 import {useI18n} from "vue-i18n";
 import {useStore} from "vuex";
-import LineStationsSelector from "components/LineStationsSelector.vue";
+import LineStationsSelector from "components/input/LineStationsSelector.vue";
 import {useQuasar} from "quasar";
 import _ from 'lodash'
 import {useRouter} from "vue-router";

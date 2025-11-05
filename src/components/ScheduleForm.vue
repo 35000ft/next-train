@@ -1,35 +1,40 @@
 <template>
     <q-card style="width: 90vw; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
         <q-card-section>
-            <div class="text-h6">{{ stationData?.id ? '编辑车站' : '创建车站' }}</div>
+            <div class="text-h6">{{ data?.id ? '编辑时刻表' : '创建时刻表' }}</div>
         </q-card-section>
         <q-separator/>
         <q-card-section style="flex: 1; overflow-y: auto;">
             <q-form @submit.prevent="submitForm" ref="stationForm">
                 <q-input
-                    v-model="stationData.name"
-                    label="名称"
-                    :rules="[val => !!val || '名称不能为空']"
+                    v-model="data.name"
+                    label="版本"
+                    :rules="[val => !!val || '时刻表版本不能为空']"
                 />
-                <q-input v-model="stationData.code" label="车站代码"/>
 
-                <q-input v-model="stationData.enName" label="英文名称"/>
+                <q-input v-model="data.remarks" label="备注"/>
+
+                <q-input
+                    v-model="data.lineId"
+
+                    label="选择所属线路"
+                    readonly
+                    filled
+                    :rules="[val => !!val || '所属线路不能为空']"
+                    dense
+                    @click="lineSelector.show()"
+                >
+                </q-input>
 
                 <q-select
-                    v-model="stationData.status"
+                    v-model="data.status"
                     :options="[
-            { label: '关闭', value: 0 },
-            { label: '运营中', value: 1 }
-          ]"
+                        { label: '禁用', value: 0 },
+                        { label: '启用', value: 1 }
+                    ]"
                     label="状态"
                     emit-value
                     map-options
-                />
-
-                <osm-location-picker
-                    show-input
-                    v-model="stationData.location"
-                    format="lon-lat"
                 />
 
                 <div class="q-gutter-md row justify-end q-mt-md">
@@ -40,37 +45,57 @@
             </q-form>
         </q-card-section>
     </q-card>
+    <line-selector ref="lineSelector" :railsystem-code="props.initial?.railsystemCode"/>
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue';
-import {createStation, deleteStation, fetchStation, preDeleteStation, updateStation} from 'src/apis/railsystem';
-import OsmLocationPicker from "components/OsmLocationPicker.vue";
+import {ref, onMounted, watch} from 'vue';
+import {deleteStation, preDeleteStation} from 'src/apis/railsystem';
 import {useQuasar} from "quasar";
+import {
+    createSchedule,
+    fetchSchedule,
+    updateSchedule
+} from "src/apis/reailtime";
+import {useStore} from "vuex";
+import LineSelector from "components/LineSelector.vue";
 
 const $q = useQuasar()
 const props = defineProps({
     initial: Object
 });
+const store = useStore()
 const emits = defineEmits(['saved', 'close']);
-const stationData = ref({})
+const data = ref({})
 const loading = ref(false)
+const lineSelector = ref(null)
+const datePopupRef = ref(null)
 
 async function init() {
-    let dialog
+    const dialog = $q.dialog({
+        message: '加载中',
+        persistent: true,
+        ok: false,
+        progress: true,
+        style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
+    })
     if (props.initial?.id) {
         try {
-            dialog = $q.dialog({
-                message: '加载车站中',
-                persistent: true,
-                ok: false,
-                progress: true,
-                style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
-            })
-            const station = await fetchStation(props.initial.id, true)
-            Object.assign(stationData.value, station,)
+            const temp = await fetchSchedule(props.initial.id)
+            Object.assign(data.value, temp,)
         } catch (err) {
-            $q.notify.error('加载车站失败')
+            console.error('加载时刻表失败:', err)
+            $q.notify.error('加载失败')
+        } finally {
+            dialog?.hide()
+        }
+    }
+    // 新增时刻表规则 如果传入了时刻表id 则获取时刻表
+    else if (props.initial?.selectedLineId) {
+        try {
+            const line = await store.dispatch('railsystem/getLine', {lineId: props.initial.selectedLineId})
+        } catch (err) {
+            console.error('加载线路失败:', err)
         } finally {
             dialog?.hide()
         }
@@ -85,25 +110,19 @@ async function submitForm() {
     let result;
     try {
         loading.value = true
-        const payload = {...stationData.value}
-        payload.railsystemCode = props.initial?.railsystem?.code
-        payload.lineId = props.initial?.line?.id
-        if (!payload.railsystemCode) {
-            $q.notify.error('线网代码不能为空')
-            return
-        }
+        const payload = {...data.value}
         if (payload.id) {
-            result = await updateStation(payload.id, payload);
-            $q.notify.ok('创建车站成功成功')
+            result = await updateSchedule(payload.id, payload);
+            $q.notify.ok('修改时刻表成功')
         } else {
-            result = await createStation(payload);
-            $q.notify.ok('保存车站成功')
+            result = await createSchedule(payload);
+            $q.notify.ok('新增时刻表成功')
         }
-        stationData.value = {}
+        data.value = {}
         emits('close')
     } catch (err) {
-        $q.notify.error('保存车站失败')
-        console.error('保存车站失败:', err);
+        $q.notify.error('保存时刻表失败')
+        console.error('Failed to save schedule:', err);
     } finally {
         loading.value = false
     }
@@ -181,4 +200,9 @@ const confirmDelete = async () => {
     }
 }
 
+
 </script>
+<style scoped>
+
+
+</style>

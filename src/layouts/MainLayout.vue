@@ -44,9 +44,9 @@ import {computed, onMounted, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n';
 import {useRouter} from "vue-router";
 import StationRealtimeModal from "components/StationRealtimeModal.vue";
-import TrainInfoDetailView from "components/TrainInfoDetailView.vue";
-import LineRealtimeView from "components/LineRealtimeView.vue";
-import RouteSolutionDetailView from "components/RouteSolutionDetailView.vue";
+import TrainInfoDetailView from "components/view/TrainInfoDetailView.vue";
+import LineRealtimeView from "components/view/LineRealtimeView.vue";
+import RouteSolutionDetailView from "components/view/RouteSolutionDetailView.vue";
 import {useStore} from "vuex";
 import {isPCMode} from "src/utils/navigator_utils";
 import {getLatestVersionInfo} from "src/apis/common";

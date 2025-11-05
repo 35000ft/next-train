@@ -225,15 +225,15 @@ import LineIcon from "components/LineIcon.vue";
 import TrainDataItem from "components/TrainDataItem.vue";
 import {useI18n} from "vue-i18n";
 import TrainDataItemForAll from "components/TrainDataItemForAll.vue";
-import StationSelector from "components/StationSelector.vue";
+import StationSelector from "components/input/StationSelector.vue";
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
-import LineStationsSelector from "components/LineStationsSelector.vue";
+import LineStationsSelector from "components/input/LineStationsSelector.vue";
 import {isNumber} from "src/utils/string-utils";
 import _ from "lodash";
 import {useRouter} from "vue-router";
 import EditFavouriteStationDialog from "components/EditFavouriteStationDialog.vue";
-import OpenMapSelector from "components/OpenMapSelector.vue";
+import OpenMapSelector from "components/input/OpenMapSelector.vue";
 import OperationMsgDetailView from "components/OperationMsgDetailView.vue";
 import StationIcon from "components/StationIcon.vue";
 

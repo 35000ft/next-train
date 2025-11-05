@@ -143,7 +143,7 @@
     </OverlayView>
 </template>
 <script setup>
-import OverlayView from "components/OverlayView.vue";
+import OverlayView from "components/common/OverlayView.vue";
 import {useI18n} from "vue-i18n";
 import {computed, onMounted, ref} from "vue";
 import TrainCategory from "components/TrainCategory.vue";

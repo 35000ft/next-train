@@ -109,13 +109,13 @@
 
 <script setup>
 import {onMounted, ref} from 'vue';
-import RailsystemForm from 'components/RailsystemForm.vue';
-import LineForm from 'components/LineForm.vue';
+import RailsystemForm from 'components/form/RailsystemForm.vue';
+import LineForm from 'components/form/LineForm.vue';
 import {fetchLines, listRailsystem} from 'src/apis/railsystem';
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineIcon from "components/LineIcon.vue";
-import StationForm from "components/StationForm.vue";
+import StationForm from "components/form/StationForm.vue";
 
 const $q = useQuasar()
 const railsystems = ref([]);

@@ -47,8 +47,8 @@ import {useI18n} from "vue-i18n";
 defineOptions({
     name: 'SearchHeader'
 })
-import {computed, ref, toRaw} from 'vue'
-import RailSystemSelector from "components/RailSystemSelector.vue";
+import {computed, ref} from 'vue'
+import RailSystemSelector from "components/input/RailSystemSelector.vue";
 import {i18n, supportedLanguages} from 'src/boot/i18n'
 import {useStore} from "vuex";
 import {useQuasar} from "quasar";

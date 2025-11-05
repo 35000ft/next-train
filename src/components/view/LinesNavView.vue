@@ -34,7 +34,7 @@
 
 <script setup>
 import {useI18n} from "vue-i18n";
-import LineRealtimeView from "components/LineRealtimeView.vue";
+import LineRealtimeView from "components/view/LineRealtimeView.vue";
 import {useStore} from "vuex";
 import {computed, onMounted, ref} from "vue";
 import LineIcon from "components/LineIcon.vue";

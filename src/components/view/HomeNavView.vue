@@ -81,12 +81,12 @@
 import {computed, onMounted, ref} from "vue";
 import StationRealtimeView from "components/StationRealtimeView.vue";
 import {useStore} from "vuex";
-import FocusTrainsView from "components/FocusTrainsView.vue";
+import FocusTrainsView from "components/FocusTrainsCard.vue";
 import FavouredStationListCard from "components/FavouredStationListCard.vue";
 import {useQuasar} from "quasar";
 import CurrentTrip from "components/CurrentTrip.vue";
 import 'leaflet/dist/leaflet.css';
-import OpenStreetMap from "components/OpenStreetMap.vue";
+import OpenStreetMap from "components/common/OpenStreetMap.vue";
 import {isPCMode} from "src/utils/navigator_utils";
 import {useRoute} from "vue-router";
 
