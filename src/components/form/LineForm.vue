@@ -74,6 +74,9 @@
                         <q-checkbox v-model="enableDistanceLock" label="距离联动"></q-checkbox>
                     </template>
                     <!-- 车站列表 -->
+                    <q-input v-model="quickImportStationText" type="textarea" label="快速添加车站"
+                             @blur="handleQuickAddStations(quickImportStationText)"
+                             outlined style="--q-field-control-bg: #f0f0f0;"/>
                     <q-item class="row text-primary">
                         <q-item-section>序号</q-item-section>
                         <q-item-section>车站名</q-item-section>
@@ -136,7 +139,7 @@
                         />
                         <q-btn
                             icon="restore"
-                            label="默认车站"
+                            label="恢复车站"
                             color="grey"
                             @click="restoreStations"
                         />
@@ -196,6 +199,7 @@ import {useStore} from "vuex";
 
 const store = useStore()
 const displayLocationPicker = ref(false)
+const quickImportStationText = ref('')
 const formRef = ref(null)
 const showStationForm = ref(false)
 const props = defineProps({
@@ -283,6 +287,33 @@ function showStationLocationPicker() {
 const handleRemoveStation = (index) => {
     stationLocations.value.splice(index, 1)
     batchEditStations.value.splice(index, 1)
+}
+
+const handleQuickAddStations = async (text) => {
+    text = String(text)
+    if (!text || text === "") {
+        return
+    }
+    const railsystemCode = props.initial?.railsystem?.code
+    if (!railsystemCode) return
+
+    let names = []
+    if (text.indexOf('\n') !== -1) {
+        names = text.split('\n')
+    } else if (text.indexOf(',') !== -1) {
+        names = text.split(',')
+    } else if (text.indexOf(' ') !== -1) {
+        names = text.split(' ')
+    }
+    names = names.map(it => it.trim()).filter(it => it.length > 0)
+    const matchedStations = await store.dispatch('railsystem/matchStationByNames', {names, railsystemCode})
+    if (matchedStations) {
+        quickImportStationText.value = ''
+        $q.notify.ok('快速添加车站成功')
+        lineStations.value.push(...matchedStations.values())
+    } else {
+        $q.notify.error('快速添加车站失败')
+    }
 }
 
 const handleBatchEditSubmit = async (batchStations) => {

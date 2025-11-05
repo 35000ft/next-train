@@ -311,13 +311,26 @@ const actions = {
         })
     },
     async queryStationByName({state, commit}, {stationName}) {
-        const stations = await this.dispatch("railsystem/getAllStations")
+        const stations = await this.dispatch("railsystem/getRailsystemStations")
         const filteredStations = stations.filter(it => it.name === stationName)
         if (filteredStations.length > 0) {
             return filteredStations[0]
         }
         return Promise.reject(`No station named ${stationName}`)
-    }
+    },
+    async matchStationByNames({state, commit}, {names, railsystemCode}) {
+        const stations = await this.dispatch("railsystem/getRailsystemStations", {railsystemCode})
+        const nameMap = new Map()
+        for (const name of names) {
+            const filtered = stations.filter(it => it.name === name || it.enName === name || it.code === name)
+            if (filtered?.length > 0) {
+                nameMap.set(name, filtered[0])
+            } else {
+                nameMap.set(name, {name: name, railsystemCode: railsystemCode, isNew: true})
+            }
+        }
+        return nameMap
+    },
 }
 
 const getters = {
