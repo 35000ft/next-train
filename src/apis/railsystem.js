@@ -51,7 +51,7 @@ export async function listRailsystem() {
  * @param {Boolean} latest
  */
 export async function fetchLine(lineId, latest) {
-    const url = `api/file/railsystem/lines/id/${lineId}` + latest ? '?v=latest' : ''
+    const url = `api/file/railsystem/lines/id/${lineId}` + (latest ? '?v=latest' : '')
     return await axios
         .get(url)
         .then(res => {
@@ -61,7 +61,7 @@ export async function fetchLine(lineId, latest) {
 }
 
 export async function fetchStation(stationId, latest) {
-    const url = `api/file/railsystem/stations/id/${stationId}` + latest ? '?v=latest' : ''
+    const url = `api/file/railsystem/stations/id/${stationId}` + (latest ? '?v=latest' : '')
     return await axios
         .get(url)
         .then(res => {
