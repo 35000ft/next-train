@@ -243,7 +243,7 @@ onMounted(async () => {
                 progress: true,
                 style: 'width: 250px; height: 200px; background-color: rgba(0, 0, 0, 0.6);color: #ffffff;',
             })
-            const line = await fetchLine(props.initial.id)
+            const line = await fetchLine(props.initial.id, true)
             Object.assign(lineData.value, line,)
             rawStations.value = [...line.stations]
             lineStations.value = [...line.stations]

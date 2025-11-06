@@ -48,9 +48,10 @@ export async function listRailsystem() {
 /**
  * Fetch line by id
  * @param {String} lineId Id of line
+ * @param {Boolean} latest
  */
-export async function fetchLine(lineId) {
-    const url = `api/file/railsystem/lines/id/${lineId}`
+export async function fetchLine(lineId, latest) {
+    const url = `api/file/railsystem/lines/id/${lineId}` + latest ? '?v=latest' : ''
     return await axios
         .get(url)
         .then(res => {
@@ -59,8 +60,8 @@ export async function fetchLine(lineId) {
         .catch(err => Promise.reject(err))
 }
 
-export async function fetchStation(stationId) {
-    const url = `api/file/railsystem/stations/id/${stationId}`
+export async function fetchStation(stationId, latest) {
+    const url = `api/file/railsystem/stations/id/${stationId}` + latest ? '?v=latest' : ''
     return await axios
         .get(url)
         .then(res => {
