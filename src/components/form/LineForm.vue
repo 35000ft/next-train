@@ -78,8 +78,8 @@
                              @blur="handleQuickAddStations(quickImportStationText)"
                              outlined style="--q-field-control-bg: #f0f0f0;"/>
                     <q-item class="row text-primary">
-                        <q-item-section>序号</q-item-section>
-                        <q-item-section>车站名</q-item-section>
+                        <q-item-section class="col-1">序号</q-item-section>
+                        <q-item-section class="col-3">车站名</q-item-section>
                         <q-item-section>前站距离(m)</q-item-section>
                         <q-item-section>下站距离(m)</q-item-section>
                     </q-item>
@@ -88,15 +88,17 @@
                         item-key="id"
                         tag="q-list"
                         class="q-mb-md"
+                        handle=".drag-handle"
                     >
                         <template #item="{ element, index }">
                             <q-item class="row">
-                                <q-item-section class="col-1 items-center justify-center" style="text-align: center;">
+                                <q-item-section class="col-1 items-center justify-center drag-handle"
+                                                style="text-align: center;">
                                     <q-avatar color="primary" text-color="white" size="24px">
                                         {{ index + 1 }}
                                     </q-avatar>
                                 </q-item-section>
-                                <q-item-section>{{ element.name }}</q-item-section>
+                                <q-item-section class="col-3">{{ element.name }}</q-item-section>
                                 <q-item-section>
                                     <q-input v-model="element.preDistance" type="number" :disable="index===0"
                                              @update:model-value="(val)=>handleDistanceChange(index,val,'previous')"/>
