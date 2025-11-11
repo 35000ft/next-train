@@ -331,6 +331,14 @@ const actions = {
         }
         return nameMap
     },
+    async changeRailsystem({state, commit}, {railsystemCode}) {
+        const railsystem = await this.dispatch('railsystem/getRailSystem', {code: railsystemCode})
+        if (railsystem) {
+            commit('SET_RAILSYSTEM', {railsystem})
+            return Promise.reject(railsystem)
+        }
+        return Promise.reject()
+    }
 }
 
 const getters = {

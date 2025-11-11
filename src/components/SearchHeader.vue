@@ -87,7 +87,6 @@ const handleSelectRailSystem = async (railsystem) => {
     }
     store.commit('railsystem/SET_CURRENT_RAILSYSTEM', {railsystem: railsystem})
     const defaultStationId = railsystem?.extra?.defaultStationId
-    console.log('railsystem defaultStationId', defaultStationId, railsystem)
     const station = await store.dispatch('railsystem/getStation', {stationId: defaultStationId})
     if (station) {
         store.commit('preference/SET_CURRENT_STATION', {station})

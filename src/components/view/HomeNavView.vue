@@ -112,8 +112,23 @@ const currentStationId = computed(() => {
     }
 })
 onMounted(() => {
+    initRailsystem()
     initStation()
 })
+const initRailsystem = () => {
+    const stationId = route.query.stationId
+    if (stationId) return
+    const railsystemCode = route.query.r
+    if (railsystemCode) {
+        store.dispatch('railsystem/changeRailsystem', {railsystemCode}).then(r => {
+            console.log('自动切换线网成功:', r)
+        }).catch(e => {
+            console.error('自动切换线网失败:', e)
+            $q.notify.error("自动切换线网失败")
+        })
+    }
+}
+
 const initStation = () => {
     const stationId = route.query.stationId
     if (stationId) {
