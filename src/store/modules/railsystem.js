@@ -335,7 +335,7 @@ const actions = {
         const railsystem = await this.dispatch('railsystem/getRailSystem', {code: railsystemCode})
         if (railsystem) {
             commit('SET_CURRENT_RAILSYSTEM', {railsystem})
-            return Promise.reject(railsystem)
+            return Promise.resolve(railsystem)
         }
         return Promise.reject()
     }
