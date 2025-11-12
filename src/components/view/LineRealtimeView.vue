@@ -85,8 +85,8 @@ import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import {useStore} from "vuex";
 import {drawMetroLine} from "src/utils/canvas-utils";
 import _ from "lodash";
-import {diff, diffFromNow, getNowByTimezone} from "src/utils/time-utils";
-import {categoryParser, TRAIN_CATEGORY} from "../../models/Train";
+import {diff, diffFromNow} from "src/utils/time-utils";
+import {categoryParser, TRAIN_CATEGORY} from "src/models/Train";
 import {useI18n} from "vue-i18n";
 import BottomModal from "components/common/BottomModal.vue";
 import Canvas2SVG from 'canvas2svg';
@@ -286,7 +286,7 @@ async function calcTrainPosition(train) {
         let rawYPosition
         const depDiff = diffFromNow(lastStop.dep, 'second', timezone)
         let nextStopPosition = stationMap.value.get(nextStop.stationId)
-        if (depDiff > 0) {
+        if (depDiff < 0) {
             //在lastStop和nextStop之间
             let lastStopPosition = stationMap.value.get(lastStop.stationId)
             if (!lastStopPosition && !nextStopPosition) {
