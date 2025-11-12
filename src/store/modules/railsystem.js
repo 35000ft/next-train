@@ -96,6 +96,7 @@ const mutations = {
         }
     },
     SET_CURRENT_RAILSYSTEM(state, {railsystem}) {
+        state.currentRailSystem = null
         state.currentRailSystem = railsystem
         onChangeRailsystem(railsystem).then(_ => _)
         localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, JSON.stringify(railsystem))
@@ -342,7 +343,7 @@ const actions = {
 }
 
 const getters = {
-    currentRailSystem: state => state.currentRailSystem,
+    currentRailSystem: state => ({...state.currentRailSystem}),
     lines: state => state.lines,
     railsystemGetter: state => (code) => state.railSystems.get(code),
 }

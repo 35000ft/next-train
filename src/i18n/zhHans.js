@@ -32,6 +32,7 @@ export default {
         home: '车站',
         go: '出行',
         line: '线路',
+        lineRealtime: '线路实况',
     },
     trainCategory: {
         local: '普通',

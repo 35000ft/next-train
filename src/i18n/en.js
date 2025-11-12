@@ -32,6 +32,7 @@ export default {
         home: 'Station',
         go: 'GO!',
         line: 'Line',
+        lineRealtime: 'Line Realtime',
     },
     trainCategory: {
         local: 'LOCAL',

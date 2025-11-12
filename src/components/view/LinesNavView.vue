@@ -1,10 +1,9 @@
 <template>
     <q-page-container>
-        <!--        <LineRealtimeView :line-id-prop="'51'"/>-->
         <q-card
             style="padding-left: 10px;padding-right: 10px;padding-bottom: 20px; background-color: var(--q-background-grey-2);">
             <q-card-section>
-                <div class="text-h5 text-bold text-primary">线路实况</div>
+                <div class="text-h5 text-bold text-primary">{{ t('nav.lineRealtime') }}</div>
             </q-card-section>
             <div
                 style="max-height: 500px;display: flex;justify-content: center; gap: 10px;flex-wrap: wrap;align-items: flex-start;overflow-y: auto;">
@@ -19,12 +18,15 @@
                     </div>
                 </div>
             </div>
-            <div v-show="showLines.length===0"
+            <div v-show="loading"
                  style="display: flex;justify-content: center; gap:10px;flex-wrap: wrap;">
                 <q-skeleton type="text" height="70px" width="160px"></q-skeleton>
                 <q-skeleton type="text" height="70px" width="160px"></q-skeleton>
                 <q-skeleton type="text" height="70px" width="160px"></q-skeleton>
                 <q-skeleton type="text" height="70px" width="160px"></q-skeleton>
+            </div>
+            <div v-show="showLines.length===0&&!loading">
+                该线网未能支援「{{ t('nav.lineRealtime') }}」功能
             </div>
         </q-card>
 
@@ -36,7 +38,7 @@
 import {useI18n} from "vue-i18n";
 import LineRealtimeView from "components/view/LineRealtimeView.vue";
 import {useStore} from "vuex";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import LineIcon from "components/LineIcon.vue";
 
 defineOptions({
@@ -45,6 +47,7 @@ defineOptions({
 const {t} = useI18n()
 const props = defineProps({})
 const store = useStore()
+const loading = ref(false)
 const railsystem = computed(() => store.getters['railsystem/currentRailSystem'])
 onMounted(() => {
     init()
@@ -55,10 +58,15 @@ const handleShowLineRealtime = (line) => {
         store.commit('application/SET_SHOWN_LINE_REALTIME', {lineId: line.id})
     }
 }
+watch(railsystem, (val, old) => {
+    init()
+})
 
 function init() {
     const railsystemCode = railsystem.value.code
     const promises = []
+    showLines.value = []
+    loading.value = true
     store.dispatch('railsystem/getShowLineCanvasConfig', {railsystemCode}).then(lineIds => {
         lineIds.forEach(lineId => {
             const p = store.dispatch('railsystem/getLine', {lineId}).then(line => {
@@ -75,10 +83,12 @@ function init() {
                 }
                 showLines.value.push(line)
             })
+        }).finally(_ => {
+            loading.value = false
         })
-
+    }).catch(e => {
+        loading.value = false
     })
-
 }
 
 </script>
