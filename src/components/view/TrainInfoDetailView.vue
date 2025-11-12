@@ -393,7 +393,7 @@ const updateStopStatus = async (_schedule) => {
             }
 
         }
-        if (currentIndexValue) {
+        if (currentIndexValue != null) {
             const stopInfo = _schedule[currentIndexValue]
             if (stopInfo) {
                 const _line = await store.dispatch('railsystem/getLine', {lineId: stopInfo.lineId})
