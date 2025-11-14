@@ -90,6 +90,7 @@ export default {
     via: 'Via Station',
     depart: 'Depart',
     now: 'Now',
+    departFromThisStation: 'Dept. From',
     kilometer: 'km',
     meterShort: 'm',
     transferTimes: 'Transfer $times time(s)',

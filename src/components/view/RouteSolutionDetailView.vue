@@ -49,7 +49,8 @@
                             <span class="station-name auto-scroll-container" style="width: 50%;text-overflow:ellipsis;">
                                 <span v-overflow-auto-scroll>{{ train.depStationName }}</span>
                             </span>
-                                <span class="first-stop" v-show="train.isFirstStop">本站始发</span>
+                                <span class="first-stop"
+                                      v-show="train.isFirstStop">{{ t('departFromThisStation') }}</span>
                                 <div class="transfer-info" v-if="train.transfer">
                                     <div style="height: 50%;width: 100%;" class="auto-scroll-container">
                                         <div v-overflow-auto-scroll>
@@ -107,7 +108,8 @@
                                         </span>
                                     </transition-group>
                                 </div>
-                                <div class="right-area-wrapper">
+
+                                <div class="right-area-wrapper" style="min-width: 200px;max-width: 240px;">
                                     <div class="line-name-wrapper">
                                         <div style="display: flex;gap: 10px;">
                                             <span v-html="trainNameGetter(train)"></span>
@@ -117,15 +119,28 @@
                                         </span>
                                         </div>
                                         <span>
-                                        <b style="color: var(--q-primary)">
+                                            <b style="color: var(--q-primary)">
                                             {{ t('boundFor').replace('$terminal', train.terminal.stationName) }}</b>
-                                    </span>
+                                        </span>
                                     </div>
                                     <div @click="handleFoldStopInfo(train)" class="item-wrapper stop-count-wrapper"
                                          v-show="train.stops.length>2">
-                                    <span style="color: var(--q-normal);margin-right: 4px;">
-                                        {{ train.stops.length - 1 }} {{ t('stop') }}</span>
+                                        <span style="color: var(--q-normal);margin-right: 4px;">
+                                            {{ train.stops.length - 1 }} {{ t('stop') }}</span>
                                         <i :class="[train.showStopInfo?'fa fa-angle-up':'fa fa-angle-down']"></i>
+                                    </div>
+                                    <div v-if="train.lessTransferTimeTrains?.length>0"
+                                         style="height: 55px; background-color: #e1ebfa; border-radius: 8px;padding: 5px;
+                                                border:1px solid #36598f;justify-content: center;">
+                                        <div v-for="_t in train.lessTransferTimeTrains.slice(0,2)" :key="_t.id"
+                                             class="flex" style="gap: 5px;margin-bottom: 2px;">
+                                            <b style="color: var(--q-red)">{{ _t.depStop.dep?.format('HH:mm') }}</b>
+                                            <TrainCategory :category="_t.category"/>
+                                            <b style="color: var(--q-red)">
+                                                <q-icon name="fa-solid fa-arrows-rotate" color="primary"/>
+                                                {{ calcTransferTimeText(_t.transferTime) }}
+                                            </b>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -202,12 +217,7 @@ const calcLineHeight = (trainInfo, lineIndex) => {
         return isTransLine ? initHeight / 2 + 'px' : initHeight + 'px'
     }
 }
-const transferInfoGetter = (index) => {
-    if (index === 0) {
-        return null
-    }
 
-}
 const calcLineClass = (trainInfo, lineIndex) => {
     let length = trainInfo.lines.length;
     const isTransLine = length > 1
@@ -216,12 +226,7 @@ const calcLineClass = (trainInfo, lineIndex) => {
     else if (lineIndex === length - 1) return 'line-wrapper last-line'
     return 'center-line'
 }
-const handleClickStationName = (stationId) => {
 
-}
-const handleShowQuickStationView = (stop) => {
-
-}
 const handleShare = () => {
     if (props.solution) {
         const queryParams = route.query
@@ -251,6 +256,16 @@ const useSolution = () => {
     if (props.solution) {
         store.commit('application/SET_USING_SOLUTION', props.solution)
         $q.notify.ok('使用方案成功，请至首页查看')
+    }
+}
+
+const calcTransferTimeText = (seconds) => {
+    if (seconds < 60) {
+        return seconds + ' ' + t('time.second')
+    } else if (seconds % 60 === 0) {
+        return `${Math.floor(seconds / 60)} ${t('time.minute')}`
+    } else {
+        return `${Math.floor(seconds / 60)} ${t('time.minute')} ${Math.floor(seconds % 60)} ${t('time.second')}`
     }
 }
 
@@ -346,7 +361,6 @@ const handleClose = () => {
 }
 
 .through-station-wrapper {
-    width: 90%;
     margin: 0 auto;
     display: flex;
 }

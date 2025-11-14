@@ -49,8 +49,7 @@ const _categories = computed(() => {
     height: 22px;
     font-size: 14px;
     text-align: center;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding: 0 3px;
     min-width: 20px;
     max-width: 70px;
     margin-right: 3px;

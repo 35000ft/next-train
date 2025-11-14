@@ -56,6 +56,7 @@ export default {
     load: '載入',
     trainInfo: "列車資料",
     update: "更新",
+    departFromThisStation: '此站開出',
     error: "失敗",
     success: "成功",
     emptyFocusTrainHint: '在車站实時添加關注列車',

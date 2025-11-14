@@ -96,6 +96,7 @@ export default {
     transferTimes: '换乘$times次',
     boundFor: '开往 $terminal',
     stop: '站',
+    departFromThisStation: '本站始发',
     transferCategory: {
         EXIT: '出站换乘',
         NODE: '节点换乘',

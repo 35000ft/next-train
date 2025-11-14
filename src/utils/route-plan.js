@@ -214,27 +214,46 @@ async function planOnePathSolution({distance, path, parsedPath}, depTime, trainG
 }
 
 /**
- *
- * @param {{}} trainInfo
- * @param {Array<{}>} parsedPath
- * @param lastDepTime
- * @param trainGetter
- * @param transferInfoGetter
- * @param trains 当前使用的列车和换乘
- * @param cb 成功回调
- * @param preTransferInfo 上一个换乘点信息 用于检查车次出发时间是否满足换乘需求
+ * Find the trains that transfer time are less than normal transfer time, which means may not able to catch.
+ * @param trains
+ * @param lastArrTime
+ * @param normalDepTime
+ * @param getOnStationId
+ * @returns {*[]}
  */
-async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, transferInfoGetter, trains = [], cb, preTransferInfo) {
+function findLessTransferTimeTrains(trains, lastArrTime, normalDepTime, getOnStationId) {
+    const lessTransferTimeTrains = []
+    for (const trainInfo of trains) {
+        //查找上车站在列车时刻表的index
+        const stopStationIds = trainInfo.schedule.map(it => it.stationId)
+        const _getOnIndex = stopStationIds.indexOf(getOnStationId)
+        //找不到上车站index 不能搭乘该列车 return
+        if (_getOnIndex === -1) {
+            continue
+        }
+        const getOnStop = trainInfo.schedule[_getOnIndex]
+        if (!getOnStop) continue
+        if (!getOnStop.dep.isAfter(normalDepTime)) {
+            // 在正常换乘时间之前的列车 计算换乘时间并加入结果
+            trainInfo.transferTime = Math.abs(diff(getOnStop.dep, lastArrTime, 'second'))
+            trainInfo.depStop = getOnStop
+            lessTransferTimeTrains.push(trainInfo)
+        }
+    }
+    return lessTransferTimeTrains
+}
+
+async function findGetOnOffIndex(trainInfo, path) {
     let isFind = false
-    const stopStationIds = trainInfo.schedule.map(it => it.stationId)
-    let currentPathIndex = -1
     let getOffIndex = -1
     let getOnIndex = -1
     let curPathStationOffset
+    let currentPathIndex = -1
+    const stopStationIds = trainInfo.schedule.map(it => it.stationId)
     const trainStopLines = trainLineOfStopParser(trainInfo)
-    for (let i = 0; i < parsedPath.length; i++) {
+    for (let i = 0; i < path.length; i++) {
         // 当前路径的主车站id列表
-        const {stationIds} = parsedPath[i]
+        const {stationIds} = path[i]
 
         // 查找下车站id
         const getOffStationId = [...stationIds].reverse().find(item => stopStationIds.includes(item))
@@ -260,34 +279,12 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
 
             //找不到上车站index 不能搭乘该列车 return
             if (getOnIndex === -1) {
-                return
+                return Promise.reject()
             }
             //下车站index小于等于上车站index 不能搭乘该列车 return
             if (getOffIndex <= getOnIndex) {
-                return
+                return Promise.reject()
             }
-            if (preTransferInfo) {
-                const {fromPlatform, fromId, arrTime, fromMainId, fromLineId} = preTransferInfo
-                const getOnStop = trainInfo.schedule[getOnIndex]
-                const transferInfo = await transferInfoGetter({
-                    fromId,
-                    fromPlatform,
-                    fromMainId,
-                    toId: parsedPath[0].subStationIds[0],
-                    toPlatform: getOnStop.platform,
-                    toMainId: getOnStop.stationId
-                })
-                transferInfo.type = 'transfer'
-                transferInfo.depStationId = fromMainId
-                transferInfo.fromLineId = fromLineId
-                transferInfo.arrStationId = getOnStop.stationId
-                if (arrTime.add(transferInfo.needTime, 'second').isAfter(getOnStop.dep)) {
-                    console.warn('Transfer time is not enough', `arrive time:${arrTime.format()}`, `dep time:${getOnStop.dep.format()}`, `transfer need time:${transferInfo.needTime}`)
-                    return
-                }
-                trains.push(transferInfo)
-            }
-
             if (trainStopLines.length === 1) {
                 isFind = true
                 break
@@ -297,11 +294,64 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         //通过第一次循环的检查后 可以搭乘该列车
         isFind = true
     }
-    if (!isFind) return
-    if (getOffIndex <= getOnIndex) {
+    if (!isFind || getOffIndex <= getOnIndex) {
+        return Promise.reject()
+    }
+    return [getOnIndex, getOffIndex, curPathStationOffset, currentPathIndex]
+}
+
+/**
+ *
+ * @param {{}} trainInfo
+ * @param {Array<{}>} parsedPath
+ * @param lastDepTime
+ * @param trainGetter
+ * @param transferInfoGetter
+ * @param trains 当前使用的列车和换乘
+ * @param cb 成功回调
+ * @param preTransferInfo 上一个换乘点信息 用于检查车次出发时间是否满足换乘需求
+ * @param lessTransferTimeTrains
+ */
+async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, transferInfoGetter, trains = [], cb, preTransferInfo, lessTransferTimeTrains = []) {
+    let currentPathIndex = -1
+    let getOffIndex = -1
+    let getOnIndex = -1
+    let curPathStationOffset
+
+    try {
+        const getOnOff = await findGetOnOffIndex(trainInfo, parsedPath)
+        getOnIndex = getOnOff[0]
+        getOffIndex = getOnOff[1]
+        curPathStationOffset = getOnOff[2]
+        currentPathIndex = getOnOff[3]
+        if (preTransferInfo) {
+            const {fromPlatform, fromId, arrTime, fromMainId, fromLineId} = preTransferInfo
+            const getOnStop = trainInfo.schedule[getOnIndex]
+            const transferInfo = await transferInfoGetter({
+                fromId,
+                fromPlatform,
+                fromMainId,
+                toId: parsedPath[0].subStationIds[0],
+                toPlatform: getOnStop.platform,
+                toMainId: getOnStop.stationId
+            })
+            transferInfo.type = 'transfer'
+            transferInfo.depStationId = fromMainId
+            transferInfo.fromLineId = fromLineId
+            transferInfo.arrStationId = getOnStop.stationId
+            if (arrTime.add(transferInfo.needTime, 'second').isAfter(getOnStop.dep)) {
+                console.warn('Transfer time is not enough', `arrive time:${arrTime.format()}`, `dep time:${getOnStop.dep.format()}`, `transfer need time:${transferInfo.needTime}`)
+                return
+            }
+            trains.push(transferInfo)
+        }
+
+    } catch (e) {
+        console.warn('findGetOnOffIndex error', e)
         return
     }
-    const train = buildTrain(trainInfo, getOnIndex, getOffIndex)
+
+    const train = buildTrain(trainInfo, getOnIndex, getOffIndex, lessTransferTimeTrains)
     trains.push(train)
     const getOffStop = trainInfo.schedule[getOffIndex]
     const isArrived = parsedPath.length === 1 && getOffStop.stationId === parsedPath[0].stationIds.slice(-1)[0]
@@ -342,15 +392,19 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
 
     try {
         const minTransfer = await transferInfoGetter(transferFromInfo);
-        lastDepTime = getOffStop.arr.add(minTransfer.needTime, 'second')
+        // lastDepTime = getOffStop.arr.add(minTransfer.needTime, 'second')
+        lastDepTime = getOffStop.arr.add(10, 'second')
         const nextTrainInfoList = await trainGetter({
             stationId: currentStationId,
             lineId: nextLineId,
             depTime: lastDepTime
         })
+        // Trains that transfer time are less than normal transfer time, which means may not able to catch.
+        const normalDepTime = getOffStop.arr.add(minTransfer.needTime, 'second')
+        const lessTransferTimeTrains = findLessTransferTimeTrains(nextTrainInfoList, getOffStop.arr, normalDepTime, nextParsedPath[0].stationIds[0])
 
         const promises = nextTrainInfoList.map(t =>
-            recursivePlan(t, nextParsedPath, lastDepTime, trainGetter, transferInfoGetter, [...trains], cb, transferFromInfo)
+            recursivePlan(t, nextParsedPath, lastDepTime, trainGetter, transferInfoGetter, [...trains], cb, transferFromInfo, lessTransferTimeTrains)
         )
         await Promise.all(promises)
     } catch (error) {
@@ -415,7 +469,7 @@ function toSolution(segments, distance) {
         transferTimes: transfers.length,
         walkDistance,
         distance,
-        totalTime: diff(depInfo.depTime, arrInfo.arrTime),
+        totalTime: Math.abs(diff(depInfo.depTime, arrInfo.arrTime)),
         trains: _trains,
         depTime: depInfo.depTime,
         depTimezone: depInfo.depStop.timezone,
@@ -426,7 +480,7 @@ function toSolution(segments, distance) {
     }
 }
 
-function buildTrain(trainInfo, getOnIndex, getOffIndex) {
+function buildTrain(trainInfo, getOnIndex, getOffIndex, lessTransferTimeTrains) {
     const stops = trainInfo.schedule.slice(getOnIndex, getOffIndex + 1)
     return {
         depTime: stops[0].dep,
@@ -455,6 +509,7 @@ function buildTrain(trainInfo, getOnIndex, getOffIndex) {
         getOnIndex,
         getOffIndex,
         trainInfo,
+        lessTransferTimeTrains,
         category: trainInfo.category,
         type: 'train'
     }
