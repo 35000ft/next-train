@@ -85,6 +85,17 @@ const mutations = {
             console.log('Set railsystem lines OK, railsystem:', state.railSystems.get(railsystemCode))
         }
     },
+    SET_RAIL_SYSTEM_STATIONS(state, {railsystemCode, stations}) {
+        const railsystem = state.railSystems.get(railsystemCode)
+        if (!railsystem || !railsystemCode) {
+            console.warn(`Set railsystem stations err, railsystem:${railsystemCode} dones exist`)
+            return
+        }
+        if (stations && stations instanceof Array) {
+            railsystem['stations'] = stations
+            state.railSystems.set(railsystemCode, railsystem)
+        }
+    },
     SET_LINE(state, {line}) {
         if (!!(line && line.id)) {
             state.lines.set(line.id, line)
@@ -216,7 +227,13 @@ const actions = {
         if (!railsystemCode) {
             railsystemCode = state.currentRailSystem.code
         }
-        return fetchRailsystemStations(railsystemCode)
+        const r = state.railSystems.get(railsystemCode);
+        if (r && r?.stations) {
+            return Promise.resolve(r.stations)
+        }
+        const d = await fetchRailsystemStations(railsystemCode)
+        commit('SET_RAIL_SYSTEM_STATIONS', {railsystemCode, stations: d})
+        return d
     },
     async getLine({state, commit}, {lineId}) {
         if (state.lines.has(lineId)) {

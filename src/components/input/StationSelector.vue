@@ -210,6 +210,12 @@ export default defineComponent({
             loadStationPromise.value = loadStations(lineId).then(r => {
                 const temp = filterResult(r, _keyword)
                 searchResults.value = temp
+                if (temp.length === 0 && currentSearchGroup.value !== ALL_STR) {
+                    console.log('No matched station result, change to ALL')
+                    setTimeout(() => {
+                        currentSearchGroup.value = ALL_STR
+                    }, 30)
+                }
                 return {stations: temp, keyword: _keyword}
             })
         }, 300)
@@ -305,6 +311,7 @@ export default defineComponent({
                 return
             }
             const lineId = line ? line.id : null
+            keyword.value = ''
             if (props.multiple) {
                 if (selectedStationIds.value.has(station.id)) {
                     const index = selectedStations.value.findIndex(it => it.id === station.id)
