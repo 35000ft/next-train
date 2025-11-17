@@ -9,9 +9,9 @@ async function Third_FetchStationTrain(line, station) {
         }
         const date = new Date(item['time'].replace(' ', 'T'))
         date.setTime(date.getTime() + (480 * 60 * 1000))
-        const depTime = date.toISOString().slice(0, 19);
-        date.setSeconds(date.getSeconds() - 40);
         const arrTime = date.toISOString().slice(0, 19);
+        date.setSeconds(date.getSeconds() + 40);
+        const depTime = date.toISOString().slice(0, 19);
         const category = line?.code === 'AEL' ? 'EXPRESS' : 'LOCAL'
         let dest = line.stations.find(it => it.code === item['dest'])
         if (!dest) {
