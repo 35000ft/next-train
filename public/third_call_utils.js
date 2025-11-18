@@ -125,6 +125,15 @@ function Util_toTrainInfoDetailResponse(rawData, railsystemCode) {
         console.warn('direction is invalid', rawData)
         throw new Error("direction is invalid")
     }
+
+    if (!rawData.trainVia && rawData?.lineId) {
+        rawData.trainVia = [{
+            fromIndex: 0,
+            toIndex: rawData.schedule.length - 1,
+            lineId: rawData.lineId,
+        }]
+    }
+
     return {
         id: Util_generateTrainInfoId(railsystemCode, rawData.id),
         trainNo: rawData.trainNo,
@@ -132,6 +141,7 @@ function Util_toTrainInfoDetailResponse(rawData, railsystemCode) {
         direction: direction,
         category: rawData?.category || 'LOCAL',
         railsystemCode,
+        timezone: rawData.timezone,
         trainVia: rawData.trainVia,
     }
 }

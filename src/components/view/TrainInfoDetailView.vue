@@ -198,7 +198,7 @@ const primaryColor = computed(() => {
 const shownTrainInfo = computed(() => {
     return store.getters['application/shownTrainInfo']
 })
-const firstStation = ref(null)
+const timezone = ref(null)
 const isDown = computed(() => {
     const _trainInfo = trainInfo.value;
     if (!_trainInfo) return true
@@ -216,10 +216,9 @@ const trainInfo = ref(null)
 const trainDate = ref(null)
 
 const currentInterval = computed(() => {
-    const _firstStation = firstStation.value
-    const timezone = _firstStation?.timezone
-    if (!timezone) {
-        return 'Waiting...'
+    const timezoneValue = timezone.value
+    if (!timezoneValue) {
+        return 'Loading...'
     }
 
     const _schedule = schedule.value
@@ -231,14 +230,14 @@ const currentInterval = computed(() => {
     if (_schedule && _nextIndex && _nextIndex > 0) {
         const currentStop = _schedule[_nextIndex - 1]
         const nextStop = _schedule[_nextIndex]
-        if (isAfterNow(currentStop.dep, timezone)) {
+        if (isAfterNow(currentStop.dep, timezoneValue)) {
             return `<span style="color: var(--q-arrived)">${currentStop.stationName}</span> ~ <span style="color:var(--q-ontime);">${nextStop.stationName}</span>`
         } else {
             return `<span style="color: var(--q-grey-3)">${currentStop.stationName}</span> ~ <span style="color:var(--q-next-station);">${nextStop.stationName}</span>`
         }
     } else if (_schedule && _nextIndex === 0) {
         // Wait for departure (The first stop of the train)
-        const diffFromNowSeconds = diffFromNow(_schedule[0].arr, 'second', timezone)
+        const diffFromNowSeconds = diffFromNow(_schedule[0].arr, 'second', timezoneValue)
         const remainTime = diffFromNowFormatted(diffFromNowSeconds, {
             $hour: t('time.hour'),
             $minute: t('time.minute'),
@@ -320,19 +319,15 @@ const updateStopStatus = async (_schedule) => {
     if (!_schedule || isUpdatingStopStatus.value || _schedule.length === 0) {
         return
     }
-    const _firstStation = firstStation.value
-    if (!_firstStation) {
-        return
-    }
-    const timezone = _firstStation?.timezone
+    const timezoneValue = timezone.value
     let nextIndexValue = null
     let currentIndexValue = null
     isUpdatingStopStatus.value = true
     try {
         for (let index = 0; index < _schedule.length; index++) {
             const _stopInfo = _schedule[index]
-            if (isBeforeNow(_stopInfo.arr, timezone)) {
-                if (isAfterNow(_stopInfo.dep, timezone)) {
+            if (isBeforeNow(_stopInfo.arr, timezoneValue)) {
+                if (isAfterNow(_stopInfo.dep, timezoneValue)) {
                     currentIndexValue = index
                     if (index < _schedule.length - 1) {
                         nextIndexValue = index + 1
@@ -347,7 +342,7 @@ const updateStopStatus = async (_schedule) => {
                 }
 
                 const previousStop = _schedule[index - 1]
-                if (isBeforeNow(previousStop.dep, timezone)) {
+                if (isBeforeNow(previousStop.dep, timezoneValue)) {
                     nextIndexValue = index
                     break
                 }
@@ -485,7 +480,7 @@ watch(() => shownTrainInfo.value, (newVal, oldValue) => {
 const emit = defineEmits(['close'])
 
 async function loadTrainInfo(_trainInfoId, trainDate) {
-    firstStation.value = null
+    timezone.value = null
     if (loading.value || !_trainInfoId) {
         return
     }
@@ -496,7 +491,14 @@ async function loadTrainInfo(_trainInfoId, trainDate) {
             date: trainDate
         })
         const firstStationId = _trainInfo.schedule[0]?.stationId
-        firstStation.value = await store.dispatch('railsystem/getStation', {stationId: firstStationId})
+        if (firstStationId) {
+            const s = await store.dispatch('railsystem/getStation', {stationId: firstStationId})
+            timezone.value = s.timezone
+        } else if (_trainInfo.timezone) {
+            timezone.value = _trainInfo.timezone
+        } else {
+            return Promise.reject('Timezone is required')
+        }
         return _trainInfo
     } catch (e) {
         console.warn('loadTrainInfo err:', e)
@@ -517,6 +519,8 @@ watch(trainInfoId, (newVal, oldValue) => {
             setTimeout(() => {
                 trainInfo.value = res
             }, 100)
+        }).catch(e => {
+            console.warn('Load train info error:', e)
         })
     }
 })

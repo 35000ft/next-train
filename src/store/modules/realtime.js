@@ -267,21 +267,21 @@ const actions = {
                     try {
                         const thirdTrainInfo = await window[functionName](trainInfoId, date)
                         if (!thirdTrainInfo) {
-                            return Promise.reject('车次不存在')
+                            return Promise.reject('No such train found')
                         }
                         const railsystem = await this.dispatch("railsystem/getRailSystem", {code: thirdTrainInfo.railsystemCode})
                         thirdTrainInfo.schedule = thirdTrainScheduleParser(thirdTrainInfo.schedule, railsystem.timezone)
                         trainInfo = thirdTrainInfo
                     } catch (e) {
-                        return Promise.reject('获取第三方车次详情失败')
+                        return Promise.reject('Fetch third train info error')
                     }
                 } else {
-                    return Promise.reject('不支持查看车次详情')
+                    return Promise.reject('Train schedule is not available for this train')
                 }
             } else {
                 trainInfo = await fetchTrainInfoById(trainInfoId)
                 if (!trainInfo) {
-                    return Promise.reject("No such trainInfo. id:" + trainInfoId)
+                    return Promise.reject("No such train found")
                 }
                 trainInfo.trainVia = trainLineOfStopParser(trainInfo)
                 const firstLine = Object.values(trainInfo?.lineMap)[0]
@@ -297,7 +297,7 @@ const actions = {
         if (trainInfo) {
             return Promise.resolve(trainInfo)
         } else {
-            return Promise.reject('No such traininfo. id:' + trainInfoId)
+            return Promise.reject('No such traininfo')
         }
     },
 

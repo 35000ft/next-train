@@ -491,11 +491,7 @@ function calcTrainInfo(vehicleInfo, line, station, linePath) {
         direction: vehicleInfo.direction,
         trainNo: vehicleInfo.vid,
         category: 'LOCAL',
-        trainVia: [{
-            fromIndex: 0,
-            toIndex: trainSchedule.length - 1,
-            lineId: line.id,
-        }]
+        lineId: line.id,
     }, 'NUIST-BUS')
     const {
         arrTime,
