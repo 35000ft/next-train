@@ -74,6 +74,8 @@ async function init() {
         } finally {
             dialog?.hide()
         }
+    } else if (props.initial instanceof Object) {
+        Object.assign(stationData.value, props.initial)
     }
 }
 
@@ -86,7 +88,8 @@ async function submitForm() {
     try {
         loading.value = true
         const payload = {...stationData.value}
-        payload.railsystemCode = props.initial?.railsystem?.code
+        payload.railsystemCode = props.initial?.railsystemCode || props.initial?.railsystem?.code
+        console.log('props initial:', props.initial)
         payload.lineId = props.initial?.line?.id
         if (!payload.railsystemCode) {
             $q.notify.error('线网代码不能为空')
@@ -101,14 +104,15 @@ async function submitForm() {
         }
         stationData.value = {}
         emits('close')
+        if (result) {
+            emits('saved', result);
+        }
     } catch (err) {
         $q.notify.error('保存车站失败')
         console.error('保存车站失败:', err);
     } finally {
         loading.value = false
     }
-    emits('saved', result);
-
 }
 
 const confirmDelete = async () => {
