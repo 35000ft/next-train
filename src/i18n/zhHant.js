@@ -51,6 +51,7 @@ export default {
     train: "車",
     date: "日期",
     version: "版本",
+    _new: '新增',
     other: '其它',
     get: '獲取',
     load: '載入',

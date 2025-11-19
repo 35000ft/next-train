@@ -98,7 +98,10 @@
                                         {{ index + 1 }}
                                     </q-avatar>
                                 </q-item-section>
-                                <q-item-section class="col-3">{{ element.name }}</q-item-section>
+                                <q-item-section class="col-3">
+                                    <span>{{ element.name }}</span>
+                                    <span v-if="!!element.isNew" style="color: var(--q-green)">*{{ t('_new') }}</span>
+                                </q-item-section>
                                 <q-item-section>
                                     <q-input v-model="element.preDistance" type="number" :disable="index===0"
                                              @update:model-value="(val)=>handleDistanceChange(index,val,'previous')"/>
@@ -115,6 +118,14 @@
                                         icon="delete"
                                         color="negative"
                                         @click="removeStation(index)"
+                                    />
+                                    <q-btn
+                                        v-if="element.isNew"
+                                        dense
+                                        flat
+                                        icon="add"
+                                        color="green"
+                                        @click="_createStation({name:element.name})"
                                     />
                                 </q-item-section>
                             </q-item>
@@ -161,7 +172,7 @@
     <station-selector ref="stationSelector" :railsystem-code="lineData?.railsystemCode" @select="handleSelectStation"
                       :multiple="true"/>
     <q-dialog v-model="showStationForm" v-if="!!(props.initial?.id)">
-        <station-form :initial="{railsystemCode:lineData?.railsystemCode, lineId:lineData?.id}"/>
+        <station-form :initial="createStationInitial" @saved="handleSavedStation"/>
     </q-dialog>
     <OsmLocationPicker multiple :display="displayLocationPicker"
                        :model-value="stationLocations" format="lon-lat"
@@ -198,11 +209,13 @@ import {useQuasar} from "quasar";
 import OsmLocationPicker from "components/input/OsmLocationPicker.vue";
 import StationBatchEditForm from "components/form/StationBatchEditForm.vue";
 import {useStore} from "vuex";
+import {useI18n} from "vue-i18n";
 
 const store = useStore()
 const displayLocationPicker = ref(false)
 const quickImportStationText = ref('')
 const formRef = ref(null)
+const {t} = useI18n()
 const showStationForm = ref(false)
 const props = defineProps({
     initial: Object
@@ -232,6 +245,7 @@ const categoryOptions = RAILSYSTEM_CATEGORIES;
 const lineData = ref({
     status: 1,
 })
+const createStationInitial = ref({lineId: lineData.value?.id})
 const batchEditStations = ref([])
 const stationLocations = ref([])
 onMounted(async () => {
@@ -255,6 +269,9 @@ onMounted(async () => {
             dialog?.hide()
         }
     } else {
+        if (props.initial instanceof Object) {
+            Object.assign(lineData.value, props.initial)
+        }
         rawStations.value = []
         lineStations.value = []
     }
@@ -262,7 +279,6 @@ onMounted(async () => {
 })
 
 const handleSelectStation = async (stations) => {
-    console.log('select stations', stations)
     if (stations instanceof Array) {
         stations.forEach(it => {
             lineStations.value.push(it)
@@ -278,7 +294,24 @@ function addStation() {
     stationSelector.value.showSelector('addLineStation')
 }
 
-function _createStation() {
+function handleSavedStation(savedStation) {
+    const newItemIndex = lineStations.value.findIndex(it => savedStation.name === it.name && it?.isNew)
+    if (newItemIndex !== -1) {
+        // Replace the new station to saved station
+        lineStations.value[newItemIndex] = savedStation
+    } else {
+        lineStations.value.push(savedStation)
+    }
+}
+
+function _createStation(data) {
+    if (data instanceof Object) {
+        createStationInitial.value = {
+            ...data,
+            ...createStationInitial.value,
+        }
+    }
+    createStationInitial.value.railsystem = lineData.value?.railsystem
     showStationForm.value = true
 }
 
@@ -306,6 +339,8 @@ const handleQuickAddStations = async (text) => {
         names = text.split(',')
     } else if (text.indexOf(' ') !== -1) {
         names = text.split(' ')
+    } else {
+        names = [text]
     }
     names = names.map(it => it.trim()).filter(it => it.length > 0)
     const matchedStations = await store.dispatch('railsystem/matchStationByNames', {names, railsystemCode})
@@ -374,6 +409,12 @@ async function submitForm() {
         payload.railsystemId = lineData.value?.railsystem?.id
         payload.status = payload?.status?.value
         payload.category = payload?.category?.value
+        lineStations.value.forEach(it => {
+            if (it?.isNew) {
+                $q.notify.error("请先创建所有带*新增车站")
+                throw new Error("Can not submit:contain new station")
+            }
+        })
         payload.stations = lineStations.value.map(it => {
             return {
                 id: it.id,

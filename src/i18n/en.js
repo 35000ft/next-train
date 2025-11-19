@@ -53,6 +53,7 @@ export default {
     other: 'Other',
     get: 'Get',
     load: 'Load',
+    _new: 'New',
     trainInfo: "train info",
     update: "Update",
     error: "error",

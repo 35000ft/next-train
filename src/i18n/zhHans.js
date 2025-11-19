@@ -97,6 +97,7 @@ export default {
     boundFor: '开往 $terminal',
     stop: '站',
     departFromThisStation: '本站始发',
+    _new: '新增',
     transferCategory: {
         EXIT: '出站换乘',
         NODE: '节点换乘',
