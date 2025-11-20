@@ -5,9 +5,10 @@ const baseUrl = 'api/metro-realtime'
 /**
  * Fetch all stations of a rail system
  * @param {String} railsystemCode Code of Rail system, like "NJMTR"
+ * @param latest
  */
-export async function fetchRailsystemStations(railsystemCode) {
-    const url = `api/file/railsystem/stations/${railsystemCode}`
+export async function fetchRailsystemStations(railsystemCode, latest) {
+    const url = `api/file/railsystem/stations/${railsystemCode}` + (latest ? '?v=latest' : '')
     return await axios
         .get(url)
         .then(res => {
