@@ -1,4 +1,5 @@
 import axios from 'axios'
+import router from 'src/router'
 
 const publicPath = process.env.PUBLIC_URL || '/';
 const apiBaseUrl = process.env.API_BASE_URL;
@@ -44,17 +45,21 @@ axiosInstance.interceptors.response.use(
             if (response.data?.failed === true) {
                 return Promise.reject(response.data?.msg)
             }
-        } else if (response.status === 401) {
-            return Promise.reject('Unauthorized')
-        } else if (response.status === 403) {
-            return Promise.reject('Permission Denied')
-        } else if (response.status === 404) {
-            return Promise.reject('Not Found')
         }
         return response
     },
-    (response) => {
-        return Promise.reject('Fail to get response')
+    ({status, response, request}) => {
+        if (status === 401) {
+            console.warn('401 Unauthorized', request)
+            router.push({name: 'login'})
+            return Promise.reject('Unauthorized')
+        } else if (status === 403) {
+            return Promise.reject('Permission Denied')
+        } else if (status === 404) {
+            return Promise.reject('Not Found')
+        } else {
+            return Promise.reject('Fail to get response')
+        }
     }
 )
 
