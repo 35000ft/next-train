@@ -211,11 +211,11 @@ const actions = {
         }
         return await Promise.all(promises)
     },
-    async getRailsystemStations({state, commit}, {railsystemCode}) {
+    async getRailsystemStations({state, commit}, {railsystemCode, latest = false}) {
         if (!railsystemCode) {
             railsystemCode = state.currentRailSystem.code
         }
-        return fetchRailsystemStations(railsystemCode)
+        return fetchRailsystemStations(railsystemCode, latest)
     },
     async getLine({state, commit}, {lineId}) {
         if (state.lines.has(lineId)) {
@@ -319,7 +319,7 @@ const actions = {
         return Promise.reject(`No station named ${stationName}`)
     },
     async matchStationByNames({state, commit}, {names, railsystemCode}) {
-        const stations = await this.dispatch("railsystem/getRailsystemStations", {railsystemCode})
+        const stations = await this.dispatch("railsystem/getRailsystemStations", {railsystemCode, latest: true})
         const nameMap = new Map()
         for (const name of names) {
             const filtered = stations.filter(it => it.name === name || it.enName === name || it.code === name)
