@@ -300,7 +300,7 @@ const actions = {
             return Promise.resolve(railsystem.lines)
         } else {
             return new Promise((resolve, reject) => {
-                fetchLines(railsystem.code).then(lines => {
+                fetchLines(railsystem.code, payload?.latest).then(lines => {
                     commit('SET_RAIL_SYSTEM_LINES', {railsystemCode: railsystem.code, lines})
                     lines.forEach(it => {
                         commit('SET_LINE', {line: it})

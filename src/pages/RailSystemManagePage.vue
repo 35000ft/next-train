@@ -141,7 +141,7 @@ async function editRailsystem(node) {
         selectedRailsystem.value = node?.railsystem
         showRailsystemForm.value = true
         selectedLine.value = null
-        lines.value = await fetchLines(node?.railsystem?.code)
+        lines.value = await fetchLines(node?.railsystem?.code, true)
     }
 }
 
@@ -205,8 +205,9 @@ const stationToNode = (s) => {
 async function loadRailLines({node, key, done, fail}) {
     try {
         const lines = await store.dispatch('railsystem/getRailSystemLines', {
-            railsystemCode: node.railsystemCode
-        });
+            railsystemCode: node.railsystemCode,
+            latest: true
+        })
         const childNodes = lines.map(line => ({
             id: `line_${line.id}`,
             label: line.name,
@@ -247,7 +248,7 @@ function editStation(node) {
 
 async function reloadLines() {
     if (selectedRailsystem.value) {
-        lines.value = await fetchLines(selectedRailsystem.value.code);
+        lines.value = await fetchLines(selectedRailsystem.value.code, true)
     }
 }
 
