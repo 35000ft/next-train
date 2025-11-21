@@ -88,6 +88,7 @@ export default {
     delete: "刪除",
     confirmDelete: "確認刪除嗎？",
     frqUsedStation: "常用車站",
+    hotStation: "熱點車站",
     pleaseSelectArrStation: '請選擇到達車站',
     pleaseSelectDepStation: '請選擇出發車站',
     via: '經由',

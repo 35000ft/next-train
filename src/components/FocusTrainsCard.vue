@@ -1,40 +1,42 @@
 <template>
-    <div v-if="focusTrains.length===0"
-         style="display: flex;justify-content: center;padding: 10px;  align-items: center;height: 100%;">
+    <q-card>
+        <div v-if="focusTrains.length===0"
+             style="display: flex;justify-content: center;padding: 10px;  align-items: center;height: 100%;">
         <span style="font-size: 20px;text-align: center; display: flex;">
             {{ t('emptyFocusTrainHint') }}
         </span>
-    </div>
-    <q-tab-panels v-if="focusTrains.length>0" v-model="currentTrainId" @touchstart.stop swipeable animated>
-        <q-tab-panel :name="train.id" v-for="(train,index) in focusTrains" :key="train.id">
-            <div class="row">
-                <div class="col-8 auto-scroll-container">
-                    <div v-overflow-auto-scroll>
-                        <i style="color: var(--q-primary)"> {{ train.station.name }}</i>
+        </div>
+        <q-tab-panels v-if="focusTrains.length>0" v-model="currentTrainId" @touchstart.stop swipeable animated>
+            <q-tab-panel :name="train.id" v-for="(train,index) in focusTrains" :key="train.id">
+                <div class="row">
+                    <div class="col-8 auto-scroll-container">
+                        <div v-overflow-auto-scroll>
+                            <i style="color: var(--q-primary)"> {{ train.station.name }}</i>
+                        </div>
+                    </div>
+                    <div class="col-4" @click="handleCancelFocus(train)">
+                        {{ formatToHHMM(train.dep) }}
+                    </div>
+                    <div class="col-8" style="display: flex;align-items: center;justify-content: center;"
+                         @click="handleClickTerminal(train)">
+                        <div class="show-text-in-2-line"
+                             style="font-weight: bold;width: 100%;font-size: 18px;text-align: center;">
+                            {{ train.terminal }}
+                        </div>
+                    </div>
+                    <div class="col-4 train-status"
+                         style="display: flex;align-items: center;justify-content: center; border-left: 2px solid var(--q-primary);">
+                        <div class="show-text-in-2-line" :class="train.status"
+                             style="font-size: 16px;text-align: center;" v-html="train.statusStr">
+                        </div>
                     </div>
                 </div>
-                <div class="col-4" @click="handleCancelFocus(train)">
-                    {{ formatToHHMM(train.dep) }}
+                <div style="font-size: 12px;color: var(--q-grey);text-align: center;opacity: 80%;">
+                    {{ index + 1 }} / {{ focusTrains.length }}
                 </div>
-                <div class="col-8" style="display: flex;align-items: center;justify-content: center;"
-                     @click="handleClickTerminal(train)">
-                    <div class="show-text-in-2-line"
-                         style="font-weight: bold;width: 100%;font-size: 18px;text-align: center;">
-                        {{ train.terminal }}
-                    </div>
-                </div>
-                <div class="col-4 train-status"
-                     style="display: flex;align-items: center;justify-content: center; border-left: 2px solid var(--q-primary);">
-                    <div class="show-text-in-2-line" :class="train.status"
-                         style="font-size: 16px;text-align: center;" v-html="train.statusStr">
-                    </div>
-                </div>
-            </div>
-            <div style="font-size: 12px;color: var(--q-grey);text-align: center;opacity: 80%;">
-                {{ index + 1 }} / {{ focusTrains.length }}
-            </div>
-        </q-tab-panel>
-    </q-tab-panels>
+            </q-tab-panel>
+        </q-tab-panels>
+    </q-card>
 </template>
 
 <script setup>

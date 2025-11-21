@@ -86,6 +86,7 @@ export default {
     delete: "删除",
     confirmDelete: "确认删除吗？",
     frqUsedStation: "常用车站",
+    hotStation: "热点车站",
     pleaseSelectArrStation: '请选择到达车站',
     pleaseSelectDepStation: '请选择出发车站',
     via: '经由',

@@ -127,3 +127,8 @@ export async function createSchedule(data) {
     const url = `api/metro-realtime/schedules/m/create`;
     return axios.post(url, data).then(res => res.data.data)
 }
+
+export async function fetchHotStations(railsystemCode) {
+    const url = `api/metro-realtime/station/realtime/hot-station/${railsystemCode}`
+    return axios.post(url).then(res => res.data?.data)
+}

@@ -24,9 +24,14 @@
                     style="min-height: 500px;max-width: 380px;width: 100%;z-index: 100;position: fixed; left: 35px; top:70px;">
                     <div style="display: flex;justify-content: space-around;margin-bottom: 10px;">
                         <div class="my-card middle-card">
-                            <q-card>
-                                <FocusTrainsView/>
-                            </q-card>
+                            <q-tab-panels v-model="leftCardTab" swipeable infinite animated @touchstart.stop>
+                                <q-tab-panel name="hot-station">
+                                    <HotStationCard/>
+                                </q-tab-panel>
+                                <q-tab-panel name="focus-trains">
+                                    <FocusTrainsView/>
+                                </q-tab-panel>
+                            </q-tab-panels>
                         </div>
                         <div class="my-card middle-card">
                             <q-card>
@@ -52,9 +57,14 @@
                 <div style="width: 100%;">
                     <div style="display: flex;justify-content: space-around;margin-bottom: 10px;">
                         <div class="my-card middle-card">
-                            <q-card>
-                                <FocusTrainsView/>
-                            </q-card>
+                            <q-tab-panels v-model="leftCardTab" swipeable infinite animated @touchstart.stop>
+                                <q-tab-panel name="hot-station">
+                                    <HotStationCard/>
+                                </q-tab-panel>
+                                <q-tab-panel name="focus-trains">
+                                    <FocusTrainsView/>
+                                </q-tab-panel>
+                            </q-tab-panels>
                         </div>
                         <div class="my-card middle-card">
                             <q-card>
@@ -89,6 +99,7 @@ import 'leaflet/dist/leaflet.css';
 import OpenStreetMap from "components/common/OpenStreetMap.vue";
 import {isPCMode} from "src/utils/navigator_utils";
 import {useRoute} from "vue-router";
+import HotStationCard from "components/HotStationCard.vue";
 
 defineOptions({
     name: 'HomeView'
@@ -102,6 +113,7 @@ const props = defineProps({})
 const topBanner = ref('currentTrip')
 const $q = useQuasar()
 const route = useRoute()
+const leftCardTab = ref('hot-station')
 const currentStationId = computed(() => {
     const currentStation = store.getters['preference/currentStation']
     if (currentStation) {
