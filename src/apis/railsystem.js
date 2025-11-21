@@ -8,7 +8,7 @@ const baseUrl = 'api/metro-realtime'
  * @param latest
  */
 export async function fetchRailsystemStations(railsystemCode, latest) {
-    const url = `api/file/railsystem/stations/${railsystemCode}` + (latest ? '?v=latest' : '')
+    const url = `api/file/railsystem/stations/${railsystemCode}${latest ? '?v=latest' : ''}`
     return await axios
         .get(url)
         .then(res => {
@@ -22,8 +22,8 @@ export async function fetchRailsystemStations(railsystemCode, latest) {
         .catch(err => Promise.reject(err))
 }
 
-export async function fetchLines(railsystemCode) {
-    const url = `api/file/railsystem/lines/${railsystemCode}`
+export async function fetchLines(railsystemCode, latest) {
+    const url = `api/file/railsystem/lines/${railsystemCode}${latest ? '?v=latest' : ''}`
     return await axios.get(url).then(res => {
         return res.data.data || res.data
     })

@@ -307,8 +307,8 @@ function handleSavedStation(savedStation) {
 function _createStation(data) {
     if (data instanceof Object) {
         createStationInitial.value = {
-            ...data,
             ...createStationInitial.value,
+            ...data,
         }
     }
     createStationInitial.value.railsystem = lineData.value?.railsystem
