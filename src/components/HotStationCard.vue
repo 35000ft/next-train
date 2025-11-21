@@ -16,15 +16,15 @@
                 </div>
                 <div v-if="hotStations?.length>0" class="scroll">
                     <div class="row station-row" v-for="(hs, index) in hotStations.slice(0,10)" :key="hs.stationId"
-                         style="height: 20px;">
+                         style="display: flex;align-items: center;" @click.stop="handleClick(hs.station)">
                         <div class="col-8 station-name" :class="index===0?'first-station':''">
                             {{ hs.station?.name }}
                         </div>
                         <div class="col-4 icons">
-                        <span style="margin-right: 2px; color: var(--q-grey); ">
+                        <span style="margin-right: 2px; color: var(--q-grey);font-size: 12px; ">
                             {{ hs.count > 1 ? Math.ceil(hs.count * 57.334) : 50 }}
                         </span>
-                            <q-icon name="fa-solid fa-fire" color="red"/>
+                            <q-icon name="fa-solid fa-fire" color="red" size="small"/>
                         </div>
                     </div>
                 </div>
@@ -39,9 +39,11 @@ import {useStore} from "vuex";
 
 import {useI18n} from "vue-i18n";
 import {fetchHotStations} from "src/apis/reailtime";
+import {useRouter} from "vue-router";
 
 const {t} = useI18n()
 const store = useStore()
+const router = useRouter()
 
 const currentRailSystem = computed(() => store.getters['railsystem/currentRailSystem'])
 const hotStations = ref([])
@@ -78,6 +80,11 @@ onBeforeUnmount(() => {
 
 })
 
+function handleClick(station) {
+    if (station && station.id) {
+        router.push({name: 'station-detail', params: {id: station.id}})
+    }
+}
 </script>
 
 <style scoped>
