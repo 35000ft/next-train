@@ -1,8 +1,8 @@
 <template>
     <l-map
-        style="height: 500px; width: 100%;"
         :zoom="zoom"
         :center="centerPoint"
+        @ready="onMapReady"
     >
         <l-tile-layer
             :url="tileUrl"
@@ -32,13 +32,17 @@ const props = defineProps({
         type: Number,
         default: 12
     },
+    zoomControl: {
+        type: Boolean,
+        default: true
+    },
     tileUrl: {
         type: String,
         default: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
     },
     tileAttr: {
         type: String,
-        default: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        default: ''
     }
 })
 const centerPoint = computed(() => {
@@ -63,4 +67,10 @@ const centerPoint = computed(() => {
     }
     return defaultLocation
 })
+const onMapReady = (map) => {
+    if (!props.zoomControl) {
+        map.zoomControl.remove()
+    }
+    map.invalidateSize()
+}
 </script>

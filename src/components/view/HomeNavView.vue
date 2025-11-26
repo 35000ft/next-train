@@ -64,6 +64,9 @@
                                 <q-tab-panel name="focus-trains">
                                     <FocusTrainsView/>
                                 </q-tab-panel>
+                                <q-tab-panel name="map-card">
+                                    <MapCard :center="mapProps.center" :point-name="mapProps.pointName"/>
+                                </q-tab-panel>
                             </q-tab-panels>
                         </div>
                         <div class="my-card middle-card">
@@ -100,6 +103,7 @@ import OpenStreetMap from "components/common/OpenStreetMap.vue";
 import {isPCMode} from "src/utils/navigator_utils";
 import {useRoute} from "vue-router";
 import HotStationCard from "components/HotStationCard.vue";
+import MapCard from "components/MapCard.vue";
 
 defineOptions({
     name: 'HomeView'
