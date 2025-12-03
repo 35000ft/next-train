@@ -107,7 +107,7 @@ export async function createRailsystem(data) {
 }
 
 export async function updateRailsystem(id, data) {
-    const url = `${baseUrl}/railsystems/${id}`;
+    const url = `${baseUrl}/railsystems/update/${id}`;
     return axios.post(url, data).then(res => res.data.data)
 }
 
