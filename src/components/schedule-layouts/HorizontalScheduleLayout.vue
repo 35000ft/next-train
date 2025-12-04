@@ -205,7 +205,7 @@ const calcStyleClass = (trainInfo) => {
 }
 
 .minute-wrapper {
-    width: 35px;
+    width: 38px;
     float: left;
     line-height: 25px;
     position: relative;

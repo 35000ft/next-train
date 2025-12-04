@@ -266,9 +266,11 @@ const processScheduleData = (scheduleData, _line) => {
         return it[0]
     }).filter(it => !lineTerminalStationIds.has(it)).forEach(it => shortTerminalStationIds.add(it))
     const briefNameMap = new Map()
+    const tempBriefNameMap = new Map()
     for (let stationId of shortTerminalStationIds) {
         const station = scheduleData.stationMap[stationId]
-        station.briefName = genBriefName(station.name, briefNameMap)
+        station.briefName = genBriefName(station.name, tempBriefNameMap)
+        tempBriefNameMap.set(station.briefName, true)
         briefNameMap.set(stationId, station)
     }
     scheduleData.schedules = rawSchedule.map(it => {

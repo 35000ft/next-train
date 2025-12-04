@@ -187,7 +187,7 @@ function genBriefName(name, briefNameMap) {
         if (!briefNameMap.has(_newName)) {
             return _newName
         }
-        _newName += suffixes[i]
+        _newName = name.slice(0, 1) + suffixes[i]
     }
     console.warn('Too much brief name conflict')
     return name
