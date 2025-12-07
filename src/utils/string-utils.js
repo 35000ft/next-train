@@ -152,7 +152,7 @@ function findMatches(pattern, texts) {
     }
 
     // 使用 flatMap 遍历 texts 数组，并对每个文本应用 processText 函数
-    return texts.map((txt, index) => {
+    return texts.filter(it => typeof it === "string").map((txt, index) => {
         return processText(txt, index);
     }).filter(it => it != null)
 }
