@@ -80,12 +80,10 @@ function containsChinese(str) {
  * @return {number[]} - 部分匹配表数组。
  */
 function computeLPSArray(pattern) {
-    let lps = [0];
+    let lps = new Array(pattern.length).fill(0);
     let len = 0;
     let i = 1;
-    if (pattern[0] === pattern[i]) {
-        lps[0] = 1;
-    }
+
     while (i < pattern.length) {
         if (pattern[i] === pattern[len]) {
             len++;
@@ -120,7 +118,7 @@ function KMPSearch(pat, txt) {
         }
         if (j === pat.length) {
             return {
-                index: -1,
+                index: i - j,
                 match: pat, // matched word
                 ratio: (pat.length / txt.length).toFixed(4) // ratio of match content to original text
             }

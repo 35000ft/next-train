@@ -75,7 +75,7 @@ const mutations = {
     SET_RAIL_SYSTEM_LINES(state, {railsystemCode, lines}) {
         const railsystem = state.railSystems.get(railsystemCode)
         if (!railsystem || !railsystemCode) {
-            console.warn(`Set railsystem lines err, railsystem:${railsystemCode} dones exist`)
+            console.warn(`Set railsystem lines err, railsystem:${railsystemCode} does not exist`)
             return
         }
         if (lines && lines instanceof Array) {
@@ -88,7 +88,7 @@ const mutations = {
     SET_RAIL_SYSTEM_STATIONS(state, {railsystemCode, stations}) {
         const railsystem = state.railSystems.get(railsystemCode)
         if (!railsystem || !railsystemCode) {
-            console.warn(`Set railsystem stations err, railsystem:${railsystemCode} dones exist`)
+            console.warn(`Set railsystem stations err, railsystem:${railsystemCode} does not exist`)
             return
         }
         if (stations && stations instanceof Array) {

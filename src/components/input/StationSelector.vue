@@ -196,7 +196,7 @@ export default defineComponent({
         })
 
         const handleSearch = _.debounce(_keyword => {
-            console.log('handle search stations, keyword:', keyword)
+            console.log('Search stations, keyword:', _keyword)
             let lineId
             if (currentSearchGroup.value === ALL_STR) {
                 lineId = ALL_STR
