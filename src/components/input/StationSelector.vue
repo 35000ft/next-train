@@ -6,6 +6,8 @@
                 <div style="margin-bottom: 10px;" class="full-width">
                     <q-input outlined rounded v-model="keyword" label="车站名 | 车站代码"
                              @update:model-value="handleSearch"
+                             @focus="showHistory=false"
+                             @blur="showHistory=true"
                              @keydown.enter="handleEnter"
                              :bg-color="isDark?'grey-10':'grey-2'"/>
                 </div>
@@ -20,7 +22,7 @@
                     <q-tab-panels v-model="currentSearchGroup" animated swipeable infinite
                                   style="width: 100%;height: 80%;">
                         <q-tab-panel :name="ALL_STR">
-                            <div class="history-wrapper">
+                            <div class="history-wrapper" v-show="showHistory">
                             <span @click="handleSelect(station)" class="pill" v-for="station in historyStations"
                                   :key="station.id">
                                 {{ station.name }}
@@ -127,6 +129,7 @@ export default defineComponent({
     setup(props, {emit}) {
         let event = null
         const display = ref(false)
+        const showHistory = ref(true)
         const keyword = ref('')
         const {t} = useI18n()
         const loading = ref(true)
@@ -385,6 +388,7 @@ export default defineComponent({
             searchResults,
             currentSearchGroup,
             lines,
+            showHistory,
             searchGroups,
             historyStations,
             handleSearch,
