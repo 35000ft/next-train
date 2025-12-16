@@ -94,7 +94,8 @@
                             <q-item class="row">
                                 <q-item-section class="col-1 items-center justify-center drag-handle"
                                                 style="text-align: center;">
-                                    <q-avatar color="primary" text-color="white" size="24px">
+                                    <q-avatar color="primary" text-color="white" size="24px"
+                                              @click="callSetStationIndex(index)">
                                         {{ index + 1 }}
                                     </q-avatar>
                                 </q-item-section>
@@ -174,6 +175,29 @@
     <q-dialog v-model="showStationForm" v-if="!!(props.initial?.id)">
         <station-form :initial="createStationInitial" @saved="handleSavedStation"/>
     </q-dialog>
+    <q-dialog v-model="showSetStationIndex">
+        <q-card>
+            <q-card-section>
+                <div class="flex" style="align-items: center; gap: 4px;">
+                    <span>当前序号:</span>
+                    <span class="text-bold">{{ currentStationIndex + 1 }}</span>
+                    <span>最大编号: {{ lineStations.length }}</span>
+                </div>
+            </q-card-section>
+            <q-card-section>
+                <div class="flex" style="align-items: center;gap: 4px;">
+                    <span>设定序号:</span>
+                    <q-input v-model="newStationIndex" type="number" :min="1" :max="lineStations.length"/>
+                </div>
+            </q-card-section>
+            <q-card-section>
+                <q-btn-group style="gap: 4px;">
+                    <q-btn color="green" @click.stop="handleSetStationIndex('insert')">插入</q-btn>
+                    <q-btn color="red" @click.stop="handleSetStationIndex('exchange')">交换</q-btn>
+                </q-btn-group>
+            </q-card-section>
+        </q-card>
+    </q-dialog>
     <OsmLocationPicker multiple :display="displayLocationPicker"
                        :model-value="stationLocations" format="lon-lat"
                        @update:model-value="onPickStationLocation"
@@ -193,15 +217,9 @@
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue';
+import {onMounted, ref} from 'vue';
 import draggable from 'vuedraggable';
-import {
-    fetchLine,
-    updateLine,
-    createLine,
-    createStation,
-    preDeleteLine, deleteLine
-} from 'src/apis/railsystem';
+import {createLine, createStation, deleteLine, fetchLine, preDeleteLine, updateLine} from 'src/apis/railsystem';
 import StationSelector from "components/input/StationSelector.vue";
 import StationForm from "components/form/StationForm.vue";
 import {RAILSYSTEM_CATEGORIES} from "src/models/Railsystem";
@@ -217,6 +235,9 @@ const quickImportStationText = ref('')
 const formRef = ref(null)
 const {t} = useI18n()
 const showStationForm = ref(false)
+const showSetStationIndex = ref(false)
+const newStationIndex = ref(1)
+const currentStationIndex = ref(0)
 const props = defineProps({
     initial: Object
 })
@@ -228,6 +249,23 @@ const handleDistanceChange = (index, value, distanceType) => {
         lineStations.value[index - 1].nextDistance = value
     } else if (distanceType === 'next' && index < lineStations.value.length - 1) {
         lineStations.value[index + 1].preDistance = value
+    }
+}
+
+const callSetStationIndex = (currentIndex) => {
+    showSetStationIndex.value = true
+    currentStationIndex.value = currentIndex
+}
+const handleSetStationIndex = (changeType) => {
+    const targetIndex = newStationIndex.value - 1
+    const currentIndex = currentStationIndex.value
+    const toMove = lineStations.value[currentIndex]
+    if (changeType === "insert") {
+        lineStations.value.splice(currentIndex, 1)
+        lineStations.value.splice(targetIndex, 0, toMove)
+    } else if (changeType === 'exchange') {
+        lineStations.value[currentIndex] = lineStations.value[targetIndex]
+        lineStations.value[targetIndex] = toMove
     }
 }
 
