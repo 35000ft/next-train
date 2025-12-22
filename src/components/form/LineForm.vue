@@ -74,9 +74,24 @@
                         <q-checkbox v-model="enableDistanceLock" label="距离联动"></q-checkbox>
                     </template>
                     <!-- 车站列表 -->
-                    <q-input v-model="quickImportStationText" type="textarea" label="快速添加车站"
-                             @blur="handleQuickAddStations(quickImportStationText)"
-                             outlined style="--q-field-control-bg: #f0f0f0;"/>
+                    <q-btn label="快速添加车站" color="primary">
+                        <q-popup-proxy>
+                            <q-card>
+                                <q-card-section>
+                                    <div
+                                        style="font-size: 20px;font-weight:bold;text-align: center;height: 30px;padding-top: 10px;color: var(--q-primary-d);margin-bottom: 10px;">
+                                        Quick Add Station
+                                    </div>
+                                </q-card-section>
+                                <q-card-section>
+                                    <q-input v-model="quickImportStationText" type="textarea"
+                                             hint="e.g.: 栖霞山 十月广场 (以空格分隔站名)"
+                                             @blur="handleQuickAddStations(quickImportStationText)"
+                                             outlined style="--q-field-control-bg: #f0f0f0;"/>
+                                </q-card-section>
+                            </q-card>
+                        </q-popup-proxy>
+                    </q-btn>
                     <q-item class="row text-primary">
                         <q-item-section class="col-1">序号</q-item-section>
                         <q-item-section class="col-3">车站名</q-item-section>
