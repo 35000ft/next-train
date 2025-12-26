@@ -11,6 +11,7 @@
                 <q-tree
                     ref="railsystemTree"
                     :nodes="railsystems"
+                    v-if="railsystems?.length>0"
                     node-key="id"
                     :lazy-load="true"
                     @lazy-load="loadRailLines"
@@ -89,6 +90,9 @@
                         </div>
                     </template>
                 </q-tree>
+                <div v-if="railsystems?.length===0">
+                    <h5 style="color: grey">登入后检视可管理的线网</h5>
+                </div>
             </q-card>
         </div>
 
@@ -119,6 +123,7 @@ import StationForm from "components/form/StationForm.vue";
 
 const $q = useQuasar()
 const railsystems = ref([]);
+const loading = ref(true);
 const selectedRailsystem = ref(null);
 const selectedLine = ref(null);
 const selectedStation = ref(null);
@@ -172,7 +177,7 @@ function _createStation(node) {
 
 
 async function loadRailsystems() {
-    const rawList = await listRailsystem();
+    const rawList = await listRailsystem('', true);
 
     railsystems.value = rawList.map(rs => ({
         id: `rs_${rs.id}`,

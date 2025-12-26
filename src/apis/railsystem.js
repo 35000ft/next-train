@@ -37,9 +37,12 @@ export async function fetchRailsystem(railsystemCode) {
         .catch(err => Promise.reject(err))
 }
 
-export async function listRailsystem() {
-    const url = `api/metro-realtime/query/railsystem/list`
-    return await axios.get(url)
+export async function listRailsystem(keyword = "", isManagement = false) {
+    const url = isManagement ? 'api/metro-realtime/query/railsystem/list/management' : `api/metro-realtime/query/railsystem/list`
+    const query = {
+        keyword,
+    }
+    return await axios.get(url, {params: query})
         .then(res => res.data.data || res.data)
         .catch(err => Promise.reject(err)
         )

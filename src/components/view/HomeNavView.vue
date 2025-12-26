@@ -50,6 +50,7 @@
                 </div>
 
                 <OpenStreetMap style="width: 100%; height:100vh;position: fixed;z-index: 0"
+                               tile-url="https://nmtr.online/api/metro-trace/common/osm/tiles/{z}/{x}/{y}.png"
                                :center="mapProps.center" :point-name="mapProps.pointName"
                 />
             </div>
