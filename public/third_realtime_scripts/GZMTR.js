@@ -6,7 +6,7 @@ async function Third_FetchStationTrain(line, station) {
         return Promise.reject('Line thirdId and station thirdId must be provided')
     }
     lineMap.set(line.thirdId, line)
-    const url = `https://nmtr.online/api/metro-trace/gzmtr/station/trains?station_no=${station.thirdId}&line_id=${line.thirdId}`
+    const url = `https://nmtr.site/api/metro-trace/gzmtr/station/trains?station_no=${station.thirdId}&line_id=${line.thirdId}`
     const r = fetch(url, {
         method: "POST", mode: 'cors', headers: {
             'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ async function Third_FetchTrainInfoById(trainInfoId) {
     }
     const thirdLineId = temp[1]
     const lineData = lineMap.get(thirdLineId)
-    const url = `https://nmtr.online/api/metro-trace/gzmtr/trains/detail/id?train_id=${rawId}`
+    const url = `https://nmtr.site/api/metro-trace/gzmtr/trains/detail/id?train_id=${rawId}`
     const r = fetch(url, {
         method: "POST", mode: 'cors', headers: {
             'Content-Type': 'application/json',

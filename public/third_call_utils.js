@@ -58,8 +58,8 @@ function Util_getTimeInTimeZone(timeZone, date = new Date(), format = 'YYYY-MM-D
  * @constructor
  */
 async function Util_fetchThroughAllOrigins(url, options) {
-    // const proxySources = ['https://api.allorigins.win/get?url=', 'https://nmtr.online/api/metro-trace/common/proxy/get?url=']
-    const proxySources = ['https://nmtr.online/api/metro-trace/common/proxy/get?url=']
+    // const proxySources = ['https://api.allorigins.win/get?url=', 'https://nmtr.site/api/metro-trace/common/proxy/get?url=']
+    const proxySources = ['https://nmtr.site/api/metro-trace/common/proxy/get?url=']
     const PROXY_URL_BASE = proxySources[Math.floor(Math.random() * proxySources.length)];
     let proxyUrl = `${PROXY_URL_BASE}${encodeURIComponent(url)}&auth_code=${options.authCode}`
     if (options?.noCache) {

@@ -1,6 +1,6 @@
 import axios from "src/utils/axios";
 
-const baseUrl = 'https://nmtr.online/api/metro-trace'
+const baseUrl = 'https://nmtr.site/api/metro-trace'
 
 export async function queryDailyTicket({station_name, railsystem}) {
     const url = `${baseUrl}/ticket/daily-ticket`
