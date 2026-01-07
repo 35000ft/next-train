@@ -80,7 +80,19 @@ module.exports = configure(function (/* ctx */) {
                     eslint: {
                         lintCommand: 'eslint "./**/*.{js,mjs,cjs,vue}"'
                     }
-                }, {server: false}]
+                }, {server: false}],
+                {
+                    name: 'inject-meta',
+                    transformIndexHtml(html) {
+                        return html.replace(
+                            '</head>',
+                            `
+                                <meta name="app-version" content="${process.env.APP_VERSION}">
+                                </head>
+                            `
+                        )
+                    }
+                }
             ]
         },
 

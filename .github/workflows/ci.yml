@@ -26,3 +26,32 @@ jobs:
                 run: |
                     ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_ACCOUNT }} \
                       'bash -s' -- ${GITHUB_SHA} < .github/scripts/deploy.sh
+            -   name: Check Deployed APP VERSION
+                run: |
+                    set -e
+
+                    URL="https://nmtr.site/next-train/"
+                    EXPECTED_SHA="${GITHUB_SHA}"
+
+                    echo "Fetching HTML from $URL"
+                    HTML=$(curl -fsSL "$URL")
+
+                    echo "Extracting app-version meta"
+                    APP_VERSION=$(echo "$HTML" | \
+                      grep -oP '<meta\s+name=["'\'']app-version["'\'']\s+content=["'\'']\K[^"'\'']+')
+
+                    if [ -z "$APP_VERSION" ]; then
+                      echo "❌ app-version meta not found"
+                      exit 1
+                    fi
+
+                    echo "app-version = $APP_VERSION"
+                    echo "GITHUB_SHA = $EXPECTED_SHA"
+
+                    if [ "$APP_VERSION" = "$EXPECTED_SHA" ]; then
+                      echo "✅ Deployment success: version matches"
+                    else
+                      echo "❌ Deployment failed: version mismatch"
+                      exit 1
+                    fi
+
