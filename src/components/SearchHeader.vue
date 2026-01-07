@@ -6,7 +6,7 @@
                 <div class="col-3" @click="handleLeftDrawer">
                     <img src="../assets/logo.png" alt="logo" style="height: 20px;">
                 </div>
-                <div class="col-4" style="display: flex;justify-content: center;align-items: center;">
+                <div class="col-3" style="display: flex;justify-content: center;align-items: center;">
                     <input
                         v-if="false"
                         class="q-field__control"
@@ -15,7 +15,7 @@
                         @input="onSearch"
                     />
                 </div>
-                <div class="col-5" style="text-align: right;">
+                <div class="col-6" style="text-align: right;">
                     <div class="q-pa-md col"
                          style="display: inline-block;padding-left: 0;padding-right: 0;">
                         <q-btn-dropdown color="primary" icon="language" label="" unelevated padding="0">
@@ -31,9 +31,18 @@
                             </q-list>
                         </q-btn-dropdown>
                     </div>
-                    <q-btn flat :label="currentRailSystem.abbrName" class="text-white"
+                    <q-btn flat class="text-white"
                            @click="handleClickSelectRailSystem"
-                           style="font-size: 20px;font-weight:bold;padding-right: 1px;"/>
+                           style="font-size: 20px;font-weight:bold;padding-right: 1px;">
+                        <div class="row items-center no-wrap">
+                            <div class="text-center">
+                                {{ currentRailSystem.abbrName }}
+                            </div>
+                            <img v-if="currentRailSystem.extra?.logo"
+                                 style="height: 20px;width: 20px; margin-left: 2px;"
+                                 :src="currentRailSystem.extra?.logo" alt="Logo">
+                        </div>
+                    </q-btn>
                 </div>
             </div>
         </q-toolbar>
