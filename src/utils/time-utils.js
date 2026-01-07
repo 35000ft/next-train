@@ -137,7 +137,7 @@ export function parseTimezoneOffset(offset) {
     }
 }
 
-export function diffFromNow(d1, unit = 'second', timezone = '+00:00') {
+export function diffFromNow(d1, unit = 'second', timezone = 'UTC') {
     let now = dayjs().utc()
     if (!timezone) {
         d1 = dayjs(d1).utc()
@@ -197,7 +197,7 @@ export function fixedMins(seconds) {
 /**
  *
  * @param _date {Date|String|Dayjs}
- * @param {String?}timezone
+ * @param {String?}timezone Timezone and time offset are supported, like "Asia/Shanghai", "+08:00"
  * @returns {dayjs.Dayjs|null}
  */
 export function toDayjs(_date, timezone = null) {
@@ -211,9 +211,22 @@ export function toDayjs(_date, timezone = null) {
         }
         if (timezone) {
             if (isDate(_date)) {
-                return dayjs(_date + ' 00:00:00' + timezone)
+                _date = _date + ' 00:00:00'
             }
-            return dayjs(_date + timezone)
+            if (timezone.startsWith('+') || timezone.startsWith('-') || timezone === '00:00') {
+                if (isDate(_date)) {
+                    return dayjs(_date + ' 00:00:00' + timezone)
+                }
+                return dayjs(_date + timezone)
+            } else {
+                try {
+                    // 使用 Intl.DateTimeFormat 检查时区字符串是否合法
+                    new Intl.DateTimeFormat('en-US', {timeZone: timezone});
+                } catch (e) {
+                    throw new Error("Timezone string is invalid:" + timezone)
+                }
+                return dayjs.tz(_date, timezone)
+            }
         }
         return dayjs(_date)
     }
