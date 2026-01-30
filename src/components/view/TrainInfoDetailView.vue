@@ -349,6 +349,7 @@ const updateStopStatus = async (_schedule) => {
                 }
             }
         }
+        console.log('current index:', currentIndexValue, 'next index:', nextIndexValue, 'schedule:', schedule)
         if (nextIndexValue >= 0) {
             for (let i = 0; i < nextIndexValue; i++) {
                 const stopInfo = _schedule[i]
