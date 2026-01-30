@@ -283,6 +283,7 @@ const calcSchedule = (_trainInfo) => {
     if (_trainInfo) {
         const _schedule = _trainInfo.schedule
         _schedule[_schedule.length - 1].depStr = '--:--'
+        console.log('Train detail view:schedule:', _schedule)
         return _schedule
     }
     return []
