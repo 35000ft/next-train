@@ -373,11 +373,15 @@ const updateStopStatus = async (_schedule) => {
             }
 
             const stopInfo = _schedule[nextIndexValue]
-            const _line = await store.dispatch('railsystem/getLine', {lineId: stopInfo.lineId})
-            _schedule[nextIndexValue].statusClass = 'next-station'
-            _schedule[nextIndexValue].lineStyle = {
-                backgroundColor: _line.color || 'var(--q-primary)',
-                borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
+            if (stopInfo) {
+                const _line = await store.dispatch('railsystem/getLine', {lineId: stopInfo.lineId})
+                _schedule[nextIndexValue].statusClass = 'next-station'
+                _schedule[nextIndexValue].lineStyle = {
+                    backgroundColor: _line.color || 'var(--q-primary)',
+                    borderBottom: '2px solid ' + (_line.color || 'var(--q-primary)')
+                }
+            } else {
+                console.log('No next stop, next index:', nextIndexValue)
             }
 
             if (!currentIndexValue && nextIndexValue > 0) {
