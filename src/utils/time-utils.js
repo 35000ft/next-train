@@ -256,14 +256,11 @@ function isDate(str) {
  * @param timezone +08:00
  */
 export function toDayjsBySecondsOfDay(_date, seconds, timezone) {
-    // 计算小时、分钟、秒
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
 
-    // 构建完整时间字符串
-    const timeStr = `${_date}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}${timezone}`;
-    return dayjs(timeStr)
+    return toDayjs(`${_date}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`, timezone)
 }
 
 /**
