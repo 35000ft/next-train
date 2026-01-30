@@ -253,6 +253,7 @@ const currentInterval = computed(() => {
 })
 const schedule = computed(() => {
     if (trainInfo.value) {
+        console.log('TrainInfoDetail train info:', trainInfo.value)
         return calcSchedule(trainInfo.value)
     }
     return []
@@ -285,6 +286,8 @@ const calcSchedule = (_trainInfo) => {
         _schedule[_schedule.length - 1].depStr = '--:--'
         console.log('Train detail view:schedule:', _schedule)
         return _schedule
+    } else {
+        console.warn('No train info provided')
     }
     return []
 }
@@ -349,7 +352,10 @@ const updateStopStatus = async (_schedule) => {
                 }
             }
         }
-        console.log('current index:', currentIndexValue, 'next index:', nextIndexValue, 'schedule:', schedule)
+        if (currentIndexValue == null && nextIndexValue == null) {
+            console.warn('Calculate current index and next index error, schedule:', _schedule)
+        }
+
         if (nextIndexValue >= 0) {
             for (let i = 0; i < nextIndexValue; i++) {
                 const stopInfo = _schedule[i]
