@@ -253,7 +253,6 @@ const currentInterval = computed(() => {
 })
 const schedule = computed(() => {
     if (trainInfo.value) {
-        console.log('TrainInfoDetail train info:', trainInfo.value)
         return calcSchedule(trainInfo.value)
     }
     return []

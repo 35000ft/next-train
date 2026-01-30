@@ -291,6 +291,7 @@ const actions = {
                     date = nowTime.format('YYYY-MM-DD')
                 }
                 trainInfo.schedule = trainScheduleParser(trainInfo.schedule, date, railsystem.timezone)
+                console.log('Parsed schedule:', trainInfo.schedule, 'timezone:', railsystem.timezone, 'date:', date)
             }
             commit('SET_TRAININFO', {trainInfo, trainInfoId})
         }
