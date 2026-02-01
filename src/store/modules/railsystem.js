@@ -192,13 +192,13 @@ const actions = {
             console.error(`Fetch transfer info error. railsystemCode:${railsystemCode} err:`, err)
         })
     },
-    async getStation({state, commit}, {stationId}) {
+    async getStation({state, commit}, {stationId, latest = false}) {
         if (!stationId) {
             return Promise.reject(`stationId is undefined:${stationId}`)
         }
         const isFavourite = await this.dispatch('preference/isFavouriteStation', {stationId})
         let station = state.stations.get(stationId)
-        if (!station) {
+        if (!station || latest) {
             return new Promise((resolve, reject) => {
                 fetchStation(stationId).then(station => {
                     commit('SET_STATION', {station})
