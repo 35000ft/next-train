@@ -4,7 +4,7 @@
             <div style="display: flex;flex-direction: column; height: 100%;">
                 <div v-if="hotStations.length===0 && !loading"
                      style="display: flex;justify-content: center;padding: 10px;  align-items: center;height: 100%;">
-            <span style="font-size: 20px;text-align: center; display: flex;">
+            <span v-if="!loading" style="font-size: 20px;text-align: center; display: flex;">
                 暂时未能载入热点车站
             </span>
                 </div>
@@ -18,7 +18,7 @@
                     <div class="row station-row" v-for="(hs, index) in hotStations.slice(0,10)" :key="hs.stationId"
                          style="display: flex;align-items: center;" @click.stop="handleClick(hs.station)">
                         <div class="col-8 station-name" :class="index===0?'first-station':''">
-                            {{ hs.station?.name }}
+                            {{ hs.station?.i18Name }}
                         </div>
                         <div class="col-4 icons">
                         <span style="margin-right: 2px; color: var(--q-grey);font-size: 12px; ">
@@ -40,6 +40,7 @@ import {useStore} from "vuex";
 import {useI18n} from "vue-i18n";
 import {fetchHotStations} from "src/apis/reailtime";
 import {useRouter} from "vue-router";
+import {toI18NameObject} from "src/utils/common_utils";
 
 const {t} = useI18n()
 const store = useStore()
@@ -59,8 +60,12 @@ async function loadHotStations() {
     loading.value = true
     hotStations.value = []
     try {
-        hotStations.value = await fetchHotStations(currentRailSystem.value.code)
-        console.log('load hot s', hotStations.value)
+        let temp = await fetchHotStations(currentRailSystem.value.code)
+        const currentLanguage = store.getters['language/currentLanguage']
+        temp.forEach(it => {
+            it.station = toI18NameObject(it.station, it.station?.language, currentLanguage)
+        })
+        hotStations.value = temp
     } catch (e) {
         console.warn('Load hot station error.', e)
     } finally {

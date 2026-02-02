@@ -6,7 +6,7 @@
                  @click="handleViewStation(station)">
                 <div class="col-8 station-name">
                     <div v-overflow-auto-scroll>
-                        {{ station.name }}
+                        {{ station.i18Name }}
                     </div>
                 </div>
                 <div class="col-4 icons">
@@ -28,6 +28,7 @@ import {arr2Map} from "src/utils/array-utils";
 import _ from "lodash";
 import {useRouter} from "vue-router";
 import {useI18n} from "vue-i18n";
+import {toI18NameObject} from "src/utils/common_utils";
 
 const store = useStore()
 const router = useRouter()
@@ -50,7 +51,8 @@ const stations = computed(() => {
             resultMap.set(id, s)
         }
     }
-    return Array.from(resultMap.values())
+    const currentLanguage = store.getters['language/currentLanguage']
+    return Array.from(resultMap.values()).map(it => toI18NameObject(it, it?.language, currentLanguage))
 })
 const handleViewStation = (station) => {
     if (station && station.id) {

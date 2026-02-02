@@ -18,7 +18,7 @@
                             </div>
                         </div>
                         <div v-overflow-auto-scroll>
-                            <span>{{ previousStation.name }}</span>
+                            <span>{{ previousStation.i18Name }}</span>
                         </div>
                     </div>
                 </div>
@@ -42,7 +42,7 @@
                         <div class="text-h6 station-name-text current-station"
                              style="border-bottom: 1px solid var(--q-primary); margin-bottom: 5px;width: auto">
                             <span v-overflow-auto-scroll style="display: block;white-space: nowrap;">
-                                {{ station.name }}
+                                {{ station.i18Name }}
                             </span>
                         </div>
                         <div v-if="station.code" class="pill" style="margin: 0 auto">
@@ -61,7 +61,7 @@
                             </div>
                         </div>
                         <div v-overflow-auto-scroll>
-                            <span>{{ nextStation.name }}</span>
+                            <span>{{ nextStation.i18Name }}</span>
                         </div>
                     </div>
                 </div>
@@ -236,6 +236,7 @@ import EditFavouriteStationDialog from "components/EditFavouriteStationDialog.vu
 import OpenMapSelector from "components/input/OpenMapSelector.vue";
 import OperationMsgDetailView from "components/OperationMsgDetailView.vue";
 import StationIcon from "components/StationIcon.vue";
+import {toI18NameObject} from "src/utils/common_utils";
 
 const router = useRouter()
 const $q = useQuasar()
@@ -581,6 +582,7 @@ const handleChangeLine = (lineId) => {
     }
     loadLineInfo(lineId).then(_line => {
         if (lineId === currentLineId.value) {
+            console.log('currem line', _line)
             currentLine.value = _line
             updateCurrentTrains()
         }
@@ -671,8 +673,8 @@ function calcRelativeStation(offset) {
             newStation.direction = direction
         } else {
             newStation.direction = offset > 0
-                ? _stations.slice(-1)[0].name
-                : _stations[0].name
+                ? _stations.slice(-1)[0].i18Name
+                : _stations[0].i18Name
         }
         return newStation
     }

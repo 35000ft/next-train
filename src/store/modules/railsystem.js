@@ -12,6 +12,7 @@ import {
     fetchTransfers,
     listRailsystem
 } from "src/apis/railsystem";
+import {toI18NameObject} from "src/utils/common_utils";
 
 const LOCAL_STORAGE_KEYS = {
     CURRENT_RAILSYSTEM: 'CURRENT_RAILSYSTEM',
@@ -192,7 +193,7 @@ const actions = {
             console.error(`Fetch transfer info error. railsystemCode:${railsystemCode} err:`, err)
         })
     },
-    async getStation({state, commit}, {stationId, latest = false}) {
+    async getStation({state, commit, rootGetters}, {stationId, latest = false}) {
         if (!stationId) {
             return Promise.reject(`stationId is undefined:${stationId}`)
         }
@@ -201,8 +202,10 @@ const actions = {
         if (!station || latest) {
             return new Promise((resolve, reject) => {
                 fetchStation(stationId).then(station => {
-                    commit('SET_STATION', {station})
                     station.isFavourite = isFavourite
+                    const currentLanguage = rootGetters['language/currentLanguage']
+                    station = toI18NameObject(station, station?.language, currentLanguage)
+                    commit('SET_STATION', {station})
                     resolve(station)
                 }).catch(err => {
                     reject(err)
@@ -235,15 +238,17 @@ const actions = {
         commit('SET_RAIL_SYSTEM_STATIONS', {railsystemCode, stations: d})
         return d
     },
-    async getLine({state, commit}, {lineId}) {
+    async getLine({state, commit, rootGetters}, {lineId}) {
         if (state.lines.has(lineId)) {
             const _line = state.lines.get(lineId)
-            if (_line.stations instanceof Array) {
+            if (_line && _line.stations instanceof Array) {
                 return _line
             }
         }
         return new Promise((resolve, reject) => {
             fetchLine(lineId).then(line => {
+                const currentLanguage = rootGetters['language/currentLanguage']
+                line.stations = line.stations.map(it => toI18NameObject(it, it?.language, currentLanguage))
                 commit('SET_LINE', {line})
                 resolve(line)
             }).catch(err => {
