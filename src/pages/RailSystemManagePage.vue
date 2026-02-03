@@ -209,7 +209,7 @@ const stationToNode = (s) => {
 
 async function loadRailLines({node, key, done, fail}) {
     try {
-        const lines = await store.dispatch('railsystem/getRailSystemLines', {
+        const lines = await store.dispatch('railsystem/getRailsystemLines', {
             railsystemCode: node.railsystemCode,
             latest: true
         })

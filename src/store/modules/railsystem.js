@@ -232,7 +232,7 @@ const actions = {
         commit('SET_RAIL_SYSTEM_STATIONS', {railsystemCode, stations: d})
         return d
     },
-    async getLine({state, commit, rootGetters}, {lineId}) {
+    async getLine({state, commit, rootGetters}, {lineId, latest = false}) {
         if (state.lines.has(lineId)) {
             const _line = state.lines.get(lineId)
             if (_line && _line.stations instanceof Array) {
@@ -240,16 +240,16 @@ const actions = {
             }
         }
         return new Promise((resolve, reject) => {
-            fetchLine(lineId).then(line => {
+            fetchLine(lineId, latest).then(line => {
                 const currentLanguage = rootGetters['language/currentLanguage']
                 line.stations = line.stations.map(it => toI18NameObject(it, it?.language, currentLanguage))
+                line = toI18NameObject(line, line?.language, currentLanguage)
                 commit('SET_LINE', {line})
                 resolve(line)
             }).catch(err => {
                 reject(err)
             })
         })
-
 
     },
     async getRailsystemByLineId({state, commit}, {lineId}) {
@@ -285,7 +285,7 @@ const actions = {
      * @returns {Promise<Array[Object]>}
      * @param payload
      */
-    async getRailSystemLines({state, commit, getters}, payload) {
+    async getRailsystemLines({state, commit, getters, rootGetters}, payload) {
         let railsystem
         let railsystemCode = payload && payload.railsystemCode
         if (!railsystemCode || railsystemCode === state.currentRailSystem.code) {
@@ -297,7 +297,9 @@ const actions = {
             return Promise.resolve(railsystem.lines)
         } else {
             return new Promise((resolve, reject) => {
+                const currentLanguage = rootGetters['language/currentLanguage']
                 fetchLines(railsystem.code, payload?.latest).then(lines => {
+                    lines = lines.map(it => toI18NameObject(it, it?.language, currentLanguage))
                     commit('SET_RAIL_SYSTEM_LINES', {railsystemCode: railsystem.code, lines})
                     resolve(lines)
                 }).catch(err => {

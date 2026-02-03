@@ -58,7 +58,7 @@
                                 </div>
                             </div>
                         </q-tab-panel>
-                        <q-tab-panel :name="line.name" :key="line.id" v-for="line in lines">
+                        <q-tab-panel :name="line.i18Name" :key="line.id" v-for="line in lines">
                             <div class="row station-result-wrapper" v-for="(station,index) in searchResults"
                                  :class="selectedStationIds.has(station?.id)?'selected-station':'unselected-station'"
                                  :key="index">
@@ -157,17 +157,12 @@ export default defineComponent({
         const propRailsystem = ref(null)
 
         function init(railsystemCode) {
-            if (!railsystemCode) return
-            console.log('StationSelector init', 'railsystemCode:' + railsystemCode)
-            propRailsystem.value = null
             loading.value = true
-            store.dispatch('railsystem/getRailSystem', {code: railsystemCode}).then(railsystem => {
-                propRailsystem.value = railsystem
-                handleSearch('')
-            })
-            store.dispatch('railsystem/getRailSystemLines', {railsystemCode: railsystemCode}).then(r => {
+            railsystemCode = railsystemCode || currentRailSystem.value?.code
+            console.log('Init StationSelector', 'railsystemCode:' + railsystemCode)
+            store.dispatch('railsystem/getRailsystemLines', {railsystemCode: railsystemCode}).then(r => {
                 lines.value = r
-                searchGroups.value = [ALL_STR, ...r.map(it => it.name)]
+                searchGroups.value = [ALL_STR, ...r.map(it => it.i18Name)]
                 loading.value = false
             }).catch(err => {
                 console.warn('Load lines of station error', err)
