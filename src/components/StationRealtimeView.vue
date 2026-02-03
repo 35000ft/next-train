@@ -38,9 +38,9 @@
                             </q-icon>
                         </div>
                     </div>
-                    <div style="margin-top: 5px;max-width: 40%;" @click="handleClickStationName">
+                    <div style="margin-top: 5px;width: 100%;" @click="handleClickStationName">
                         <div class="text-h6 station-name-text current-station"
-                             style="border-bottom: 1px solid var(--q-primary); margin-bottom: 5px;width: auto">
+                             style="border-bottom: 1px solid var(--q-primary); margin-bottom: 5px;width: 100%;">
                             <span v-overflow-auto-scroll style="display: block;white-space: nowrap;">
                                 {{ station.i18Name }}
                             </span>

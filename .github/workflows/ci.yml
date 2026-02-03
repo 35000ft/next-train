@@ -72,4 +72,4 @@ jobs:
                         Commit SHA: ${{ github.sha }}
                         Status：${{ job.status }}
 
-                        ${{ job.status == 'failure' && format('❌ Deploy failure，Please check Actions log.\n{0}/{1}/actions/runs/{2}',github.server_url,github.repository,github.run_id) || '' }}
+                        ${{ job.status == 'failure' && format('❌ Deploy failure, Please check Actions log.\n{0}/{1}/actions/runs/{2}',github.server_url,github.repository,github.run_id) || '' }}

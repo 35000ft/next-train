@@ -25,7 +25,7 @@
                             <div class="history-wrapper" v-show="showHistory">
                             <span @click="handleSelect(station)" class="pill" v-for="station in historyStations"
                                   :key="station.id">
-                                {{ station.i18Name }}
+                                {{ station.i18Name || station.name }}
                             </span>
                             </div>
                             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
@@ -201,7 +201,7 @@ export default defineComponent({
             if (currentSearchGroup.value === ALL_STR) {
                 lineId = ALL_STR
             } else {
-                const line = lines.value.find(it => it.name === currentSearchGroup.value)
+                const line = lines.value.find(it => it.i18Name === currentSearchGroup.value)
                 if (line) {
                     lineId = line.id
                 }
@@ -278,7 +278,7 @@ export default defineComponent({
             if (searchGroup === ALL_STR) {
                 lineId = ALL_STR
             } else {
-                const line = lines.value.find(it => it.name === searchGroup);
+                const line = lines.value.find(it => it.i18Name === searchGroup);
                 if (!line) {
                     return
                 }

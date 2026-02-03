@@ -1,6 +1,6 @@
 <template>
   <span :style="{backgroundColor: bgColor,color:textColor,borderRadius:borderRadius,fontSize:fontSize}">
-    {{ line.i18Name || line.name }}
+    {{ showLineName }}
   </span>
 </template>
 <script setup>
@@ -20,6 +20,15 @@ const props = defineProps({
     disabled: {
         type: Boolean,
         default: false
+    }
+})
+const showLineName = computed(() => {
+    const _line = props.line
+    const name = _line.i18Name || _line.name
+    if (name.length > 10 && _line.code) {
+        return _line.code
+    } else {
+        return name
     }
 })
 const bgColor = computed(() => {
