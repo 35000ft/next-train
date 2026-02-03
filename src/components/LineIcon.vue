@@ -1,6 +1,6 @@
 <template>
   <span :style="{backgroundColor: bgColor,color:textColor,borderRadius:borderRadius,fontSize:fontSize}">
-    {{ line.name }}
+    {{ line.i18Name || line.name }}
   </span>
 </template>
 <script setup>

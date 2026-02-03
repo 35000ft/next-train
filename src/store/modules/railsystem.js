@@ -197,6 +197,9 @@ const actions = {
                     station.isFavourite = isFavourite
                     const currentLanguage = rootGetters['language/currentLanguage']
                     station = toI18NameObject(station, station?.language, currentLanguage)
+                    if (station?.lines) {
+                        station.lines = station.lines.map(it => toI18NameObject(it, it?.language, currentLanguage))
+                    }
                     commit('SET_STATION', {station})
                     resolve(station)
                 }).catch(err => {
@@ -263,7 +266,7 @@ const actions = {
         if (state.lines.has(lineId) && state.lines.get(lineId).stations) {
             return state.lines.get(lineId).stations
         }
-        const line = await this.dispatch('getLine', {lineId})
+        const line = await this.dispatch('railsystem/getLine', {lineId})
         return line.stations
     },
     async getRailSystems({state, commit}) {

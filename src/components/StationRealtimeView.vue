@@ -691,7 +691,7 @@ const handleHoldOnLineIcon = (event, line) => {
                 height: 10,
             },
             lineProp: line,
-            currentStationIdProp: line.id
+            currentStationIdProp: currentStationId.value
         })
     }
 }

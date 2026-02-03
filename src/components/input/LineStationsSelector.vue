@@ -4,7 +4,10 @@
             <div class="wrapper" :style="wrapperStyles"
                  v-show="display">
                 <div v-if="loading">
-                    <q-skeleton :height="height+'px'"/>
+                    <q-skeleton type="text" :height="height/4+'px'"/>
+                    <q-skeleton type="text" :height="height/4+'px'"/>
+                    <q-skeleton type="text" :height="height/4+'px'"/>
+                    <q-skeleton type="text" :height="height/4+'px'"/>
                 </div>
                 <div class="content-wrapper row" v-if="line&&line.stations">
                     <span style="display: inline-block;margin: auto 0"
@@ -149,6 +152,7 @@ export default defineComponent({
 .wrapper {
     position: fixed;
     max-width: 500px;
+    width: 80%;
     background-color: var(--q-grey-2);
     border-bottom: 2px solid var(--q-primary);
     border-radius: 10px;
