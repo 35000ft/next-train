@@ -25,7 +25,7 @@
                             <div class="history-wrapper" v-show="showHistory">
                             <span @click="handleSelect(station)" class="pill" v-for="station in historyStations"
                                   :key="station.id">
-                                {{ station.name }}
+                                {{ station.i18Name }}
                             </span>
                             </div>
                             <q-skeleton style="height: 80px;width: 100%;" type="text" v-show="loading"/>
@@ -37,7 +37,7 @@
                                      @click="handleSelect(station)">
                                     <div class="station-name" v-overflow-auto-scroll>
                                         <span v-if="station.highlighted" v-html="station.highlighted"></span>
-                                        <span v-else>{{ station.name }}</span>
+                                        <span v-else>{{ station.i18Name }}</span>
                                         <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
                                         {{ station.railsystemName }}
                                     </span>
@@ -66,7 +66,7 @@
                                      @click="handleSelect(station)">
                                     <div v-overflow-auto-scroll>
                                         <span v-if="station.highlighted" v-html="station.highlighted"></span>
-                                        <span v-else>{{ station.name }}</span>
+                                        <span v-else>{{ station.i18Name }}</span>
                                         <span class="pill" v-show="currentRailSystem.code!==station.railsystemCode">
                                         {{ station.railsystemName }}
                                     </span>
@@ -157,6 +157,7 @@ export default defineComponent({
         const propRailsystem = ref(null)
 
         function init(railsystemCode) {
+            if (!railsystemCode) return
             console.log('StationSelector init', 'railsystemCode:' + railsystemCode)
             propRailsystem.value = null
             loading.value = true
@@ -169,8 +170,8 @@ export default defineComponent({
                 searchGroups.value = [ALL_STR, ...r.map(it => it.name)]
                 loading.value = false
             }).catch(err => {
-                console.warn('Load lines error', err)
-                $q.notify.warn('加载车站线路失败')
+                console.warn('Load lines of station error', err)
+                $q.notify.warn('Load lines of station error')
             })
         }
 
@@ -179,7 +180,8 @@ export default defineComponent({
                 return Promise.reject('lineId can not be empty')
             }
             if (lineId === ALL_STR) {
-                const _result = await store.dispatch('railsystem/getRailsystemStations', {railsystemCode: currentRailSystem.value.code})
+                const targetRailsystemCode = props?.railsystemCode || currentRailSystem.value.code
+                const _result = await store.dispatch('railsystem/getRailsystemStations', {railsystemCode: targetRailsystemCode})
                 loadFavouriteStations().then(_ => {
                     console.log('Load favourite stations ok')
                 })

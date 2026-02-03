@@ -12,7 +12,7 @@
                           @click="handleSelectStation(station)"
                           :key="station.id">
                           <span class="pill" :class="classGetter(station.id)">
-                            {{ station.name }}
+                            {{ station.i18Name }}
                          </span>
                     </span>
                 </div>

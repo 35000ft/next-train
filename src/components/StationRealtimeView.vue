@@ -582,7 +582,6 @@ const handleChangeLine = (lineId) => {
     }
     loadLineInfo(lineId).then(_line => {
         if (lineId === currentLineId.value) {
-            console.log('currem line', _line)
             currentLine.value = _line
             updateCurrentTrains()
         }

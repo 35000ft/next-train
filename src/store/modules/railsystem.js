@@ -82,8 +82,6 @@ const mutations = {
         if (lines && lines instanceof Array) {
             railsystem['lines'] = lines
             state.railSystems.set(railsystemCode, railsystem)
-            state.lines.batchSet(lines, (v) => v['id'])
-            console.log('Set railsystem lines OK, railsystem:', state.railSystems.get(railsystemCode))
         }
     },
     SET_RAIL_SYSTEM_STATIONS(state, {railsystemCode, stations}) {
@@ -112,12 +110,6 @@ const mutations = {
         state.currentRailSystem = railsystem
         onChangeRailsystem(railsystem).then(_ => _)
         localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_RAILSYSTEM, JSON.stringify(railsystem))
-    },
-    SET_LINE_STATIONS(state, {lineId, stations}) {
-        if (state.lines.has(lineId)) {
-            state.lines.get(lineId).stations = stations
-            state.stations.batchSet(stations, (v) => v.id)
-        }
     },
     SET_STATION(state, {station}) {
         if (station && station.id) {
@@ -226,7 +218,7 @@ const actions = {
         }
         return await Promise.all(promises)
     },
-    async getRailsystemStations({state, commit}, {railsystemCode, latest = false}) {
+    async getRailsystemStations({state, commit, rootGetters}, {railsystemCode, latest = false}) {
         if (!railsystemCode) {
             railsystemCode = state.currentRailSystem.code
         }
@@ -234,7 +226,9 @@ const actions = {
         if (r && r?.stations && !latest) {
             return Promise.resolve(r.stations)
         }
-        const d = await fetchRailsystemStations(railsystemCode, latest)
+        let d = await fetchRailsystemStations(railsystemCode, latest)
+        const currentLanguage = rootGetters['language/currentLanguage']
+        d = d.map(it => toI18NameObject(it, it?.language, currentLanguage))
         commit('SET_RAIL_SYSTEM_STATIONS', {railsystemCode, stations: d})
         return d
     },
@@ -267,12 +261,10 @@ const actions = {
     },
     async getStationsByLine({state, commit}, {lineId}) {
         if (state.lines.has(lineId) && state.lines.get(lineId).stations) {
-            return toRaw(state.lines.get(lineId).stations)
+            return state.lines.get(lineId).stations
         }
-        //TODO 从接口获取车站
-        const _stations = []
-        commit('SET_LINE_STATIONS', {lineId, stations: _stations})
-        return _stations
+        const line = await this.dispatch('getLine', {lineId})
+        return line.stations
     },
     async getRailSystems({state, commit}) {
         if (state.railSystems && state.railSystems.length > 1) {
@@ -307,9 +299,6 @@ const actions = {
             return new Promise((resolve, reject) => {
                 fetchLines(railsystem.code, payload?.latest).then(lines => {
                     commit('SET_RAIL_SYSTEM_LINES', {railsystemCode: railsystem.code, lines})
-                    lines.forEach(it => {
-                        commit('SET_LINE', {line: it})
-                    })
                     resolve(lines)
                 }).catch(err => {
                     reject(err)
