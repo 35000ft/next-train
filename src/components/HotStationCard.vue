@@ -18,7 +18,9 @@
                     <div class="row station-row" v-for="(hs, index) in hotStations.slice(0,10)" :key="hs.stationId"
                          style="display: flex;align-items: center;" @click.stop="handleClick(hs.station)">
                         <div class="col-8 station-name" :class="index===0?'first-station':''">
-                            {{ hs.station?.i18Name }}
+                            <div v-overflow-auto-scroll>
+                                {{ hs.station?.i18Name }}
+                            </div>
                         </div>
                         <div class="col-4 icons">
                         <span style="margin-right: 2px; color: var(--q-grey);font-size: 12px; ">
