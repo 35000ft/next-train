@@ -66,7 +66,7 @@ export async function reverseGeocode(lat, lon) {
 
 export function toI18NameObject(obj, objLanguage, currentLanguage,) {
     obj.i18Name = obj.name
-    if (objLanguage?.slice(0, 2).toLowerCase() !== currentLanguage?.slice(0, 2).toLowerCase()) {
+    if (objLanguage && objLanguage?.slice(0, 2).toLowerCase() !== currentLanguage?.slice(0, 2).toLowerCase()) {
         if (obj.enName) {
             obj.i18Name = obj.enName
         }
