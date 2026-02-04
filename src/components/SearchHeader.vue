@@ -36,11 +36,11 @@
                            style="font-size: 20px;font-weight:bold;padding-right: 1px;">
                         <div class="row items-center no-wrap">
                             <div class="text-center">
-                                {{ currentRailSystem.abbrName }}
+                                {{ showRailsystemName }}
                             </div>
-                            <img v-if="currentRailSystem.extra?.logo"
+                            <img v-if="currentRailsystem.extra?.logo"
                                  style="height: 20px;width: 20px; margin-left: 2px;"
-                                 :src="currentRailSystem.extra?.logo" alt="Logo">
+                                 :src="currentRailsystem.extra?.logo" alt="Logo">
                         </div>
                     </q-btn>
                 </div>
@@ -65,8 +65,18 @@ import {useQuasar} from "quasar";
 const {t} = useI18n();
 const store = useStore()
 
-const currentRailSystem = computed(() => store.getters['railsystem/currentRailSystem'])
-
+const currentRailsystem = computed(() => store.getters['railsystem/currentRailSystem'])
+const currentLanguage = computed(() => {
+    return store.getters['language/currentLanguage']
+})
+const showRailsystemName = computed(() => {
+    const railsystemLanguage = currentRailsystem.value?.language
+    if (railsystemLanguage && railsystemLanguage?.slice(0, 2).toLowerCase() !== String(currentLanguage)?.slice(0, 2).toLowerCase()) {
+        return currentRailsystem.value.code
+    } else {
+        return currentRailsystem.value.abbrName || currentRailsystem.value.name
+    }
+})
 const searchText = ref('')
 const railSystemSelector = ref(null)
 const languages = ref(supportedLanguages)
@@ -77,9 +87,7 @@ const handleClickSelectRailSystem = () => {
 const handleLeftDrawer = () => {
     store.commit('application/SET_SHOW_LEFT_DRAWER', true)
 }
-const currentLanguage = computed(() => {
-    return store.getters['language/currentLanguage']
-})
+
 const selectLanguage = (langCode) => {
     if (langCode) {
         store.dispatch('language/setLanguage', {lang: langCode}).then(() => {

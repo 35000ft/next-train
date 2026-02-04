@@ -11,7 +11,7 @@
                 <div class="row station-result-wrapper" v-for="(railsystem,index) in searchResults" :key="index"
                      @click="handleSelectRailSystem(railsystem)"
                      style="width: 100%;">
-                    <div class="col-6">{{ railsystem.name }}</div>
+                    <div class="col-6">{{ railsystem.i18Name }}</div>
                     <div class="col-2"></div>
                     <div class="col-4" style="text-align: right;">{{ railsystem.code }}</div>
                 </div>

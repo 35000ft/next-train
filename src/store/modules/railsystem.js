@@ -127,10 +127,12 @@ const mutations = {
 }
 
 const actions = {
-    async getRailSystem({state, commit}, {code}) {
+    async getRailSystem({state, commit, rootGetters}, {code}) {
         const r = state.railSystems.get(code)
         if (!r) {
             return fetchRailsystem(code).then(railsystem => {
+                const currentLanguage = rootGetters['language/currentLanguage']
+                railsystem = toI18NameObject(railsystem, railsystem?.language, currentLanguage)
                 commit('SET_RAILSYSTEM', {railsystem})
                 return railsystem
             })
@@ -269,14 +271,16 @@ const actions = {
         const line = await this.dispatch('railsystem/getLine', {lineId})
         return line.stations
     },
-    async getRailSystems({state, commit}) {
+    async getRailSystems({state, commit, rootGetters}) {
         if (state.railSystems && state.railSystems.length > 1) {
             return Array.from(toRaw(state.railSystems).values())
         }
         try {
-            const railSystems = await listRailsystem()
-            railSystems.forEach(it => commit('SET_RAILSYSTEM', {railsystem: it}))
-            return railSystems
+            let railsystems = await listRailsystem()
+            const currentLanguage = rootGetters["language/currentLanguage"]
+            railsystems = railsystems.map(it => toI18NameObject(it, it?.language, currentLanguage))
+            railsystems.forEach(it => commit('SET_RAILSYSTEM', {railsystem: it}))
+            return railsystems
         } catch (e) {
             console.warn('Fail to get railsystem list', e)
             return Promise.reject('获取线网列表失败')

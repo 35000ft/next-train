@@ -120,6 +120,7 @@ import {useStore} from "vuex";
 import {useQuasar} from "quasar";
 import LineIcon from "components/LineIcon.vue";
 import StationForm from "components/form/StationForm.vue";
+import {toI18NameObject} from "src/utils/common_utils";
 
 const $q = useQuasar()
 const railsystems = ref([]);
@@ -178,12 +179,12 @@ function _createStation(node) {
 
 async function loadRailsystems() {
     const rawList = await listRailsystem('', true);
-
+    const currentLanguage = store.getters['language/currentLanguage']
     railsystems.value = rawList.map(rs => ({
         id: `rs_${rs.id}`,
         label: rs.name,
         railsystemCode: rs.code,
-        railsystem: rs,
+        railsystem: toI18NameObject(rs, rs?.language, currentLanguage),
         lazy: true,
     }));
 }
