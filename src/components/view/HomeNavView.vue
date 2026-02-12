@@ -88,6 +88,16 @@
             </div>
 
         </div>
+        <q-btn
+            style="width: 40px;height: 40px; position: absolute; right: 10px; bottom: 30px;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 100%;"
+            to="/chat"
+        >
+            <q-icon color="grey" name="fa-solid fa-robot" size="sm"/>
+        </q-btn>
+        <div>
+        </div>
     </q-page-container>
 </template>
 

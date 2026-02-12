@@ -48,7 +48,7 @@ const routes = [
                 }
             },
             {
-                name: '/manage',
+                name: 'manage',
                 path: '/manage',
                 component: () => import('pages/RailSystemManagePage.vue'),
             },
@@ -58,6 +58,11 @@ const routes = [
         name: 'login',
         path: '/users/login',
         component: () => import('pages/LoginPage.vue'),
+    },
+    {
+        name: 'chat',
+        path: '/chat',
+        component: () => import('pages/AIAgentPage.vue'),
     },
     // Always leave this as last one,
     // but you can also remove it
