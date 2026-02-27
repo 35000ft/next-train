@@ -71,7 +71,7 @@ const currentLanguage = computed(() => {
 })
 const showRailsystemName = computed(() => {
     const railsystemLanguage = currentRailsystem.value?.language
-    if (railsystemLanguage && railsystemLanguage?.slice(0, 2).toLowerCase() !== String(currentLanguage)?.slice(0, 2).toLowerCase()) {
+    if (railsystemLanguage && railsystemLanguage?.slice(0, 2).toLowerCase() !== String(currentLanguage.value)?.slice(0, 2).toLowerCase()) {
         return currentRailsystem.value.code
     } else {
         return currentRailsystem.value.abbrName || currentRailsystem.value.name

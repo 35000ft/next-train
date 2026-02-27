@@ -73,12 +73,7 @@ export function getToday(timezone) {
  * @return {dayjs.Dayjs}
  */
 export function getNowByTimezone(_timezone) {
-    if (!_timezone) {
-        console.warn('timezone is undefined, use utc')
-        return dayjs().utc()
-    }
-    const utcOffset = parseTimezoneOffset(_timezone)
-    return dayjs().utcOffset(utcOffset)
+    return toDayjs(new Dayjs(), _timezone)
 }
 
 export function isAfterNow(_date, timezone) {
@@ -196,7 +191,7 @@ export function fixedMins(seconds) {
 
 /**
  *
- * @param _date {Date|String|Dayjs}
+ * @param _date {Date|String|dayjs.Dayjs}
  * @param {String?}timezone Timezone and time offset are supported, like "Asia/Shanghai", "+08:00"
  * @returns {dayjs.Dayjs|null}
  */

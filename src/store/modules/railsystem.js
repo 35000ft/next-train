@@ -354,6 +354,13 @@ const actions = {
     },
     async changeRailsystem({state, commit}, {railsystemCode}) {
         const railsystem = await this.dispatch('railsystem/getRailSystem', {code: railsystemCode})
+        const defaultStationId = railsystem?.extra?.defaultStationId
+        if (defaultStationId) {
+            const station = await this.dispatch('railsystem/getStation', {stationId: defaultStationId})
+            setTimeout(() => {
+                this.commit('preference/SET_CURRENT_STATION', {station})
+            }, 100)
+        }
         if (railsystem) {
             commit('SET_CURRENT_RAILSYSTEM', {railsystem})
             return Promise.resolve(railsystem)

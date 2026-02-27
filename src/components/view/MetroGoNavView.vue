@@ -72,11 +72,11 @@ import {useStore} from "vuex";
 import DepartTimeSelector from "components/input/DepartTimeSelector.vue";
 import dayjs from "dayjs";
 import {useQuasar} from "quasar";
-import {getNowByTimezone} from "src/utils/time-utils";
 import {useRoute, useRouter} from "vue-router";
 import {arr2Map} from "src/utils/array-utils";
 import {isNumber} from "src/utils/string-utils";
 import QueryDailyTicketView from "components/view/QueryDailyTicketView.vue";
+import {getNowByTimezone} from "src/utils/time-utils";
 
 defineOptions({
     name: 'MetroGoView'

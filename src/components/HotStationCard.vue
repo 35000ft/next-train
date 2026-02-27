@@ -8,7 +8,7 @@
                 暂时未能载入热点车站
             </span>
                 </div>
-                <div class="header-wrapper">{{ t('hotStation') }}</div>
+                <div v-if="hotStations?.length>0" class="header-wrapper">{{ t('hotStation') }}</div>
                 <div v-if="loading">
                     <q-skeleton height="20px" style="margin-bottom: 2px;"/>
                     <q-skeleton height="20px" style="margin-bottom: 2px;"/>
