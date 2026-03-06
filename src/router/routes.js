@@ -59,11 +59,12 @@ const routes = [
         path: '/users/login',
         component: () => import('pages/LoginPage.vue'),
     },
-    {
-        name: 'chat',
-        path: '/chat',
-        component: () => import('pages/AIAgentPage.vue'),
-    },
+    // dify chat
+    // {
+    //     name: 'chat',
+    //     path: '/chat',
+    //     component: () => import('pages/AIAgentPage.vue'),
+    // },
     // Always leave this as last one,
     // but you can also remove it
     {
