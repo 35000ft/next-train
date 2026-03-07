@@ -73,7 +73,7 @@ export function getToday(timezone) {
  * @return {dayjs.Dayjs}
  */
 export function getNowByTimezone(_timezone) {
-    return toDayjs(new Dayjs(), _timezone)
+    return toDayjs(dayjs(), _timezone)
 }
 
 export function isAfterNow(_date, timezone) {
