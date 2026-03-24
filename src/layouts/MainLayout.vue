@@ -76,15 +76,15 @@ async function checkLatestVersion() {
         const versionInfo = await getLatestVersionInfo()
         if (versionInfo.version !== currentVersion) {
             removeKeysStartingWith('railsystem')
-            $q.notify.info('发现新版本，点击更新', {
-                name: '更新',
-                func: () => {
-                    window.location.href = `${window.location.origin}${window.location.pathname}?t=${Date.now()}`
-                }
-            })
+            // 触发 Service Worker 更新检查
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.ready
+                await registration.update()
+            }
         }
         store.commit('application/SET_APP_VERSION', {appVersion: versionInfo})
     } catch (e) {
+        console.error('版本检查失败:', e)
     }
 }
 
