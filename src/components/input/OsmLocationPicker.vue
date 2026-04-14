@@ -29,7 +29,7 @@
                 </l-marker>
             </l-map>
         </div>
-
+    
         <!-- 大地图 -->
         <q-dialog v-model="showBigMapDialog" persistent maximized>
             <div style="width: 100vw; height: 100vh;">

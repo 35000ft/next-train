@@ -97,7 +97,7 @@
         </div>
 
         <q-dialog v-model="showLineForm" @close="()=>{selectedLine=null;showLineForm=false}">
-            <line-form :initial="selectedLine" @saved="reloadLines"/>
+            <line-form :initial="selectedLine" @saved="onLineSaved"/>
         </q-dialog>
         <q-dialog v-model="showStationForm">
             <station-form :initial="selectedStation" @close="()=>{showStationForm=false;selectedStation=null}"/>
@@ -256,6 +256,12 @@ async function reloadLines() {
     if (selectedRailsystem.value) {
         lines.value = await fetchLines(selectedRailsystem.value.code, true)
     }
+}
+
+function onLineSaved() {
+    showLineForm.value = false;
+    selectedLine.value = null;
+    loadRailsystems();
 }
 
 function onRailsystemSaved() {

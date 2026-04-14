@@ -76,19 +76,41 @@
                     <!-- 车站列表 -->
                     <q-btn label="快速添加车站" color="primary">
                         <q-popup-proxy>
-                            <q-card>
+                            <q-card style="min-width: 320px; max-width: 90vw;">
                                 <q-card-section>
-                                    <div
-                                        style="font-size: 20px;font-weight:bold;text-align: center;height: 30px;padding-top: 10px;color: var(--q-primary-d);margin-bottom: 10px;">
-                                        Quick Add Station
-                                    </div>
+                                    <div class="text-h6 text-center text-primary">快速添加车站</div>
                                 </q-card-section>
                                 <q-card-section>
-                                    <q-input v-model="quickImportStationText" type="textarea"
-                                             hint="e.g.: 栖霞山 十月广场 (以空格分隔站名)"
-                                             @blur="handleQuickAddStations(quickImportStationText)"
-                                             outlined style="--q-field-control-bg: #f0f0f0;"/>
+                                    <q-input
+                                        v-model="quickImportStationText"
+                                        type="textarea"
+                                        hint="支持空格、逗号或换行分隔"
+                                        outlined
+                                        style="--q-field-control-bg: #f0f0f0;"
+                                    />
                                 </q-card-section>
+                                <q-card-section v-if="quickAddMatchResult" class="q-pt-none">
+                                    <q-banner
+                                        dense
+                                        :class="quickAddMatchResult.unmatchedCount > 0 ? 'bg-orange-1 text-orange-10' : 'bg-green-1 text-green-10'"
+                                        rounded
+                                    >
+                                        <div class="text-caption">
+                                            <div>匹配成功: {{ quickAddMatchResult.matchedCount }} 个</div>
+                                            <div v-if="quickAddMatchResult.unmatchedCount > 0">
+                                                未匹配: {{ quickAddMatchResult.unmatchedCount }} 个
+                                            </div>
+                                        </div>
+                                    </q-banner>
+                                </q-card-section>
+                                <q-card-actions align="right">
+                                    <q-btn
+                                        label="匹配"
+                                        color="primary"
+                                        :loading="quickAddLoading"
+                                        @click="handleQuickAddStations(quickImportStationText)"
+                                    />
+                                </q-card-actions>
                             </q-card>
                         </q-popup-proxy>
                     </q-btn>
@@ -247,6 +269,8 @@ import {useI18n} from "vue-i18n";
 const store = useStore()
 const displayLocationPicker = ref(false)
 const quickImportStationText = ref('')
+const quickAddLoading = ref(false)
+const quickAddMatchResult = ref(null)
 const formRef = ref(null)
 const {t} = useI18n()
 const showStationForm = ref(false)
@@ -378,31 +402,67 @@ const handleRemoveStation = (index) => {
 }
 
 const handleQuickAddStations = async (text) => {
-    text = String(text)
+    text = String(text || '')
     if (!text || text === "") {
         return
     }
     const railsystemCode = props.initial?.railsystem?.code
-    if (!railsystemCode) return
-
-    let names = []
-    if (text.indexOf('\n') !== -1) {
-        names = text.split('\n')
-    } else if (text.indexOf(',') !== -1) {
-        names = text.split(',')
-    } else if (text.indexOf(' ') !== -1) {
-        names = text.split(' ')
-    } else {
-        names = [text]
+    if (!railsystemCode) {
+        $q.notify.error('无法匹配: 线网代码缺失')
+        return
     }
-    names = names.map(it => it.trim()).filter(it => it.length > 0)
-    const matchedStations = await store.dispatch('railsystem/matchStationByNames', {names, railsystemCode})
-    if (matchedStations) {
-        quickImportStationText.value = ''
-        $q.notify.ok('快速添加车站成功')
-        lineStations.value.push(...matchedStations.values())
-    } else {
-        $q.notify.error('快速添加车站失败')
+
+    quickAddLoading.value = true
+    quickAddMatchResult.value = null
+
+    try {
+        let names = []
+        if (text.indexOf('\n') !== -1) {
+            names = text.split('\n')
+        } else if (text.indexOf(',') !== -1) {
+            names = text.split(',')
+        } else if (text.indexOf(' ') !== -1) {
+            names = text.split(' ')
+        } else {
+            names = [text]
+        }
+        names = names.map(it => it.trim()).filter(it => it.length > 0)
+        const matchedStations = await store.dispatch('railsystem/matchStationByNames', {names, railsystemCode})
+        if (matchedStations) {
+            const matched = []
+            const unmatched = []
+            for (const [name, station] of matchedStations.entries()) {
+                if (station?.isNew) {
+                    unmatched.push(name)
+                } else {
+                    matched.push(station)
+                }
+            }
+
+            quickAddMatchResult.value = {
+                matchedCount: matched.length,
+                unmatchedCount: unmatched.length
+            }
+
+            if (matched.length > 0) {
+                lineStations.value.push(...matched)
+            }
+
+            if (unmatched.length > 0) {
+                quickImportStationText.value = unmatched.join(' ')
+                $q.notify.warn(`成功匹配 ${matched.length} 个车站，${unmatched.length} 个未匹配`)
+            } else {
+                quickImportStationText.value = ''
+                $q.notify.ok(`快速添加车站成功: ${matched.length} 个`)
+            }
+        } else {
+            $q.notify.error('快速添加车站失败')
+        }
+    } catch (err) {
+        console.error('快速添加车站失败:', err)
+        $q.notify.error('快速添加车站失败: ' + (err.message || ''))
+    } finally {
+        quickAddLoading.value = false
     }
 }
 
