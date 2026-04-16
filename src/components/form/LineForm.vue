@@ -98,7 +98,7 @@
                                         <div class="text-caption">
                                             <div>匹配成功: {{ quickAddMatchResult.matchedCount }} 个</div>
                                             <div v-if="quickAddMatchResult.unmatchedCount > 0">
-                                                未匹配: {{ quickAddMatchResult.unmatchedCount }} 个
+                                                未匹配: {{ quickAddMatchResult.unmatchedCount }} 个（已添加为新增车站）
                                             </div>
                                         </div>
                                     </q-banner>
@@ -433,7 +433,7 @@ const handleQuickAddStations = async (text) => {
             const unmatched = []
             for (const [name, station] of matchedStations.entries()) {
                 if (station?.isNew) {
-                    unmatched.push(name)
+                    unmatched.push(station)
                 } else {
                     matched.push(station)
                 }
@@ -449,8 +449,9 @@ const handleQuickAddStations = async (text) => {
             }
 
             if (unmatched.length > 0) {
-                quickImportStationText.value = unmatched.join(' ')
-                $q.notify.warn(`成功匹配 ${matched.length} 个车站，${unmatched.length} 个未匹配`)
+                lineStations.value.push(...unmatched)
+                quickImportStationText.value = unmatched.map(it => it.name).join(' ')
+                $q.notify.warn(`成功匹配 ${matched.length} 个车站，${unmatched.length} 个未匹配，已添加为新增车站`)
             } else {
                 quickImportStationText.value = ''
                 $q.notify.ok(`快速添加车站成功: ${matched.length} 个`)
