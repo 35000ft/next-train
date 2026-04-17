@@ -91,7 +91,7 @@ export function isBeforeNow(_date, timezone) {
  * @return {boolean}
  */
 export function hasTimezone(_date) {
-    const timezonePattern = /([+-]\d{2}:d\d{2})$/;
+    const timezonePattern = /([+-]\d{2}:\d{2})$/;
     return timezonePattern.test(_date)
 }
 
@@ -327,13 +327,14 @@ export function toLocalDatetime(_time, timezone, format = 'YYYY-MM-DDTHH:mm:ss')
         return dayjs(_time).utcOffset(parseTimezoneOffset(timezone)).format(format)
     }
     if (typeof _time === "string") {
-        return toDayjs(_time).format(format)
+        return toDayjs(_time, timezone).format(format)
     }
     if (dayjs.isDayjs(_time)) {
-        const new_time = toDayjs(_time).utcOffset(parseTimezoneOffset(timezone))
-        return new_time.format(format)
+        const timeStr = _time.format('YYYY-MM-DDTHH:mm:ss')
+        return toDayjs(timeStr, timezone).format(format)
     }
     console.warn('Error parse to locale datetime:', _time, timezone)
+    return null
 }
 
 /**

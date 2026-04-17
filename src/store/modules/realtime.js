@@ -118,6 +118,7 @@ const actions = {
             return new Promise((resolve, reject) => {
                 const timezone = railsystem.timezone;
                 const localDatetime = toLocalDatetime(depTime, timezone)
+                console.log('deptime', localDatetime, timezone)
                 const lockKey = `fetchStationTrainAtTime:${stationId}-${lineId}-${localDatetime}`
                 const _oldTrains = state.stationTrainInfoDetailMap.get(lockKey)
                 if (_oldTrains) {

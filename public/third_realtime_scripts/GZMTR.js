@@ -51,3 +51,19 @@ async function Third_FetchTrainInfoById(trainInfoId) {
     const parsedData = Util_toTrainInfoDetailResponse(data, RAILSYSTEM_CODE)
     return Promise.resolve(parsedData)
 }
+
+async function Third_FetchStationSchedule(line, station) {
+    if (!line?.thirdId || !station.thirdId) {
+        return Promise.reject('Line thirdId and station thirdId must be provided')
+    }
+    lineMap.set(line.thirdId, line)
+    const url = `https://nmtr.site/api/metro-trace/gzmtr/station/schedule?station_no=${station.thirdId}&line_id=${line.thirdId}`
+    const r = fetch(url, {
+        method: "POST", mode: 'cors', headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then(res => res).catch(e => e)
+    const rr = await r
+
+}
