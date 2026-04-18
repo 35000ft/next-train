@@ -250,7 +250,7 @@ async function findGetOnOffIndex(trainInfo, path) {
     let curPathStationOffset
     let currentPathIndex = -1
     const stopStationIds = trainInfo.schedule.map(it => it.stationId)
-    const trainStopLines = trainLineOfStopParser(trainInfo)
+    // const trainStopLines = trainLineOfStopParser(trainInfo)
     for (let i = 0; i < path.length; i++) {
         // 当前路径的主车站id列表
         const {stationIds} = path[i]
@@ -269,6 +269,7 @@ async function findGetOnOffIndex(trainInfo, path) {
 
                 // 查找下车站在列车时刻表的index
                 getOffIndex = stopStationIds.lastIndexOf(getOffStationId)
+                console.log('update getOffIndex', getOffIndex, stopStationIds, path[i])
             }
         }
 
@@ -285,10 +286,10 @@ async function findGetOnOffIndex(trainInfo, path) {
             if (getOffIndex <= getOnIndex) {
                 return Promise.reject()
             }
-            if (trainStopLines.length === 1) {
-                isFind = true
-                break
-            }
+            // if (trainStopLines.length === 1) {
+            //     isFind = true
+            //     break
+            // }
         }
 
         //通过第一次循环的检查后 可以搭乘该列车
@@ -376,6 +377,11 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         // 计算下一个parsedPath 为parsedPath的切片 因为不需要切割所以从currentPathIndex+1开始
         nextParsedPath = _.cloneDeep(parsedPath.slice(currentPathIndex + 1))
         transferFromId = parsedPath[currentPathIndex].subStationIds.slice(-1)[0]
+    }
+    if (nextParsedPath.length === 0) {
+        //到达终点
+        cb(trains)
+        return Promise.resolve(trains)
     }
     const curLineId = parsedPath[currentPathIndex].lineId
     const nextLineId = needSplit ? curLineId : nextParsedPath[0].lineId
