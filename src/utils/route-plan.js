@@ -4,15 +4,14 @@ import {trainLineOfStopParser} from "src/models/Train";
 import _ from "lodash";
 import {diff} from "src/utils/time-utils";
 
+// 主站 ID 前缀，用于在图中区分主站节点与普通站点节点
 export const MAIN_STATION_PREFIX = "M"
 
 /**
- *
- * @param {{}} rawGraph
- * @param {Number|String} fromMainId
- * @param {Number|String} toMainId
- * @param viaIds
- * @returns {{}}
+ * 将原始图数据初始化为 Dijkstra 可用的加权图。
+ * 原始数据中，同一条物理线路上的相邻站点用正距离连接；
+ * 换乘关系（transferId 存在）会在主站（M前缀）与相关子站之间建立 0 权边，
+ * 使得算法把换乘视为无额外距离（实际换乘代价在后续 schedule 阶段计算）。
  */
 function initGraph(rawGraph, fromMainId, toMainId, viaIds = []) {
     const subIdToMainMap = new Map()
@@ -26,6 +25,7 @@ function initGraph(rawGraph, fromMainId, toMainId, viaIds = []) {
             const _mainStationId = MAIN_STATION_PREFIX + mainStationId
             acc[fromId] = acc[fromId] || {}
             if (transferId) {
+                // 换乘边：当前站点 -> 主站 -> 目标子站，均为 0 权
                 acc[fromId][_mainStationId] = 0
                 acc[_mainStationId] = acc[_mainStationId] || {}
                 const subStationToId = toId.split('-')[0]
@@ -40,6 +40,7 @@ function initGraph(rawGraph, fromMainId, toMainId, viaIds = []) {
                 acc[subStationFromId][_mainStationId] = 0
                 return acc
             }
+            // 记录子站到主站/线路的映射，供后续 parseRoute 还原线路使用
             subIdToMainMap.set(fromId, {
                 mainStationId,
                 lineId
@@ -48,7 +49,8 @@ function initGraph(rawGraph, fromMainId, toMainId, viaIds = []) {
             return acc
         }, {})
 
-    // Prefix "M" stands it is a main station id
+    // 将终点（及途经点）的主站与图中相关子站用 0 权边相连，
+    // 这样 Dijkstra 可以从虚拟主站节点进入/离开真实线路
     const toMainStationIds = [toMainId, ...viaIds]
     for (const mainStationId of toMainStationIds) {
         const _toMainId = MAIN_STATION_PREFIX + mainStationId
@@ -61,7 +63,7 @@ function initGraph(rawGraph, fromMainId, toMainId, viaIds = []) {
         })
     }
 
-    // Construct the start route from departure station
+    // 同理，将起点（及途经点）的主站与图中相关子站用 0 权边相连
     const fromMainStationIds = [fromMainId, ...viaIds]
     for (const mainStationId of fromMainStationIds) {
         const _fromMainId = MAIN_STATION_PREFIX + mainStationId
@@ -78,9 +80,9 @@ function initGraph(rawGraph, fromMainId, toMainId, viaIds = []) {
 }
 
 /**
- *
- * @param {Map}  subIdToMainMap
- * @param {Array} path 如 ['M180','193', '194', '195', '196', 'M65'] 代表卸甲甸到泰冯路
+ * 将 Dijkstra 返回的原始节点路径（如 ['M180','193','194','195','196','M65']）
+ * 解析为按线路分段的结果，每段包含 lineId、stationIds（主站ID列表）、subStationIds（子站ID列表）。
+ * 后续还会合并可顺向接续的同线路段。
  */
 function parseRoute(subIdToMainMap, path) {
     let result = []
@@ -89,7 +91,7 @@ function parseRoute(subIdToMainMap, path) {
     for (const subStationId of path.slice(2, -1)) {
         const last = result.slice(-1)[0]
         if (subStationId.startsWith(MAIN_STATION_PREFIX)) {
-            //TODO
+            //TODO：当前未处理路径中出现主站前缀节点的场景
         } else {
             const {lineId, mainStationId} = subIdToMainMap.get(subStationId)
             if (!lineId) continue
@@ -106,7 +108,7 @@ function parseRoute(subIdToMainMap, path) {
             }
         }
     }
-    // Merge Line
+    // Merge Line：相邻两段 lineId 相同且可顺向接续时合并为一段
     result = result.reduce((acc, cur) => {
         if (acc.length === 0) {
             acc.push(cur)
@@ -116,7 +118,7 @@ function parseRoute(subIdToMainMap, path) {
                 if (last.stationIds.length < 2 || cur.stationIds.length < 2) {
                     throw new Error(`Invalid station sequence: last.stationIds (${last.stationIds}) or cur.stationIds (${cur.stationIds}) length is less than 2.`)
                 }
-                // 如果相邻两段的lineId相同 判断是否可以顺向接续 即前一段的倒数第二站id与后一段的第二站id是否相同 不相同则可以接续
+                // 判断是否可以顺向接续：前一段倒数第二站 != 后一段第二站 才可接续
                 if (last.stationIds[last.stationIds.length - 2] !== cur.stationIds[1]) {
                     last.stationIds.push(...cur.stationIds.slice(1))
                 } else {
@@ -132,6 +134,11 @@ function parseRoute(subIdToMainMap, path) {
 }
 
 
+/**
+ * 规划从 fromMainId 到 toMainId 的所有可行路径方案。
+ * 先求最短路径作为基准，再用 findAllPaths 枚举候选路径，
+ * 对每条候选路径调用 planOnePathSolution 生成具体车次方案，并通过 cb 实时回调。
+ */
 export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
     console.log('Plan route:', fromMainId, toMainId, depTime)
     const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId)
@@ -161,6 +168,8 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
                 cb(solution)
             }
             return solutions
+        }).catch(e => {
+            console.warn('Fail to plan:' + e)
         })
         planPromises.push(onePathPromise)
     }
@@ -171,17 +180,15 @@ export async function planRoute(rawGraph, fromMainId, toMainId, trainGetter, tra
 }
 
 /**
- *
- * @param {Number} distance 路线的距离
- * @param {Array} path 物理路径
- * @param {Array<{}>} parsedPath 转为使用各条线路的路径
- * @param {dayjs.Dayjs} depTime 出发时间
- * @param {Function} trainGetter 获取符合条件的车次的函数 接受参数 {lineId,stationId,depTime}
- * @param transferInfoGetter
+ * 对单条物理路径（parsedPath）搜索所有可行的列车组合方案。
+ * 维护一个 Pareto 前沿解集（用 Map，key 为 solution.id）：
+ * 若新方案比已有方案更优（dep 不更早且 arr 更早），则淘汰旧方案；
+ * 若新方案不被任何已有方案支配，则加入。
  */
 async function planOnePathSolution({distance, path, parsedPath}, depTime, trainGetter, transferInfoGetter) {
     const {lineId, stationIds} = parsedPath[0]
-    const solutions = new Set()
+    // 使用 Map 而非 Set：以 solution.id 为键，避免对象引用比较导致去重失效
+    const solutions = new Map()
     const allPromises = []
     await trainGetter({lineId, stationId: stationIds[0], depTime}).then(trainInfoList => {
         console.log('PlanOnePathSolution Candidate trainInfoList:', trainInfoList, 'Station ID:', stationIds[0], 'depTime', depTime,)
@@ -189,19 +196,30 @@ async function planOnePathSolution({distance, path, parsedPath}, depTime, trainG
             (segments) => {
                 const solution = toSolution(segments, distance)
                 if (solutions.size === 0) {
-                    solutions.add(solution)
+                    solutions.set(solution.id, solution)
                     return
                 }
-                const toDeleteSolutions = Array.from(solutions)
-                    .filter(it => it.arrTime.isAfter(solution.arrTime)
-                        && diff(it.depTime, solution.depTime) >= 0)
-                if (toDeleteSolutions.length > 0) {
-                    toDeleteSolutions.forEach(it => solutions.delete(it))
-                    solutions.add(solution)
+                // 淘汰被新方案严格支配的旧方案（arr 更晚且 dep 不更早）
+                const toDeleteIds = []
+                for (const [id, it] of solutions) {
+                    if (it.arrTime.isAfter(solution.arrTime) && diff(it.depTime, solution.depTime) >= 0) {
+                        toDeleteIds.push(id)
+                    }
+                }
+                if (toDeleteIds.length > 0) {
+                    toDeleteIds.forEach(id => solutions.delete(id))
+                    solutions.set(solution.id, solution)
                 } else {
-                    const betterSolutions = Array.from(solutions).filter(it => diff(solution.depTime, it.depTime) === 0 && diff(solution.arrTime, it.arrTime) > 0)
-                    if (betterSolutions.length === 0) {
-                        solutions.add(solution)
+                    // 若已有同 dep 且 arr 更早的方案，则新方案不加入
+                    let hasBetter = false
+                    for (const it of solutions.values()) {
+                        if (diff(solution.depTime, it.depTime) === 0 && diff(solution.arrTime, it.arrTime) > 0) {
+                            hasBetter = true
+                            break
+                        }
+                    }
+                    if (!hasBetter) {
+                        solutions.set(solution.id, solution)
                     }
                 }
             }))
@@ -210,31 +228,26 @@ async function planOnePathSolution({distance, path, parsedPath}, depTime, trainG
     await Promise.all(allPromises)
 
     console.log('One Path Solutions', parsedPath, solutions)
-    return Array.from(solutions)
+    return Array.from(solutions.values())
 }
 
 /**
- * Find the trains that transfer time are less than normal transfer time, which means may not able to catch.
- * @param trains
- * @param lastArrTime
- * @param normalDepTime
- * @param getOnStationId
- * @returns {*[]}
+ * 在候选车次中，找出那些出发时间早于正常换乘时间、可能来不及搭乘的车次。
+ * 用于给用户提供“换乘时间不足”的提示信息。
  */
 function findLessTransferTimeTrains(trains, lastArrTime, normalDepTime, getOnStationId) {
     const lessTransferTimeTrains = []
     for (const trainInfo of trains) {
-        //查找上车站在列车时刻表的index
+        // 查找上车站在列车时刻表中的 index
         const stopStationIds = trainInfo.schedule.map(it => it.stationId)
         const _getOnIndex = stopStationIds.indexOf(getOnStationId)
-        //找不到上车站index 不能搭乘该列车 return
         if (_getOnIndex === -1) {
             continue
         }
         const getOnStop = trainInfo.schedule[_getOnIndex]
         if (!getOnStop) continue
         if (!getOnStop.dep.isAfter(normalDepTime)) {
-            // 在正常换乘时间之前的列车 计算换乘时间并加入结果
+            // 正常换乘时间之前的列车，计算实际换乘时间并加入结果
             trainInfo.transferTime = Math.abs(diff(getOnStop.dep, lastArrTime, 'second'))
             trainInfo.depStop = getOnStop
             lessTransferTimeTrains.push(trainInfo)
@@ -243,86 +256,90 @@ function findLessTransferTimeTrains(trains, lastArrTime, normalDepTime, getOnSta
     return lessTransferTimeTrains
 }
 
+/**
+ * 根据 parsedPath 中的一段线路，在列车时刻表中找到上车站和下车站的索引。
+ * 使用 Map 预建 stationId -> {first, last} 索引，避免反复 indexOf/lastIndexOf 扫描。
+ * 返回：[getOnIndex, getOffIndex, curPathStationOffset, currentPathIndex]
+ */
 async function findGetOnOffIndex(trainInfo, path) {
     let isFind = false
     let getOffIndex = -1
     let getOnIndex = -1
     let curPathStationOffset
     let currentPathIndex = -1
-    const stopStationIds = trainInfo.schedule.map(it => it.stationId)
-    // const trainStopLines = trainLineOfStopParser(trainInfo)
+
+    // 预建索引：每个 stationId 在 schedule 中首次出现和最后一次出现的下标
+    const stopStationIndexMap = new Map()
+    trainInfo.schedule.forEach((stop, idx) => {
+        if (!stopStationIndexMap.has(stop.stationId)) {
+            stopStationIndexMap.set(stop.stationId, {first: idx, last: idx})
+        } else {
+            stopStationIndexMap.get(stop.stationId).last = idx
+        }
+    })
+
     for (let i = 0; i < path.length; i++) {
-        // 当前路径的主车站id列表
+        // 当前路径段的主车站 ID 列表
         const {stationIds} = path[i]
 
-        // 查找下车站id
-        const getOffStationId = [...stationIds].reverse().find(item => stopStationIds.includes(item))
-        //如果下车站id不为空
+        // 查找下车站：从 stationIds 尾部向前遍历，找第一个存在于列车时刻表中的站
+        let getOffStationId
+        for (let j = stationIds.length - 1; j >= 0; j--) {
+            if (stopStationIndexMap.has(stationIds[j])) {
+                getOffStationId = stationIds[j]
+                break
+            }
+        }
+
         if (getOffStationId !== undefined) {
             const _curPathStationOffset = stationIds.indexOf(getOffStationId)
             if (_curPathStationOffset > 0) {
-                // 查找下车站id在当前路径主车站id列表的位置
                 curPathStationOffset = _curPathStationOffset
-
-                //更新当前路径index
                 currentPathIndex = i
-
-                // 查找下车站在列车时刻表的index
-                getOffIndex = stopStationIds.lastIndexOf(getOffStationId)
-                console.log('update getOffIndex', getOffIndex, stopStationIds, path[i])
+                // 取该站在时刻表中最后一次出现的索引作为下车站
+                getOffIndex = stopStationIndexMap.get(getOffStationId).last
             }
         }
 
-        //第一次循环获取上车站索引
+        // 仅在第一次循环确定上车站索引
         if (i === 0) {
-            //查找上车站在列车时刻表的index 只需要在第一次查找 但下车站index需要查找多次
-            getOnIndex = stopStationIds.indexOf(stationIds[0])
+            const onRecord = stopStationIndexMap.get(stationIds[0])
+            getOnIndex = onRecord ? onRecord.first : -1
 
-            //找不到上车站index 不能搭乘该列车 return
             if (getOnIndex === -1) {
-                return Promise.reject()
+                return [-1, -1, -1, -1]
             }
-            //下车站index小于等于上车站index 不能搭乘该列车 return
             if (getOffIndex <= getOnIndex) {
-                return Promise.reject()
+                return [-1, -1, -1, -1]
             }
-            // if (trainStopLines.length === 1) {
-            //     isFind = true
-            //     break
-            // }
         }
 
-        //通过第一次循环的检查后 可以搭乘该列车
         isFind = true
     }
     if (!isFind || getOffIndex <= getOnIndex) {
-        return Promise.reject()
+        return [-1, -1, -1, -1]
     }
     return [getOnIndex, getOffIndex, curPathStationOffset, currentPathIndex]
 }
 
 /**
- *
- * @param {{}} trainInfo
- * @param {Array<{}>} parsedPath
- * @param lastDepTime
- * @param trainGetter
- * @param transferInfoGetter
- * @param trains 当前使用的列车和换乘
- * @param cb 成功回调
- * @param preTransferInfo 上一个换乘点信息 用于检查车次出发时间是否满足换乘需求
- * @param lessTransferTimeTrains
+ * 递归规划一条路径上的列车组合。
+ * 对当前列车确定上下车站后，若未到达终点，则根据换乘信息截取剩余路径，
+ * 继续枚举下一班可换乘的列车。
  */
 async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, transferInfoGetter, trains = [], cb, preTransferInfo, lessTransferTimeTrains = []) {
     let currentPathIndex = -1
     let getOffIndex = -1
     let getOnIndex = -1
     let curPathStationOffset
+    const getOnOff = await findGetOnOffIndex(trainInfo, parsedPath)
 
     try {
-        const getOnOff = await findGetOnOffIndex(trainInfo, parsedPath)
         getOnIndex = getOnOff[0]
         getOffIndex = getOnOff[1]
+        if (getOffIndex < 0 || getOnIndex < 0) {
+            return
+        }
         curPathStationOffset = getOnOff[2]
         currentPathIndex = getOnOff[3]
         if (preTransferInfo) {
@@ -348,7 +365,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         }
 
     } catch (e) {
-        console.warn('findGetOnOffIndex error', e)
+        console.warn('recursivePlan error', e, trainInfo, 'getOnIndex:' + getOnIndex, 'getOffIndex:' + getOffIndex,)
         return
     }
 
@@ -357,7 +374,7 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     const getOffStop = trainInfo.schedule[getOffIndex]
     const isArrived = parsedPath.length === 1 && getOffStop.stationId === parsedPath[0].stationIds.slice(-1)[0]
     if (isArrived) {
-        //到达终点
+        // 到达终点，回调完整行程
         cb(trains)
         return Promise.resolve(trains)
     }
@@ -365,21 +382,21 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
     let nextParsedPath
     let transferFromId
 
+    // 判断当前路径段是否需要切片：
+    // 若下车点不是该段最后一个站，说明该列车只覆盖了一段线路的部分区间，
+    // 剩余区间需要继续由后续列车（可能同线或换乘）覆盖。
     const needSplit = curPathStationOffset < parsedPath[currentPathIndex].stationIds.length - 1
     if (needSplit) {
-        // 计算下一个parsedPath 为parsedPath的切片 因为需要切割所以从currentPathIndex开始
         nextParsedPath = _.cloneDeep(parsedPath.slice(currentPathIndex))
-        //需要对nextParsedPath进行切割
         nextParsedPath[0].stationIds = nextParsedPath[0].stationIds.slice(curPathStationOffset)
         nextParsedPath[0].subStationIds = nextParsedPath[0].subStationIds.slice(curPathStationOffset)
         transferFromId = parsedPath[currentPathIndex].subStationIds[curPathStationOffset]
     } else {
-        // 计算下一个parsedPath 为parsedPath的切片 因为不需要切割所以从currentPathIndex+1开始
         nextParsedPath = _.cloneDeep(parsedPath.slice(currentPathIndex + 1))
         transferFromId = parsedPath[currentPathIndex].subStationIds.slice(-1)[0]
     }
     if (nextParsedPath.length === 0) {
-        //到达终点
+        // 路径已空，视为到达终点
         cb(trains)
         return Promise.resolve(trains)
     }
@@ -398,14 +415,12 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
 
     try {
         const minTransfer = await transferInfoGetter(transferFromInfo);
-        // lastDepTime = getOffStop.arr.add(minTransfer.needTime, 'second')
-        lastDepTime = getOffStop.arr.add(10, 'second')
+        lastDepTime = getOffStop.arr.add(minTransfer?.needTime || 10, 'second')
         const nextTrainInfoList = await trainGetter({
             stationId: currentStationId,
             lineId: nextLineId,
             depTime: lastDepTime
         })
-        // Trains that transfer time are less than normal transfer time, which means may not able to catch.
         const normalDepTime = getOffStop.arr.add(minTransfer.needTime, 'second')
         const lessTransferTimeTrains = findLessTransferTimeTrains(nextTrainInfoList, getOffStop.arr, normalDepTime, nextParsedPath[0].stationIds[0])
 
@@ -415,13 +430,18 @@ async function recursivePlan(trainInfo, parsedPath, lastDepTime, trainGetter, tr
         await Promise.all(promises)
     } catch (error) {
         console.error('Error in recursivePlan:', error)
-        return Promise.resolve(error)
+        return Promise.reject(error)
     }
 }
 
+/**
+ * 规划带途经点（viaIds）的最短路径方案。
+ * 将途经点依次拼接为多段最短路径，再对整体路径生成具体车次方案。
+ */
 export function planShortestSolution(rawGraph, fromMainId, toMainId, viaIds = [], trainGetter, transferInfoGetter, depTime = dayjs(), cb) {
     console.log('Plan Shortest Solution:', fromMainId, toMainId, depTime)
     const {graph, subIdToMainMap} = initGraph(rawGraph, fromMainId, toMainId, viaIds)
+    // 逐段求最短路径并拼接
     const {path, distance} = [...viaIds, toMainId].map(v => {
         const _fromMainId = MAIN_STATION_PREFIX + fromMainId
         const _toMainId = MAIN_STATION_PREFIX + v
@@ -444,6 +464,12 @@ export function planShortestSolution(rawGraph, fromMainId, toMainId, viaIds = []
         })
 }
 
+/**
+ * 将一段完整的行程 segments（train + transfer 交替）转换为可展示的 solution 对象。
+ * transfer 分为两类：
+ * - transfer：站内换乘（depStationId === arrStationId）
+ * - outerTransfer：站外换乘（需要出站再进站）
+ */
 function toSolution(segments, distance) {
     const transfers = segments.filter(it => it.type === 'transfer')
     const solutionId = segments.filter(it => it.type === 'train').map(it => it.trainInfo.id).join('-')
@@ -486,6 +512,10 @@ function toSolution(segments, distance) {
     }
 }
 
+/**
+ * 根据列车时刻表切片，构建一段乘车区间的列车对象。
+ * 包含若干 getter，用于惰性访问上下车站点的名称、ID 等信息。
+ */
 function buildTrain(trainInfo, getOnIndex, getOffIndex, lessTransferTimeTrains) {
     const stops = trainInfo.schedule.slice(getOnIndex, getOffIndex + 1)
     return {
