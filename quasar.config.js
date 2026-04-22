@@ -178,7 +178,19 @@ module.exports = configure(function (/* ctx */) {
             manifestFilename: 'manifest.json',
             useCredentialsForManifestTag: false,
             workboxOptions: {
+                navigateFallback: 'index.html',
                 runtimeCaching: [
+                    {
+                        urlPattern: ({ request }) => request.mode === 'navigate',
+                        handler: 'NetworkFirst',
+                        options: {
+                            cacheName: 'navigation-cache',
+                            networkTimeoutSeconds: 3,
+                            cacheableResponse: {
+                                statuses: [0, 200]
+                            }
+                        }
+                    },
                     {
                         urlPattern: /^https:\/\/api\.nmtr\.online\/metro-realtime\/.*$/, // 匹配 API
                         handler: 'NetworkFirst', // 优先网络，请求失败走缓存
