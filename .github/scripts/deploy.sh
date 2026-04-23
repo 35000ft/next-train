@@ -9,5 +9,5 @@ npm install
 echo "APP_VERSION=$COMMIT_SHA" >> ./.env.production
 
 icongenie generate -m pwa -i ./public/icons/icon.png
-quasar build -m pwa
+quasar build
 cp -rf /home/ubuntu/projects/next-train/dist/pwa/* /usr/share/nginx/html/next-train
