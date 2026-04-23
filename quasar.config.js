@@ -171,76 +171,76 @@ module.exports = configure(function (/* ctx */) {
         },
 
         // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
-        pwa: {
-            workboxMode: 'generateSW', // or 'injectManifest'
-            injectPwaMetaTags: true,
-            swFilename: 'sw.js',
-            manifestFilename: 'manifest.json',
-            useCredentialsForManifestTag: false,
-            workboxOptions: {
-                navigateFallback: 'index.html',
-                runtimeCaching: [
-                    {
-                        urlPattern: ({ request }) => request.mode === 'navigate',
-                        handler: 'NetworkFirst',
-                        options: {
-                            cacheName: 'navigation-cache',
-                            networkTimeoutSeconds: 3,
-                            cacheableResponse: {
-                                statuses: [0, 200]
-                            }
-                        }
-                    },
-                    {
-                        urlPattern: /^https:\/\/api\.nmtr\.online\/metro-realtime\/.*$/, // 匹配 API
-                        handler: 'NetworkFirst', // 优先网络，请求失败走缓存
-                        options: {
-                            cacheName: 'api-cache',
-                            expiration: {
-                                maxEntries: 50,
-                                maxAgeSeconds: 60 * 60 // 1小时
-                            }
-                        }
-                    },
-                    {
-                        urlPattern: /^https:\/\/api\.nmtr\.online\/file\/railsystem\/.*$/, // 匹配 API
-                        handler: 'CacheFirst', // 优先网络，请求失败走缓存
-                        options: {
-                            cacheName: 'railsystem-cache',
-                            expiration: {
-                                maxEntries: 100,
-                                maxAgeSeconds: 60 * 60 // 1小时
-                            }
-                        }
-                    },
-                    {
-                        urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
-                        handler: 'CacheFirst', // 优先缓存
-                        options: {
-                            cacheName: 'image-cache',
-                            expiration: {
-                                maxEntries: 100,
-                                maxAgeSeconds: 60 * 60 * 24 * 30 // 30天
-                            }
-                        }
-                    }
-                ]
-            },
-            manifest: {
-                name: 'Next Train',
-                short_name: 'Next Train',
-                description: '下一班車 Next Train',
-                display: 'standalone',
-                background_color: '#ffffff',
-                theme_color: '#36598f',
-            }
-            // useFilenameHashes: true,
-            // extendGenerateSWOptions (cfg) {}
-            // extendInjectManifestOptions (cfg) {},
-            // extendManifestJson (json) {}
-            // extendPWACustomSWConf (esbuildConf) {}
-        },
-
+        /*  pwa: {
+              workboxMode: 'generateSW', // or 'injectManifest'
+              injectPwaMetaTags: true,
+              swFilename: 'sw.js',
+              manifestFilename: 'manifest.json',
+              useCredentialsForManifestTag: false,
+              workboxOptions: {
+                  navigateFallback: 'index.html',
+                  runtimeCaching: [
+                      {
+                          urlPattern: ({ request }) => request.mode === 'navigate',
+                          handler: 'NetworkFirst',
+                          options: {
+                              cacheName: 'navigation-cache',
+                              networkTimeoutSeconds: 3,
+                              cacheableResponse: {
+                                  statuses: [0, 200]
+                              }
+                          }
+                      },
+                      {
+                          urlPattern: /^https:\/\/api\.nmtr\.online\/metro-realtime\/.*$/, // 匹配 API
+                          handler: 'NetworkFirst', // 优先网络，请求失败走缓存
+                          options: {
+                              cacheName: 'api-cache',
+                              expiration: {
+                                  maxEntries: 50,
+                                  maxAgeSeconds: 60 * 60 // 1小时
+                              }
+                          }
+                      },
+                      {
+                          urlPattern: /^https:\/\/api\.nmtr\.online\/file\/railsystem\/.*$/, // 匹配 API
+                          handler: 'CacheFirst', // 优先网络，请求失败走缓存
+                          options: {
+                              cacheName: 'railsystem-cache',
+                              expiration: {
+                                  maxEntries: 100,
+                                  maxAgeSeconds: 60 * 60 // 1小时
+                              }
+                          }
+                      },
+                      {
+                          urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+                          handler: 'CacheFirst', // 优先缓存
+                          options: {
+                              cacheName: 'image-cache',
+                              expiration: {
+                                  maxEntries: 100,
+                                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30天
+                              }
+                          }
+                      }
+                  ]
+              },
+              manifest: {
+                  name: 'Next Train',
+                  short_name: 'Next Train',
+                  description: '下一班車 Next Train',
+                  display: 'standalone',
+                  background_color: '#ffffff',
+                  theme_color: '#36598f',
+              }
+              // useFilenameHashes: true,
+              // extendGenerateSWOptions (cfg) {}
+              // extendInjectManifestOptions (cfg) {},
+              // extendManifestJson (json) {}
+              // extendPWACustomSWConf (esbuildConf) {}
+          },
+  */
         // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-cordova-apps/configuring-cordova
         cordova: {
             // noIosLegacyBuildFlag: true, // uncomment only if you know what you are doing
