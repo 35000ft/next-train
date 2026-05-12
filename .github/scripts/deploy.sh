@@ -22,4 +22,4 @@ if [ -f "$ENV_FILE.bak" ]; then
   mv "$ENV_FILE.bak" "$ENV_FILE"
 fi
 
-cp -rf /home/ubuntu/projects/next-train/dist/pwa/* /usr/share/nginx/html/next-train
+cp -rf /home/ubuntu/projects/next-train/dist/spa/* /usr/share/nginx/html/next-train
