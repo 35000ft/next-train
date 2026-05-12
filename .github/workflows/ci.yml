@@ -1,102 +1,102 @@
 name: CI/CD Workflow
 
 on:
-  push:
-    branches:
-      - quasar-dev
-  pull_request:
-    branches:
-      - quasar-dev
+    push:
+        branches:
+            - quasar-dev
+    pull_request:
+        branches:
+            - quasar-dev
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
+            -   name: Setup Node
+                uses: actions/setup-node@v4
+                with:
+                    node-version: 20
+                    cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+            -   name: Install dependencies
+                run: npm ci
 
-      - name: Lint check
-        run: npm run lint
+            -   name: Lint check
+                run: npm run lint
 
-  deploy:
-    needs: build
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    deploy:
+        needs: build
+        if: github.event_name == 'push'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v4
 
-      - name: Setup SSH key
-        uses: webfactory/ssh-agent@v1.1.0
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+            -   name: Setup SSH key
+                uses: webfactory/ssh-agent@v0.5.3
+                with:
+                    ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
-      - name: Run deploy script on remote server
-        id: deploy
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_ACCOUNT }} \
-            'bash -s' -- ${GITHUB_SHA} < .github/scripts/deploy.sh
+            -   name: Run deploy script on remote server
+                id: deploy
+                run: |
+                    ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_ACCOUNT }} \
+                      'bash -s' -- ${GITHUB_SHA} < .github/scripts/deploy.sh
 
-      - name: Check Deployed APP VERSION
-        run: |
-          set -e
+            -   name: Check Deployed APP VERSION
+                run: |
+                    set -e
 
-          URL="https://nmtr.site/next-train/"
-          EXPECTED_SHA="${GITHUB_SHA}"
+                    URL="https://nmtr.site/next-train/"
+                    EXPECTED_SHA="${GITHUB_SHA}"
 
-          echo "Fetching HTML from $URL"
-          HTML=$(curl -fsSL "$URL")
+                    echo "Fetching HTML from $URL"
+                    HTML=$(curl -fsSL "$URL")
 
-          echo "Extracting app-version meta"
-          APP_VERSION=$(echo "$HTML" | \
-            grep -oP '<meta\s+name=["'\''']app-version["'\''']\s+content=["'\''']\K[^"'\''']+')
+                    echo "Extracting app-version meta"
+                    APP_VERSION=$(echo "$HTML" | \
+                      grep -oP '<meta\s+name=["'\''']app-version["'\''']\s+content=["'\''']\K[^"'\''']+')
 
-          if [ -z "$APP_VERSION" ]; then
-            echo "❌ app-version meta not found"
-            exit 1
-          fi
+                    if [ -z "$APP_VERSION" ]; then
+                      echo "❌ app-version meta not found"
+                      exit 1
+                    fi
 
-          echo "app-version = $APP_VERSION"
-          echo "GITHUB_SHA = $EXPECTED_SHA"
+                    echo "app-version = $APP_VERSION"
+                    echo "GITHUB_SHA = $EXPECTED_SHA"
 
-          if [ "$APP_VERSION" = "$EXPECTED_SHA" ]; then
-            echo "✅ Deployment success: version matches"
-          else
-            echo "❌ Deployment failed: version mismatch"
-            exit 1
-          fi
+                    if [ "$APP_VERSION" = "$EXPECTED_SHA" ]; then
+                      echo "✅ Deployment success: version matches"
+                    else
+                      echo "❌ Deployment failed: version mismatch"
+                      exit 1
+                    fi
 
-      - name: Send deployment result email
-        if: always()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
-          subject: "Next Train Web Github Deploy Result: ${{ job.status }}"
-          to: ${{ secrets.DEPLOY_RESULT_MAIL_TO }}
-          from: GitHub Actions <${{ secrets.SMTP_USERNAME }}>
-          body: |
-            Project：${{ github.repository }}
-            Branch：${{ github.ref_name }}
-            Commit Message：${{ github.event.head_commit.message || 'N/A' }}
-            Commit SHA: ${{ github.sha }}
-            Status：${{ job.status }}
+            -   name: Send deployment result email
+                if: always()
+                uses: dawidd6/action-send-mail@v3
+                with:
+                    server_address: ${{ secrets.SMTP_SERVER }}
+                    server_port: ${{ secrets.SMTP_PORT }}
+                    username: ${{ secrets.SMTP_USERNAME }}
+                    password: ${{ secrets.SMTP_PASSWORD }}
+                    subject: "Next Train Web Github Deploy Result: ${{ job.status }}"
+                    to: ${{ secrets.DEPLOY_RESULT_MAIL_TO }}
+                    from: GitHub Actions <${{ secrets.SMTP_USERNAME }}>
+                    body: |
+                        Project：${{ github.repository }}
+                        Branch：${{ github.ref_name }}
+                        Commit Message：${{ github.event.head_commit.message || 'N/A' }}
+                        Commit SHA: ${{ github.sha }}
+                        Status：${{ job.status }}
 
-            ${{ job.status == 'failure' && format('❌ Deploy failure, Please check Actions log.\n{0}/{1}/actions/runs/{2}',github.server_url,github.repository,github.run_id) || '' }}
+                        ${{ job.status == 'failure' && format('❌ Deploy failure, Please check Actions log.\n{0}/{1}/actions/runs/{2}',github.server_url,github.repository,github.run_id) || '' }}
