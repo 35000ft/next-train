@@ -12,11 +12,10 @@ ENV_FILE="./.env.production"
 if [ -f "$ENV_FILE" ]; then
   cp "$ENV_FILE" "$ENV_FILE.bak"
 fi
-printf "%s\n" "APP_VERSION=$COMMIT_SHA" > "$ENV_FILE"
+printf "%s\n" "APP_VERSION=$COMMIT_SHA" >> "$ENV_FILE"
 
 echo "Current .env:"
 cat ./.env.production
-
 
 icongenie generate -m pwa -i ./public/icons/icon.png
 quasar build
