@@ -14,8 +14,8 @@ if [ -f "$ENV_FILE" ]; then
 fi
 printf "%s\n" "APP_VERSION=$COMMIT_SHA" > "$ENV_FILE"
 
-echo "Current .env"
-echo ./.env.production
+echo "Current .env:"
+cat ./.env.production
 
 
 icongenie generate -m pwa -i ./public/icons/icon.png
