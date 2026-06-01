@@ -23,7 +23,7 @@ const defaultRailSystems = {
     code: 'NJMTR',
     lang: 'zh-hans',
     fullname: '南京地铁',
-    timezone: '+08:00',
+    timezone: 'Asia/Shanghai',
     ownerId: 1,
     defaultStationId: "13"
 }
@@ -56,7 +56,7 @@ const onChangeRailsystem = async (railsystem) => {
         script.setAttribute('data-node-name', scriptNodeName)
         script.src = scriptUrl;
         script.onerror = () => {
-            reject(new Error(`Failed to load script: ${scriptUrl}`));
+            Promise.reject(new Error(`Failed to load script: ${scriptUrl} publicPath:${publicPath}`));
             document.head.removeChild(script);
         };
         document.head.appendChild(script);
