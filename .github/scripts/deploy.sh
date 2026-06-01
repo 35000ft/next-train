@@ -14,10 +14,14 @@ if [ -f "$ENV_FILE" ]; then
 fi
 printf "%s\n" "APP_VERSION=$COMMIT_SHA" > "$ENV_FILE"
 
+echo "Current .env"
+echo ./.env.production
+
+
 icongenie generate -m pwa -i ./public/icons/icon.png
 quasar build
 
-# 还原 .env.production，避免污染仓库工作区
+# 还原 .env.production
 if [ -f "$ENV_FILE.bak" ]; then
   mv "$ENV_FILE.bak" "$ENV_FILE"
 fi
