@@ -64,7 +64,7 @@ jobs:
 
                     echo "Extracting app-version meta"
                     APP_VERSION=$(echo "$HTML" | \
-                      grep -oP '<meta\s+name=["'\''']app-version["'\''']\s+content=["'\''']\K[^"'\''']+')
+                      grep -oP "<meta\s+name=['\"]app-version['\"]\s+content=['\"]\K[^'\"]+")
 
                     if [ -z "$APP_VERSION" ]; then
                       echo "❌ app-version meta not found"
